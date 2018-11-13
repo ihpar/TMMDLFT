@@ -10,18 +10,19 @@ import consts
 import json
 
 
-def train_by_all(makam, model, ver, set_size, exclude):
+def train_by_all(makam, model, ver, set_size, exclude, main_epochs):
     file_cnt = int(dl.get_data_size(makam, ver) / 3)
     histories = []
 
-    for i in range(file_cnt):
-        if i in exclude:
-            continue
-        print(f'Training on Song {i}')
-        print('==============================================================')
-        x_train, y_train = dl.load_data(makam, ver, str(i), set_size)
-        history = model.fit(x_train, y_train, epochs=12)
-        histories.append(history.history['loss'])
+    for e in range(main_epochs):
+        for i in range(file_cnt):
+            if i in exclude:
+                continue
+            print(f'Training on Song {i}')
+            print('==============================================================')
+            x_train, y_train = dl.load_data(makam, ver, str(i), set_size)
+            history = model.fit(x_train, y_train, epochs=12)
+            histories.append(history.history['loss'])
 
     return histories
 
@@ -79,16 +80,16 @@ def data_to_mus2(notes, durs, makam, song_title):
     print(f'{song_title}.mu2 is saved to disk!')
 
 
-def trainer(makam, ver, model_name, exclude, set_size):
+def trainer(makam, ver, model_name, exclude, set_size, main_epochs):
     x_train, y_train = dl.load_data(makam, ver, '25', set_size)
     model = build_model(x_train.shape[1:], y_train.shape[1])
+
     start = time.time()
-    histories = train_by_all(makam, model, ver, set_size, exclude)
-    path = os.path.join(os.getcwd(), 'models', makam)
-    path = os.path.join(path, model_name + '_histories')
+    histories = train_by_all(makam, model, ver, set_size, exclude, main_epochs)
+
+    path = os.path.join(os.getcwd(), 'models', makam, model_name + '_histories.json')
     with open(path + '_histories', 'w') as hs:
-        for history in histories:
-            hs.write(json.dumps(history))
+        hs.write(json.dumps(histories))
 
     end = time.time()
     hours, rem = divmod(end - start, 3600)
@@ -101,7 +102,7 @@ def trainer(makam, ver, model_name, exclude, set_size):
 def plot_loss(makam, model_name):
     path = os.path.join(os.getcwd(), 'models', makam, model_name + '_histories')
     with open(path, 'r') as fp:
-        line = '[' + fp.readline().replace('][', '],[') + ']'
+        line = fp.readline()
         histories = json.loads(line)
         plot_data = []
         for history in histories:
@@ -117,10 +118,10 @@ def main():
     ver = 'v2'
     set_size = 6
     exclude = [2, 12, 20, 30, 35, 55, 67, 88, 91, 93, 101, 103, 130]
+    main_epochs = 12
 
-    # trainer(makam, ver, model_name, exclude, set_size)
-    # plot_loss(makam, model_name)
-    model = load_model(makam, model_name)
+    trainer(makam, ver, model_name, exclude, set_size, main_epochs)
+    plot_loss(makam, model_name)
 
 
 if __name__ == '__main__':
