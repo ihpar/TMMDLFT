@@ -4,7 +4,7 @@ import numpy as np
 
 
 def load_data(makam, ver, idx, set_size=1):
-    path = os.path.join(os.getcwd(), 'data', makam, ver)
+    path = os.path.join(os.path.abspath('..'), 'data', makam, ver)
     song = json.load(open(os.path.join(path, 's_' + idx), 'r'))
     xs, ys = [], []
     for i in range(len(song) - set_size):
@@ -17,7 +17,7 @@ def load_data(makam, ver, idx, set_size=1):
 
 
 def get_data_size(makam, ver):
-    path = os.path.join(os.getcwd(), 'data', makam, ver)
+    path = os.path.join(os.path.abspath('..'), 'data', makam, ver)
     return len(os.listdir(path))
 
 
