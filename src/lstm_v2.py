@@ -23,8 +23,6 @@ def train_by_all(makam, model, ver, set_size, exclude, main_epochs):
             x_train, y_train = dl.load_data(makam, ver, str(i), set_size)
             history = model.fit(x_train, y_train, epochs=12)
             histories.append(history.history['loss'])
-            break
-        break
 
     return histories
 
@@ -90,7 +88,7 @@ def trainer(makam, ver, model_name, exclude, set_size, main_epochs):
     histories = train_by_all(makam, model, ver, set_size, exclude, main_epochs)
 
     path = os.path.join(os.path.abspath('..'), 'models', makam, model_name + '_histories.json')
-    with open(path + '_histories', 'w') as hs:
+    with open(path, 'w') as hs:
         hs.write(json.dumps(histories))
 
     end = time.time()
@@ -102,7 +100,7 @@ def trainer(makam, ver, model_name, exclude, set_size, main_epochs):
 
 
 def plot_loss(makam, model_name):
-    path = os.path.join(os.path.abspath('..'), 'models', makam, model_name + '_histories')
+    path = os.path.join(os.path.abspath('..'), 'models', makam, model_name + '_histories.json')
     with open(path, 'r') as fp:
         histories = json.load(fp)
         plot_data = []

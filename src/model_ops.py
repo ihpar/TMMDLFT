@@ -21,7 +21,7 @@ def build_model(in_shape, out_shape):
 
 
 def save_model(makam, model_name, model):
-    path = os.path.join(os.getcwd(), 'models', makam)
+    path = os.path.join(os.path.abspath('..'), 'models', makam)
     json_path = os.path.join(path, model_name + '.json')
     w_path = os.path.join(path, model_name + '.h5')
 
@@ -34,7 +34,7 @@ def save_model(makam, model_name, model):
 
 
 def load_model(makam, model_name):
-    path = os.path.join(os.getcwd(), 'models', makam)
+    path = os.path.join(os.path.abspath('..'), 'models', makam)
     json_path = os.path.join(path, model_name + '.json')
     w_path = os.path.join(path, model_name + '.h5')
 

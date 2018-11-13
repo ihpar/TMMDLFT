@@ -47,7 +47,7 @@ def build_in_out(song, in_len):
 
 
 def get_paths(makam, ver, song, xs, ys, idx):
-    dire = os.path.join(os.getcwd(), 'data', makam, ver)
+    dire = os.path.join(os.path.abspath('..'), 'data', makam, ver)
     res = [os.path.join(dire, song + idx), os.path.join(dire, xs + idx), os.path.join(dire, ys + idx)]
     return res
 
