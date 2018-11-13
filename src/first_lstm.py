@@ -102,8 +102,7 @@ def trainer(makam, ver, model_name, exclude, set_size, main_epochs):
 def plot_loss(makam, model_name):
     path = os.path.join(os.getcwd(), 'models', makam, model_name + '_histories')
     with open(path, 'r') as fp:
-        line = fp.readline()
-        histories = json.loads(line)
+        histories = json.load(fp)
         plot_data = []
         for history in histories:
             plot_data.extend(history)
