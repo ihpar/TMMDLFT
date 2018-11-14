@@ -137,8 +137,8 @@ def plot_loss(makam, model_name):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v2'
-    ver = 'v3'
+    model_name = 'lstm_v3'
+    ver = 'v2'
     set_size = 12
     exclude = [3, 15, 22, 31, 35, 56, 68, 89, 92, 93, 102, 108, 131]
     main_epochs = 32
