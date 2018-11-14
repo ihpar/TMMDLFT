@@ -8,14 +8,14 @@ from tensorflow.keras.optimizers import RMSprop
 def build_model(in_shape, out_shape):
     model = Sequential()
     model.add(LSTM(256, return_sequences=True, input_shape=in_shape))
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.1))
     model.add(LSTM(256, return_sequences=False))
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.1))
     model.add(Dense(out_shape))
-    model.add(Activation('softmax'))
+    model.add(Activation('sigmoid'))
 
     optimizer = RMSprop(lr=0.01)
-    model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+    model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     model.summary()
     return model
 
@@ -45,7 +45,7 @@ def load_model(makam, model_name):
     loaded_model = model_from_json(loaded_model_json)
     # load weights into new model
     loaded_model.load_weights(w_path)
-    print(f'Model loaded from {json_path} and {w_path}')
+    print(f'Model loaded from {json_path}')
     optimizer = RMSprop(lr=0.01)
-    loaded_model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+    loaded_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     return loaded_model

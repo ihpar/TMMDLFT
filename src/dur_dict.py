@@ -1,10 +1,12 @@
 from fractions import Fraction
+import numpy as np
 
 
 class DurDictionary:
     def __init__(self, makam):
         self.__durs = set()
         self.dur_dict = {}
+        self.dur_dict_rev = {}
         self.__build_durs__(makam)
 
     def __build_durs__(self, makam):
@@ -18,4 +20,9 @@ class DurDictionary:
                     self.__durs.add(note_dur)
 
             for i, dur in enumerate(sorted(self.__durs)):
-                self.dur_dict[dur] = [int(x) for x in bin(i+1)[2:].zfill(6)]
+                binr = [int(x) for x in bin(i + 1)[2:].zfill(6)]
+                self.dur_dict[dur] = binr
+                self.dur_dict_rev[i + 1] = dur
+
+    def get_dur_by_num(self, num):
+        return self.dur_dict_rev[num]
