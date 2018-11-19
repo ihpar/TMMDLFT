@@ -25,4 +25,6 @@ class DurDictionary:
                 self.dur_dict_rev[i + 1] = dur
 
     def get_dur_by_num(self, num):
+        if num not in self.dur_dict_rev:
+            return False
         return self.dur_dict_rev[num]

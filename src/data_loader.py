@@ -31,6 +31,41 @@ def to_one_hot(seq, th):
     return res
 
 
+def apply_threshold(vec, th):
+    res = np.zeros(vec.shape, dtype=int)
+    for i, _ in enumerate(vec):
+        if vec[i] >= th:
+            res[i] = 1
+    return res
+
+
+def to_one_hot_ext(pred, th, thl, nd, dd):
+    step = 0.02
+    th_note, th_dur = th, th
+    note_seq = pred[0][:10]
+    dur_seq = pred[0][10:]
+
+    note = apply_threshold(note_seq, th_note)
+    note_num = int(''.join(str(b) for b in note), 2)
+    while note_num == 0 or not (nd.get_note_by_num(note_num))[3]:
+        th_note -= step
+        note = apply_threshold(note_seq, th_note)
+        note_num = int(''.join(str(b) for b in note), 2)
+        if th_note < thl:
+            break
+
+    dur = apply_threshold(dur_seq, th_dur)
+    dur_num = int(''.join(str(b) for b in dur), 2)
+    while not dd.get_dur_by_num(dur_num):
+        th_dur -= step
+        dur = apply_threshold(dur_seq, th_dur)
+        dur_num = int(''.join(str(b) for b in dur), 2)
+
+    res = np.array([np.concatenate((note, dur), axis=0)])
+
+    return res
+
+
 def main():
     x, y = load_data('hicaz', '25')
     print(x.shape)

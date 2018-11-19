@@ -22,7 +22,7 @@ def train_by_all(makam, model, ver, set_size, exclude, main_epochs):
             print(f'Training on Song {i}')
             print('==============================================================')
             x_train, y_train = dl.load_data(makam, ver, str(i), set_size)
-            history = model.fit(x_train, y_train, epochs=10)
+            history = model.fit(x_train, y_train, epochs=32)
             histories.append(history.history['loss'])
 
     return histories
@@ -34,7 +34,7 @@ def make_song(model, starting, total_dur, batch_size):
 
     for i in range(total_dur):
         part = gen_song[:, -xpy:, :]
-        prediction = np.array([dl.to_one_hot(model.predict(part), 0.6)])
+        prediction = np.array([dl.to_one_hot(model.predict(part), 0.8)])
         gen_song = np.append(gen_song, prediction, axis=1)
 
     return gen_song
@@ -135,21 +135,38 @@ def plot_loss(makam, model_name):
         plt.show()
 
 
+def make_song_ext(makam, model, x, total):
+    note_dict = nd.NoteDictionary()
+    dur_dict = dd.DurDictionary(makam + '--')
+    song = np.copy(x)
+    xpy = song.shape[1]
+
+    for i in range(total):
+        part = song[:, -xpy:, :]
+        prediction = np.array([dl.to_one_hot_ext(model.predict(part), 0.8, 0.5, note_dict, dur_dict)])
+        song = np.append(song, prediction, axis=1)
+
+    return song
+
+
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v3'
+    model_name = 'lstm_v4'
     ver = 'v2'
     set_size = 12
     exclude = [3, 15, 22, 31, 35, 56, 68, 89, 92, 93, 102, 108, 131]
-    main_epochs = 32
+    main_epochs = 16
 
     trainer(makam, ver, model_name, exclude, set_size, main_epochs)
     plot_loss(makam, model_name)
 
+    # model = load_model(makam, model_name)
+    # x_test, y_test = dl.load_data(makam, ver, '1', set_size)
+    # scores = model.evaluate(x_test, y_test, verbose=0)
+    # print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
+
     '''
-    model = load_model(makam, model_name)
-    x_test, y_test = dl.load_data(makam, ver, '1', set_size)
-    song = make_song(model, [x_test[0]], 64, 1)
+    song = make_song_ext(makam, model, [x_test[0]], 32)
     lines = data_to_mus2(song, makam, model_name)
     for line in lines:
         print(line)
