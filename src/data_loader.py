@@ -40,7 +40,7 @@ def apply_threshold(vec, th):
 
 
 def to_one_hot_ext(pred, th, thl, nd, dd):
-    step = 0.02
+    step = 0.01
     th_note, th_dur = th, th
     note_seq = pred[0][:10]
     dur_seq = pred[0][10:]

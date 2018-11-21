@@ -16,6 +16,7 @@ def train_by_all(makam, model, ver, set_size, exclude, main_epochs):
     histories = []
 
     for e in range(main_epochs):
+        print(f'-----------MAIN LOOP {e}--------------')
         for i in range(file_cnt):
             if i in exclude:
                 continue
@@ -143,7 +144,7 @@ def make_song_ext(makam, model, x, total):
 
     for i in range(total):
         part = song[:, -xpy:, :]
-        prediction = np.array([dl.to_one_hot_ext(model.predict(part), 0.8, 0.5, note_dict, dur_dict)])
+        prediction = np.array([dl.to_one_hot_ext(model.predict(part), 0.95, 0.7, note_dict, dur_dict)])
         song = np.append(song, prediction, axis=1)
 
     return song
@@ -157,20 +158,18 @@ def main():
     exclude = [3, 15, 22, 31, 35, 56, 68, 89, 92, 93, 102, 108, 131]
     main_epochs = 16
 
-    trainer(makam, ver, model_name, exclude, set_size, main_epochs)
-    plot_loss(makam, model_name)
+    # trainer(makam, ver, model_name, exclude, set_size, main_epochs)
+    # plot_loss(makam, model_name)
 
-    # model = load_model(makam, model_name)
-    # x_test, y_test = dl.load_data(makam, ver, '1', set_size)
+    model = load_model(makam, model_name)
+    x_test, y_test = dl.load_data(makam, ver, '2', set_size)
     # scores = model.evaluate(x_test, y_test, verbose=0)
     # print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
 
-    '''
-    song = make_song_ext(makam, model, [x_test[0]], 32)
+    song = make_song_ext(makam, model, [x_test[0]], 256)
     lines = data_to_mus2(song, makam, model_name)
     for line in lines:
         print(line)
-    '''
 
 
 if __name__ == '__main__':
