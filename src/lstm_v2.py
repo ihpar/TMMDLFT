@@ -23,7 +23,7 @@ def train_by_all(makam, model, ver, set_size, exclude, main_epochs):
             print(f'Training on Song {i}')
             print('==============================================================')
             x_train, y_train = dl.load_data(makam, ver, str(i), set_size)
-            history = model.fit(x_train, y_train, epochs=32)
+            history = model.fit(x_train, y_train, epochs=16)
             histories.append(history.history['loss'])
 
     return histories
@@ -152,24 +152,24 @@ def make_song_ext(makam, model, x, total):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v4'
+    model_name = 'lstm_v5'
     ver = 'v2'
     set_size = 12
     exclude = [3, 15, 22, 31, 35, 56, 68, 89, 92, 93, 102, 108, 131]
-    main_epochs = 16
+    main_epochs = 32
 
-    # trainer(makam, ver, model_name, exclude, set_size, main_epochs)
-    # plot_loss(makam, model_name)
+    trainer(makam, ver, model_name, exclude, set_size, main_epochs)
+    plot_loss(makam, model_name)
 
-    model = load_model(makam, model_name)
-    x_test, y_test = dl.load_data(makam, ver, '2', set_size)
+    # model = load_model(makam, model_name)
+    # x_test, y_test = dl.load_data(makam, ver, '2', set_size)
     # scores = model.evaluate(x_test, y_test, verbose=0)
     # print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
 
-    song = make_song_ext(makam, model, [x_test[0]], 256)
-    lines = data_to_mus2(song, makam, model_name)
-    for line in lines:
-        print(line)
+    # song = make_song_ext(makam, model, [x_test[0]], 256)
+    # lines = data_to_mus2(song, makam, model_name)
+    # for line in lines:
+    #   print(line)
 
 
 if __name__ == '__main__':
