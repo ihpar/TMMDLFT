@@ -28,3 +28,13 @@ class DurDictionary:
         if num not in self.dur_dict_rev:
             return False
         return self.dur_dict_rev[num]
+
+    def __repr__(self):
+        return "<DurDictionary di:%s rev_di:%s>" % (self.dur_dict, self.dur_dict_rev)
+
+    def __str__(self):
+        res = ''
+        for k, v in self.dur_dict.items():
+            res += str(k).ljust(5) + '\t'
+            res += ' '.join(str(e) for e in v) + '\n'
+        return res

@@ -74,8 +74,36 @@ def corpus_2_extended_hot(makam):
     return song_list
 
 
+def corpus_2_one_hot(makam):
+    song_list = []
+    durs = DurDictionary(makam)
+    print(durs)
+
+    '''
+    with open(makam + 'corpus_dur.txt', 'r') as f:
+        songs = f.readlines()
+        for song in songs:
+            song_data = []
+            notes = song.split(' ')
+            for note in notes:
+                parts = note.split(':')
+                note_key = int(parts[0])
+                note_dur = Fraction(parts[1])
+                binr = [int(x) for x in bin(note_key)[2:].zfill(10)]
+                binr.extend(durs.dur_dict[note_dur])
+                song_data.append(binr)
+
+            song_list.append(song_data)
+
+    return song_list
+    '''
+    return None
+
+
 def main():
-    corpus = corpus_2_extended_hot('hicaz--')
+    # corpus = corpus_2_extended_hot('hicaz--')
+    corpus = corpus_2_one_hot('hicaz--')
+    '''
     ver = 'v2'
 
     for i, song in enumerate(corpus):
@@ -87,6 +115,7 @@ def main():
             s.write(json.dumps(song))
             x.write(json.dumps(song_x))
             y.write(json.dumps(song_y))
+    '''
 
 
 if __name__ == '__main__':

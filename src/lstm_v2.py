@@ -144,7 +144,7 @@ def make_song_ext(makam, model, x, total):
 
     for i in range(total):
         part = song[:, -xpy:, :]
-        prediction = np.array([dl.to_one_hot_ext(model.predict(part), 0.95, 0.7, note_dict, dur_dict)])
+        prediction = np.array([dl.to_one_hot_ext(model.predict(part), 0.75, 0.4, note_dict, dur_dict)])
         song = np.append(song, prediction, axis=1)
 
     return song
@@ -159,17 +159,17 @@ def main():
     main_epochs = 32
 
     trainer(makam, ver, model_name, exclude, set_size, main_epochs)
-    plot_loss(makam, model_name)
+    # plot_loss(makam, model_name)
 
-    # model = load_model(makam, model_name)
-    # x_test, y_test = dl.load_data(makam, ver, '2', set_size)
-    # scores = model.evaluate(x_test, y_test, verbose=0)
-    # print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
+    model = load_model(makam, model_name)
+    x_test, y_test = dl.load_data(makam, ver, '2', set_size)
+    scores = model.evaluate(x_test, y_test, verbose=0)
+    print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
 
-    # song = make_song_ext(makam, model, [x_test[0]], 256)
-    # lines = data_to_mus2(song, makam, model_name)
-    # for line in lines:
-    #   print(line)
+    song = make_song_ext(makam, model, [x_test[0]], 256)
+    lines = data_to_mus2(song, makam, model_name)
+    for line in lines:
+        print(line)
 
 
 if __name__ == '__main__':
