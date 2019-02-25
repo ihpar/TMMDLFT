@@ -152,15 +152,16 @@ def make_song_ext(makam, model, x, total):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v5'
-    ver = 'v2'
-    set_size = 12
-    exclude = [3, 15, 22, 31, 35, 56, 68, 89, 92, 93, 102, 108, 131]
+    model_name = 'lstm_v30'
+    ver = 'v3'
+    set_size = 8
+    exclude = [4, 14, 21, 32, 36, 55, 66, 88, 91, 94, 101, 109, 130]
     main_epochs = 32
 
     trainer(makam, ver, model_name, exclude, set_size, main_epochs)
-    # plot_loss(makam, model_name)
+    plot_loss(makam, model_name)
 
+    '''
     model = load_model(makam, model_name)
     x_test, y_test = dl.load_data(makam, ver, '2', set_size)
     scores = model.evaluate(x_test, y_test, verbose=0)
@@ -170,6 +171,7 @@ def main():
     lines = data_to_mus2(song, makam, model_name)
     for line in lines:
         print(line)
+    '''
 
 
 if __name__ == '__main__':
