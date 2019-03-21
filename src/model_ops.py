@@ -8,9 +8,9 @@ from tensorflow.keras.optimizers import RMSprop
 def build_model(in_shape, out_shape):
     model = Sequential()
     model.add(LSTM(512, return_sequences=True, input_shape=in_shape))
-    model.add(Dropout(0.15))
+    model.add(Dropout(0.2))
     model.add(LSTM(512, return_sequences=False))
-    model.add(Dropout(0.15))
+    model.add(Dropout(0.2))
     model.add(Dense(out_shape))
     model.add(Activation('sigmoid'))
 
