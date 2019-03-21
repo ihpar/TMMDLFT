@@ -17,11 +17,10 @@ def train_by_all(makam, model, ver, set_size, exclude, main_epochs):
     histories = []
 
     for e in range(main_epochs):
-        print(f'-----------MAIN LOOP {e}--------------')
         for i in range(file_cnt):
             if i in exclude:
                 continue
-            print(f'Training on Song {i}')
+            print(f'Training on Song {i}: Main {e}')
             print('==============================================================')
             x_train, y_train = dl.load_data(makam, ver, str(i), set_size)
             history = model.fit(x_train, y_train, epochs=2)
