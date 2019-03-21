@@ -39,15 +39,16 @@ def apply_threshold(vec, th):
     return res
 
 
-def to_one_hot_ext(pred, th, thl, nd, dd):
+def to_one_hot_ext(pred, th, thl, nd):
     step = 0.01
     th_note, th_dur = th, th
-    note_seq = pred[0][:10]
-    dur_seq = pred[0][10:]
+    note_seq = pred[0][:7]
+    dur_seq = pred[0][7:]
 
     note = apply_threshold(note_seq, th_note)
     note_num = int(''.join(str(b) for b in note), 2)
-    while note_num == 0 or not (nd.get_note_by_num(note_num))[3]:
+
+    while note_num == 0 or not nd.get_note_by_num(note_num):
         th_note -= step
         note = apply_threshold(note_seq, th_note)
         note_num = int(''.join(str(b) for b in note), 2)
@@ -56,7 +57,7 @@ def to_one_hot_ext(pred, th, thl, nd, dd):
 
     dur = apply_threshold(dur_seq, th_dur)
     dur_num = int(''.join(str(b) for b in dur), 2)
-    while not dd.get_dur_by_num(dur_num):
+    while not nd.get_dur_by_num(dur_num):
         th_dur -= step
         dur = apply_threshold(dur_seq, th_dur)
         dur_num = int(''.join(str(b) for b in dur), 2)

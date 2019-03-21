@@ -9,6 +9,7 @@ import io
 import time
 import consts
 import json
+from nc_dictionary import NCDictionary
 
 
 def train_by_all(makam, model, ver, set_size, exclude, main_epochs):
@@ -23,7 +24,7 @@ def train_by_all(makam, model, ver, set_size, exclude, main_epochs):
             print(f'Training on Song {i}')
             print('==============================================================')
             x_train, y_train = dl.load_data(makam, ver, str(i), set_size)
-            history = model.fit(x_train, y_train, epochs=4)
+            history = model.fit(x_train, y_train, epochs=2)
             histories.append(history.history['loss'])
 
     return histories
@@ -69,32 +70,29 @@ def song_to_mus2_data(song):
 
 
 def data_to_mus2(song, makam, song_title):
-    note_dict = nd.NoteDictionary()
-    dur_dict = dd.DurDictionary(makam + '--')
+    note_dict = NCDictionary()
     lines = consts.mu2_header
     lines[1] = lines[1].replace('{makam}', makam)
     lines[7] = lines[7].replace('{song_title}', song_title)
     for row in song[0]:
-        note = int(''.join(str(b) for b in row[:10]), 2)
-        dur = int(''.join(str(b) for b in row[10:]), 2)
+        note = int(''.join(str(b) for b in row[:7]), 2)
+        dur = int(''.join(str(b) for b in row[7:]), 2)
         note = note_dict.get_note_by_num(note)
-        if not note[3]:
+        if not note:
             raise Exception('Note N/A')
-        note_name = note[1].name
-        if note[2]:
-            note_name = note[2].name
-        note_name = note_name.title()
-        dur = dur_dict.get_dur_by_num(dur)
+        note = note.capitalize()
 
-        if note_name == 'Rest':
+        dur = note_dict.get_dur_by_num(dur).split('/')
+
+        if note == 'Rest':
             lines.append('9		{num}	{denom}	95	96	64	.		0.5'
-                         .replace('{num}', str(dur.numerator))
-                         .replace('{denom}', str(dur.denominator)))
+                         .replace('{num}', dur[0])
+                         .replace('{denom}', dur[1]))
         else:
             lines.append('9	{nn}	{num}	{denom}	95	96	64	.		0.5'
-                         .replace('{nn}', note_name)
-                         .replace('{num}', str(dur.numerator))
-                         .replace('{denom}', str(dur.denominator)))
+                         .replace('{nn}', note)
+                         .replace('{num}', dur[0])
+                         .replace('{denom}', dur[1]))
 
     path = os.path.join(os.path.abspath('..'), 'songs', makam, song_title + '.mu2')
     with io.open(path, 'w', encoding='utf-8') as song_file:
@@ -136,15 +134,14 @@ def plot_loss(makam, model_name):
         plt.show()
 
 
-def make_song_ext(makam, model, x, total):
-    note_dict = nd.NoteDictionary()
-    dur_dict = dd.DurDictionary(makam + '--')
+def make_song_ext(model, x, total):
+    note_dict = NCDictionary()
     song = np.copy(x)
     xpy = song.shape[1]
 
     for i in range(total):
         part = song[:, -xpy:, :]
-        prediction = np.array([dl.to_one_hot_ext(model.predict(part), 0.75, 0.4, note_dict, dur_dict)])
+        prediction = np.array([dl.to_one_hot_ext(model.predict(part), 0.55, 0.5, note_dict)])
         song = np.append(song, prediction, axis=1)
 
     return song
@@ -152,7 +149,7 @@ def make_song_ext(makam, model, x, total):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v32'
+    model_name = 'lstm_v40'
     ver = 'v3'
     set_size = 8
     exclude = [4, 14, 21, 32, 36, 55, 66, 88, 91, 94, 101, 109, 130]
@@ -163,16 +160,15 @@ def main():
 
     '''
     model = load_model(makam, model_name)
-    x_test, y_test = dl.load_data(makam, ver, '2', set_size)
+    x_test, y_test = dl.load_data(makam, ver, '4', set_size)
     scores = model.evaluate(x_test, y_test, verbose=0)
     print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
 
-    song = make_song_ext(makam, model, [x_test[0]], 256)
+    song = make_song_ext(model, [x_test[0]], 256)
     lines = data_to_mus2(song, makam, model_name)
-    for line in lines:
-        print(line)
-    '''
-
+    # for line in lines:
+    #     print(line)
+'''
 
 if __name__ == '__main__':
     main()

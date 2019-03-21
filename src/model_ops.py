@@ -46,6 +46,6 @@ def load_model(makam, model_name):
     # load weights into new model
     loaded_model.load_weights(w_path)
     print(f'Model loaded from {json_path}')
-    optimizer = RMSprop(lr=0.001)
+    optimizer = RMSprop(lr=0.0005)
     loaded_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     return loaded_model
