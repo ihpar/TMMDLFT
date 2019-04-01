@@ -23,7 +23,7 @@ def train_by_all(makam, model, ver, set_size, exclude, main_epochs):
             print(f'Training on Song {i}: Main {e}')
             print('==============================================================')
             x_train, y_train = dl.load_data(makam, ver, str(i), set_size)
-            history = model.fit(x_train, y_train, epochs=2)
+            history = model.fit(x_train, y_train, epochs=1)
             histories.append(history.history['loss'])
 
     return histories
@@ -140,7 +140,7 @@ def make_song_ext(model, x, total):
 
     for i in range(total):
         part = song[:, -xpy:, :]
-        prediction = np.array([dl.to_one_hot_ext(model.predict(part), 0.55, 0.5, note_dict)])
+        prediction = np.array([dl.to_one_hot_ext(model.predict(part), 0.8, 0.5, note_dict)])
         song = np.append(song, prediction, axis=1)
 
     return song
@@ -148,11 +148,11 @@ def make_song_ext(model, x, total):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v40'
+    model_name = 'lstm_v41'
     ver = 'v3'
     set_size = 8
     exclude = [4, 14, 21, 32, 36, 55, 66, 88, 91, 94, 101, 109, 130]
-    main_epochs = 64
+    main_epochs = 128
 
     trainer(makam, ver, model_name, exclude, set_size, main_epochs)
     plot_loss(makam, model_name)
