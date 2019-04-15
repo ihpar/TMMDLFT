@@ -7,6 +7,8 @@ from tensorflow.keras.optimizers import RMSprop
 
 def build_model(in_shape, out_shape):
     model = Sequential()
+    '''
+    v 41
     model.add(LSTM(256, return_sequences=True, input_shape=in_shape))
     model.add(Dropout(0.2))
     model.add(LSTM(256, return_sequences=True))
@@ -17,6 +19,17 @@ def build_model(in_shape, out_shape):
     model.add(Activation('sigmoid'))
 
     optimizer = RMSprop(lr=0.001)
+    '''
+    model.add(LSTM(512, return_sequences=True, input_shape=in_shape))
+    model.add(Dropout(0.2))
+    model.add(LSTM(512, return_sequences=True))
+    model.add(Dropout(0.2))
+    model.add(LSTM(512, return_sequences=False))
+    model.add(Dropout(0.2))
+    model.add(Dense(out_shape))
+    model.add(Activation('sigmoid'))
+
+    optimizer = RMSprop(lr=0.0005)
     model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     model.summary()
     return model
