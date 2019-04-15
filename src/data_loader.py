@@ -48,6 +48,9 @@ def to_one_hot_ext(pred, th, thl, nd):
     note = apply_threshold(note_seq, th_note)
     note_num = int(''.join(str(b) for b in note), 2)
 
+    if not nd.get_note_by_num(note_num):
+        print(note_num)
+
     while note_num == 0 or not nd.get_note_by_num(note_num):
         th_note -= step
         note = apply_threshold(note_seq, th_note)
