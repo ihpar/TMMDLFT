@@ -141,7 +141,7 @@ def make_song_ext(model, x, total):
     for i in range(total):
         part = song[:, -xpy:, :]
         # 0.79 best with 79.69% acc
-        prediction = np.array([dl.to_one_hot_ext(model.predict(part), 0.84, 0.2, note_dict)])
+        prediction = np.array([dl.to_one_hot_ext(model.predict(part), 0.75, 0.2, note_dict)])
         song = np.append(song, prediction, axis=1)
 
     return song
@@ -149,11 +149,12 @@ def make_song_ext(model, x, total):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v44'
+    model_name = 'lstm_v45'
     ver = 'v3'
 
-    # set_size = 8 - v 41
-    set_size = 4  # v 44
+    # set_size = 8  # v 41
+    # set_size = 4  # v 44
+    set_size = 16  # v 45
     exclude = [4, 14, 21, 32, 36, 55, 66, 88, 91, 94, 101, 109, 130]
     main_epochs = 64
 
@@ -162,7 +163,7 @@ def main():
 
     '''
     model = load_model(makam, model_name)
-    x_test, y_test = dl.load_data(makam, ver, '4', set_size)
+    x_test, y_test = dl.load_data(makam, ver, '36', set_size)
     scores = model.evaluate(x_test, y_test, verbose=0)
     print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
 
