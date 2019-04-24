@@ -4,9 +4,9 @@ roll_intervals = 192
 min_dur = Fraction(1 / roll_intervals)
 
 mu2_header = [
-    '4	4	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	1',
+    '0	0	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	1',
     '50							{makam}	B4b4/F5#4/C5#4	',
-    '51		4	4				Sofyan		',
+    '51		0	0				[Serbest]		',
     '52		1	4	66					',
     '57							Beste		',
     '58							ismail par		',

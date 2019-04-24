@@ -29,7 +29,7 @@ def build_model(in_shape, out_shape):
     model.add(Dense(out_shape))
     model.add(Activation('sigmoid'))
 
-    optimizer = RMSprop(lr=0.0005)
+    optimizer = RMSprop(lr=0.001)
     model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     model.summary()
     return model
@@ -61,6 +61,6 @@ def load_model(makam, model_name):
     # load weights into new model
     loaded_model.load_weights(w_path)
     print(f'Model loaded from {json_path}')
-    optimizer = RMSprop(lr=0.0005)
+    optimizer = RMSprop(lr=0.001)
     loaded_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     return loaded_model

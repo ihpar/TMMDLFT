@@ -10,16 +10,21 @@ import time
 import consts
 import json
 from nc_dictionary import NCDictionary
+import random
 
 
 def train_by_all(makam, model, ver, set_size, exclude, main_epochs):
     file_cnt = int(dl.get_data_size(makam, ver) / 3)
     histories = []
+    train_set = []
+    for i in range(file_cnt):
+        if i in exclude:
+            continue
+        train_set.append(i)
 
     for e in range(main_epochs):
-        for i in range(file_cnt):
-            if i in exclude:
-                continue
+        random.shuffle(train_set)
+        for i in train_set:
             print(f'Training on Song {i}: Main {e}')
             print('==============================================================')
             x_train, y_train = dl.load_data(makam, ver, str(i), set_size)
@@ -141,7 +146,7 @@ def make_song_ext(model, x, total):
     for i in range(total):
         part = song[:, -xpy:, :]
         # 0.79 best with 79.69% acc
-        prediction = np.array([dl.to_one_hot_ext(model.predict(part), 0.75, 0.2, note_dict)])
+        prediction = np.array([dl.to_one_hot_ext(model.predict(part), 0.81, 0.2, note_dict)])
         song = np.append(song, prediction, axis=1)
 
     return song
@@ -149,12 +154,13 @@ def make_song_ext(model, x, total):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v45'
+    model_name = 'lstm_v46'
     ver = 'v3'
 
     # set_size = 8  # v 41
     # set_size = 4  # v 44
-    set_size = 16  # v 45
+    # set_size = 16  # v 45
+    set_size = 6  # v 46
     exclude = [4, 14, 21, 32, 36, 55, 66, 88, 91, 94, 101, 109, 130]
     main_epochs = 64
 
@@ -163,7 +169,7 @@ def main():
 
     '''
     model = load_model(makam, model_name)
-    x_test, y_test = dl.load_data(makam, ver, '36', set_size)
+    x_test, y_test = dl.load_data(makam, ver, '21', set_size)
     scores = model.evaluate(x_test, y_test, verbose=0)
     print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
 
