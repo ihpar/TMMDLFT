@@ -1,6 +1,7 @@
 import json
 import os
 import numpy as np
+from random import randint
 
 
 def load_data(makam, ver, idx, set_size=1):
@@ -39,30 +40,51 @@ def apply_threshold(vec, th):
     return res
 
 
-def to_one_hot_ext(pred, th, thl, nd):
-    step = 0.01
-    th_note, th_dur = th, th
+def find_candidates(seq, lo, hi):
+    candidates = list()
+    while lo < hi:
+        candidate = list()
+        mini = 9999.0
+        all_zeros = True
+        for n in seq:
+            if n <= lo:
+                candidate.append(0)
+            else:
+                candidate.append(1)
+                all_zeros = False
+                if n < mini:
+                    mini = n
+        if not all_zeros:
+            candidates.append(candidate)
+        else:
+            break
+        lo = mini
+    return candidates
+
+
+def pick_candidate(candidates):
+    # TODO: fix logic!
+    return np.array(candidates[randint(0, len(candidates) - 1)])
+
+
+def to_one_hot_ext(pred, lo, hi, nd):
     note_seq = pred[0][:7]
     dur_seq = pred[0][7:]
+    note_candidates = find_candidates(note_seq, lo, hi)
+    dur_candidates = find_candidates(dur_seq, lo, hi)
+    print(len(note_candidates), len(dur_candidates))
 
-    note = apply_threshold(note_seq, th_note)
+    note = pick_candidate(note_candidates)
     note_num = int(''.join(str(b) for b in note), 2)
-
-    if not nd.get_note_by_num(note_num):
-        print(note_num)
-
-    while note_num == 0 or not nd.get_note_by_num(note_num):
-        th_note -= step
-        note = apply_threshold(note_seq, th_note)
+    while not nd.get_note_by_num(note_num):
+        print('Note picked silly')
+        note = pick_candidate(note_candidates)
         note_num = int(''.join(str(b) for b in note), 2)
-        if th_note < thl:
-            break
 
-    dur = apply_threshold(dur_seq, th_dur)
+    dur = pick_candidate(dur_candidates)
     dur_num = int(''.join(str(b) for b in dur), 2)
     while not nd.get_dur_by_num(dur_num):
-        th_dur -= step
-        dur = apply_threshold(dur_seq, th_dur)
+        dur = pick_candidate(dur_candidates)
         dur_num = int(''.join(str(b) for b in dur), 2)
 
     res = np.array([np.concatenate((note, dur), axis=0)])

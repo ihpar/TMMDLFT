@@ -140,7 +140,7 @@ def plot_loss(makam, model_name):
         plt.show()
 
 
-def make_song_ext(model, accu, x, total):
+def make_song_ext(model, lower, upper, x, total):
     note_dict = NCDictionary()
     song = np.copy(x)
     xpy = song.shape[1]
@@ -148,7 +148,7 @@ def make_song_ext(model, accu, x, total):
     for i in range(total):
         part = song[:, -xpy:, :]
         # 0.79 best with 79.69% acc
-        prediction = np.array([dl.to_one_hot_ext(model.predict(part), accu, 0.4, note_dict)])
+        prediction = np.array([dl.to_one_hot_ext(model.predict(part), lower, upper, note_dict)])
         song = np.append(song, prediction, axis=1)
 
     return song
@@ -156,18 +156,19 @@ def make_song_ext(model, accu, x, total):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v47'
+    model_name = 'lstm_v46'
     ver = 'v3'
 
     # set_size = 8  # v 41
     # set_size = 4  # v 44
     # set_size = 16  # v 45
-    # set_size = 6  # v 46
-    set_size = 6  # v 47
+    set_size = 6  # v 46
+    # set_size = 6  # v 47
     exclude = [4, 14, 21, 32, 36, 55, 66, 88, 91, 94, 101, 109, 130]
-    # main_epochs = 64  # v 44, 45, 46
-    main_epochs = 96  # v 47
+    main_epochs = 64  # v 44, 45, 46
+    # main_epochs = 96  # v 47
 
+    '''
     trainer(makam, ver, model_name, exclude, set_size, main_epochs)
     plot_loss(makam, model_name)
 
@@ -177,11 +178,14 @@ def main():
     x_test, y_test = dl.load_data(makam, ver, initiator, set_size)
     scores = model.evaluate(x_test, y_test, verbose=0)
     print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
-    accu = math.floor(scores[1] * 100)
+    accu = scores[1]
+    upper = min(1.0, accu * 1.1)
+    lower = max(0.4, accu * accu)
+    song_len = 256
+    starter_notes = [x_test[0]]
     # 0.79 -> 0.7
-    song = make_song_ext(model, 0.7, [x_test[0]], 256)
+    song = make_song_ext(model, lower, upper, starter_notes, song_len)
     _ = data_to_mus2(song, makam, model_name, initiator)
-    '''
 
 
 if __name__ == '__main__':
