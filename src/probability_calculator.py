@@ -9,8 +9,21 @@ def dd_int():
 
 
 class ProbabilityCalculator:
-    def __init__(self, makam):
+    def __init__(self, makam, set_size):
         self.makam_name = makam
+        self.set_size = set_size
+        self.note_ngram_dicts = []
+        self.dur_ngram_dicts = []
+        for i in range(2, self.set_size + 2):
+            note_file = self.makam_name + '_notes_' + str(i) + '_grams'
+            with open(note_file, 'rb') as src:
+                dd = pickle.load(src)
+                self.note_ngram_dicts.append(dd)
+
+            dur_file = self.makam_name + '_durs_' + str(i) + '_grams'
+            with open(dur_file, 'rb') as src:
+                dd = pickle.load(src)
+                self.dur_ngram_dicts.append(dd)
 
     def build_ngrams(self, ng):
         note_dict = defaultdict(dd_int)
@@ -47,41 +60,76 @@ class ProbabilityCalculator:
         for i in range(len(prev)):
             ss = prev[i:]
             ng = len(ss) + 1
-            note_file = self.makam_name + '_notes_' + str(ng) + '_grams'
+            key = ','.join([str(e) for e in ss])
+            for n in nex:
+                res[n][ng] = self.note_ngram_dicts[-1 * (i + 1)][key][str(n)]
 
-            with open(note_file, 'rb') as src:
-                dd = pickle.load(src)
-                key = ','.join([str(e) for e in ss])
-                for n in nex:
-                    res[n][ng] = dd[key][str(n)]
+        return res
+
+    def search_dur_seq(self, prev, nex):
+        res = defaultdict(dd_int)
+        for i in range(len(prev)):
+            ss = prev[i:]
+            ng = len(ss) + 1
+            key = ','.join([str(e) for e in ss])
+            for n in nex:
+                res[n][ng] = self.dur_ngram_dicts[-1 * (i + 1)][key][str(n)]
 
         return res
 
     def order(self, sr):
         h = len(sr)
         w = len(list(sr.values())[0])
-        mat = [[0 for _ in range(w)] for _ in range(h)]
+        mat = np.array([[0 for _ in range(w)] for _ in range(h)])
         res = []
+        done = []
+        keys = []
         i = 0
         for k, v in sr.items():
+            keys.append(k)
             j = 0
             for ik, iv in v.items():
                 mat[i][j] = iv
                 j += 1
             i += 1
-        print(mat)
-        return res
+
+        for j in range(w):
+            s_col = {}
+            col = mat[:, j]
+            for i, e in enumerate(col):
+                s_col[i] = e
+            for r in sorted(s_col, key=s_col.get, reverse=True):
+                if s_col[r] > 0 and r not in done:
+                    res.append(r)
+                    done.append(r)
+            if len(done) == h:
+                break
+
+        res_keys = []
+        for i in res:
+            res_keys.append(keys[i])
+
+        for i in keys:
+            if i not in res_keys:
+                res_keys.append(i)
+
+        return res_keys
+
+    def sort_note_probabilities(self, prev, nex):
+        sr = self.search_note_seq(prev, nex)
+        ordered = self.order(sr)
+        return ordered
+
+    def sort_dur_probabilities(self, prev, nex):
+        sr = self.search_dur_seq(prev, nex)
+        ordered = self.order(sr)
+        return ordered
 
 
 def main():
-    pc = ProbabilityCalculator('hicaz')
-    # pc.build_ngrams(7)
-    sr = pc.search_note_seq([63, 56, 51, 56, 63, 67], [63, 71])
-    dummy = {63: {7: 47, 6: 88, 5: 185, 4: 457, 3: 917, 2: 2783},
-             71: {7: 0, 6: 0, 5: 2, 4: 2, 3: 8, 2: 93}}
-    ordered = pc.order(sr)
-    for k in ordered:
-        print(k)
+    pc = ProbabilityCalculator('hicaz', 6)
+    print(pc.sort_note_probabilities([63, 56, 51, 56, 63, 67], [63, 71, 76]))
+    print(pc.sort_dur_probabilities([12, 12, 12, 12, 12, 12], [11, 21, 4, 6]))
 
 
 if __name__ == '__main__':
