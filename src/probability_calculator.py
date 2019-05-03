@@ -1,6 +1,7 @@
 from collections import defaultdict
 from nltk import ngrams
 import pickle
+import numpy as np
 
 
 def dd_int():
@@ -41,10 +42,46 @@ class ProbabilityCalculator:
         with open(dur_file, 'wb') as target:
             pickle.dump(dur_dict, target)
 
+    def search_note_seq(self, prev, nex):
+        res = defaultdict(dd_int)
+        for i in range(len(prev)):
+            ss = prev[i:]
+            ng = len(ss) + 1
+            note_file = self.makam_name + '_notes_' + str(ng) + '_grams'
+
+            with open(note_file, 'rb') as src:
+                dd = pickle.load(src)
+                key = ','.join([str(e) for e in ss])
+                for n in nex:
+                    res[n][ng] = dd[key][str(n)]
+
+        return res
+
+    def order(self, sr):
+        h = len(sr)
+        w = len(list(sr.values())[0])
+        mat = [[0 for _ in range(w)] for _ in range(h)]
+        res = []
+        i = 0
+        for k, v in sr.items():
+            j = 0
+            for ik, iv in v.items():
+                mat[i][j] = iv
+                j += 1
+            i += 1
+        print(mat)
+        return res
+
 
 def main():
     pc = ProbabilityCalculator('hicaz')
-    pc.build_ngrams(6)
+    # pc.build_ngrams(7)
+    sr = pc.search_note_seq([63, 56, 51, 56, 63, 67], [63, 71])
+    dummy = {63: {7: 47, 6: 88, 5: 185, 4: 457, 3: 917, 2: 2783},
+             71: {7: 0, 6: 0, 5: 2, 4: 2, 3: 8, 2: 93}}
+    ordered = pc.order(sr)
+    for k in ordered:
+        print(k)
 
 
 if __name__ == '__main__':
