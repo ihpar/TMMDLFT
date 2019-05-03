@@ -8,14 +8,14 @@ def dd_int():
 
 
 class ProbabilityCalculator:
-    def __init__(self):
-        pass
+    def __init__(self, makam):
+        self.makam_name = makam
 
-    def build_ngrams(self, makam, src, ng):
+    def build_ngrams(self, ng):
         note_dict = defaultdict(dd_int)
         dur_dict = defaultdict(dd_int)
         total = 0
-        with open(src, 'r') as f:
+        with open(self.makam_name + '--nc_corpus.txt', 'r') as f:
             songs = f.readlines()
             for song in songs:
                 notes = song.split(' ')
@@ -33,18 +33,18 @@ class ProbabilityCalculator:
 
                     total += 1
 
-        note_file = makam + '_notes_' + str(ng) + '_grams'
+        note_file = self.makam_name + '_notes_' + str(ng) + '_grams'
         with open(note_file, 'wb') as target:
             pickle.dump(note_dict, target)
 
-        dur_file = makam + '_durs_' + str(ng) + '_grams'
+        dur_file = self.makam_name + '_durs_' + str(ng) + '_grams'
         with open(dur_file, 'wb') as target:
             pickle.dump(dur_dict, target)
 
 
 def main():
-    pc = ProbabilityCalculator()
-    pc.build_ngrams('hicaz', 'hicaz--nc_corpus.txt', 7)
+    pc = ProbabilityCalculator('hicaz')
+    pc.build_ngrams(6)
 
 
 if __name__ == '__main__':
