@@ -62,26 +62,43 @@ def find_candidates(seq, lo, hi):
     return candidates
 
 
-def pick_candidate(candidates):
-    # TODO: fix logic!
-    return np.array(candidates[randint(0, len(candidates) - 1)])
+def pick_candidate(prev, candidates, prob_calc, what):
+    cand_nums = []
+    for n in candidates:
+        cand_nums.append(int(''.join([str(i) for i in n]), 2))
+
+    prev_nums = []
+    for n in prev[0]:
+        if what == 'note':
+            prev_nums.append(int(''.join([str(i) for i in n[:7]]), 2))
+        else:
+            prev_nums.append(int(''.join([str(i) for i in n[7:]]), 2))
+
+    if what == 'note':
+        ordered = prob_calc.sort_note_probabilities(prev_nums, cand_nums)
+        res = [int(i) for i in '{0:b}'.format(ordered[0]).zfill(7)]
+    else:
+        ordered = prob_calc.sort_dur_probabilities(prev_nums, cand_nums)
+        res = [int(i) for i in '{0:b}'.format(ordered[0]).zfill(6)]
+
+    return np.array(res)
 
 
-def to_one_hot_ext(pred, lo, hi, nd):
+def to_one_hot_ext(prev, pred, lo, hi, nd, prob_calc):
     note_seq = pred[0][:7]
     dur_seq = pred[0][7:]
     note_candidates = find_candidates(note_seq, lo, hi)
     dur_candidates = find_candidates(dur_seq, lo, hi)
     print(len(note_candidates), len(dur_candidates))
 
-    note = pick_candidate(note_candidates)
+    note = pick_candidate(prev, note_candidates, prob_calc, 'note')
     note_num = int(''.join(str(b) for b in note), 2)
     while not nd.get_note_by_num(note_num):
         print('Note picked silly')
         note = pick_candidate(note_candidates)
         note_num = int(''.join(str(b) for b in note), 2)
 
-    dur = pick_candidate(dur_candidates)
+    dur = pick_candidate(prev, dur_candidates, prob_calc, 'dur')
     dur_num = int(''.join(str(b) for b in dur), 2)
     while not nd.get_dur_by_num(dur_num):
         dur = pick_candidate(dur_candidates)

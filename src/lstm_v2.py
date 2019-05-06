@@ -12,6 +12,7 @@ import json
 from nc_dictionary import NCDictionary
 import random
 import math
+from probability_calculator import ProbabilityCalculator, dd_int
 
 
 def train_by_all(makam, model, ver, set_size, exclude, main_epochs):
@@ -140,7 +141,7 @@ def plot_loss(makam, model_name):
         plt.show()
 
 
-def make_song_ext(model, lower, upper, x, total):
+def make_song_ext(model, prob_calc, lower, upper, x, total):
     note_dict = NCDictionary()
     song = np.copy(x)
     xpy = song.shape[1]
@@ -148,7 +149,7 @@ def make_song_ext(model, lower, upper, x, total):
     for i in range(total):
         part = song[:, -xpy:, :]
         # 0.79 best with 79.69% acc
-        prediction = np.array([dl.to_one_hot_ext(model.predict(part), lower, upper, note_dict)])
+        prediction = np.array([dl.to_one_hot_ext(part, model.predict(part), lower, upper, note_dict, prob_calc)])
         song = np.append(song, prediction, axis=1)
 
     return song
@@ -156,7 +157,7 @@ def make_song_ext(model, lower, upper, x, total):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v48'
+    model_name = 'lstm_v47'
     ver = 'v3'
 
     # set_size = 8  # v 41
@@ -165,14 +166,16 @@ def main():
     set_size = 6  # v 46, 47, 48
     exclude = [4, 14, 21, 32, 36, 55, 66, 88, 91, 94, 101, 109, 130]
     # main_epochs = 64  # v 44, 45, 46
-    # main_epochs = 96  # v 47
-    main_epochs = 128  # v 48
+    main_epochs = 96  # v 47
+    # main_epochs = 128  # v 48
 
+    '''
     trainer(makam, ver, model_name, exclude, set_size, main_epochs)
     plot_loss(makam, model_name)
 
     '''
-    initiator = '14'
+    pc = ProbabilityCalculator(makam, set_size)
+    initiator = str(exclude[1])
     model = load_model(makam, model_name)
     x_test, y_test = dl.load_data(makam, ver, initiator, set_size)
     scores = model.evaluate(x_test, y_test, verbose=0)
@@ -183,9 +186,8 @@ def main():
     song_len = 256
     starter_notes = [x_test[0]]
     # 0.79 -> 0.7
-    song = make_song_ext(model, lower, upper, starter_notes, song_len)
+    song = make_song_ext(model, pc, lower, upper, starter_notes, song_len)
     _ = data_to_mus2(song, makam, model_name, initiator)
-    '''
 
 
 if __name__ == '__main__':
