@@ -48,6 +48,7 @@ def build_model(in_shape, out_shape):
 
     optimizer = RMSprop(lr=0.001)
     '''
+    '''
     # v. 48
     model.add(LSTM(256, return_sequences=True, input_shape=in_shape))
     model.add(Dropout(0.2))
@@ -59,6 +60,21 @@ def build_model(in_shape, out_shape):
     model.add(Dropout(0.2))
     model.add(LSTM(256, return_sequences=False))
     model.add(Dropout(0.2))
+    model.add(Dense(out_shape))
+    model.add(Activation('sigmoid'))
+
+    optimizer = RMSprop(lr=0.001)
+    '''
+
+    # v. 49
+    model.add(LSTM(512, return_sequences=True, input_shape=in_shape))
+    model.add(Dropout(0.1))
+    model.add(LSTM(256, return_sequences=True))
+    model.add(Dropout(0.1))
+    model.add(LSTM(256, return_sequences=True))
+    model.add(Dropout(0.1))
+    model.add(LSTM(512, return_sequences=False))
+    model.add(Dropout(0.1))
     model.add(Dense(out_shape))
     model.add(Activation('sigmoid'))
 
