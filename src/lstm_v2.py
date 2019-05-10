@@ -157,7 +157,7 @@ def make_song_ext(model, prob_calc, lower, upper, x, total):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v49'
+    model_name = 'lstm_v48'
     ver = 'v3'
 
     # set_size = 8  # v 41
@@ -167,11 +167,10 @@ def main():
     exclude = [4, 14, 21, 32, 36, 55, 66, 88, 91, 94, 101, 109, 130]
     # main_epochs = 64  # v 44, 45, 46
     # main_epochs = 96  # v 47
-    main_epochs = 128  # v 48, 49
-
+    # main_epochs = 128  # v 48, 49
+    '''
     trainer(makam, ver, model_name, exclude, set_size, main_epochs)
     plot_loss(makam, model_name)
-
     '''
     pc = ProbabilityCalculator(makam, set_size)
     initiator = str(exclude[1])
@@ -181,13 +180,12 @@ def main():
     print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
     accu = scores[1]
     upper = min(1.0, accu * 1.1)
-    lower = max(0.4, accu * accu)
-    song_len = 256
+    lower = max(0.4, accu * accu * accu)
+    song_len = 128
     starter_notes = [x_test[0]]
     # 0.79 -> 0.7
     song = make_song_ext(model, pc, lower, upper, starter_notes, song_len)
     _ = data_to_mus2(song, makam, model_name, initiator)
-    '''
 
 
 if __name__ == '__main__':
