@@ -31,7 +31,7 @@ def load_whole_data(makam, ver, set_size, exclude):
             x.append(x_sec)
             y_sec = song[i + set_size]
             y.append(y_sec)
-        break
+
     return np.array(x), np.array(y)
 
 

@@ -121,11 +121,11 @@ def build_whole_model(x_shape, y_shape):
     # v 50
 
     model = Sequential()
-    model.add(LSTM(256, return_sequences=True, input_shape=x_shape))
+    model.add(LSTM(500, return_sequences=True, input_shape=x_shape))
     model.add(Dropout(0.5))
-    model.add(LSTM(256, return_sequences=True))
+    model.add(LSTM(500, return_sequences=True))
     model.add(Dropout(0.5))
-    model.add(LSTM(256, return_sequences=False))
+    model.add(LSTM(500, return_sequences=False))
     model.add(Dropout(0.5))
     model.add(Dense(y_shape))
     model.add(Activation('sigmoid'))

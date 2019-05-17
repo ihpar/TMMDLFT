@@ -131,9 +131,11 @@ def trainer(makam, ver, model_name, exclude, set_size, main_epochs):
 
 def whole_train(makam, ver, model_name, exclude, set_size, epochs):
     x_train, y_train = dl.load_whole_data(makam, ver, set_size, exclude)
+
     model = build_whole_model(x_train.shape[1:], y_train.shape[1])
     es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=10)
-    mc = ModelCheckpoint('cp' + model_name + '.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
+    mc = ModelCheckpoint('cp_' + model_name + '.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
+
     start = time.time()
     history = model.fit(x_train, y_train, epochs=epochs, shuffle=False, validation_split=0.15, callbacks=[es, mc])
     end = time.time()
@@ -189,7 +191,7 @@ def main():
     # main_epochs = 64  # v 44, 45, 46
     # main_epochs = 96  # v 47
     # main_epochs = 128  # v 48, 49
-    epochs = 5
+    epochs = 500
     whole_train(makam, ver, model_name, exclude, set_size, epochs)
     '''
     trainer(makam, ver, model_name, exclude, set_size, main_epochs)
