@@ -17,6 +17,24 @@ def load_data(makam, ver, idx, set_size=1):
     return np.array(xs), np.array(ys)
 
 
+def load_whole_data(makam, ver, set_size, exclude):
+    path = os.path.join(os.path.abspath('..'), 'data', makam, ver)
+    files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.startswith('s_')]
+    x, y = [], []
+    for f in files:
+        ext = int(f.split('_')[1])
+        if ext in exclude:
+            continue
+        song = json.load(open(os.path.join(path, f), 'r'))
+        for i in range(len(song) - set_size):
+            x_sec = song[i:i + set_size]
+            x.append(x_sec)
+            y_sec = song[i + set_size]
+            y.append(y_sec)
+        break
+    return np.array(x), np.array(y)
+
+
 def get_data_size(makam, ver):
     path = os.path.join(os.path.abspath('..'), 'data', makam, ver)
     return len(os.listdir(path))

@@ -2,7 +2,8 @@ import os
 
 from tensorflow.keras.models import Sequential, model_from_json
 from tensorflow.keras.layers import Dense, LSTM, Dropout, Activation
-from tensorflow.keras.optimizers import RMSprop
+from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.python.keras.optimizers import RMSprop
 
 
 def build_model(in_shape, out_shape):
@@ -114,3 +115,23 @@ def load_model(makam, model_name):
     optimizer = RMSprop(lr=0.001)
     loaded_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     return loaded_model
+
+
+def build_whole_model(x_shape, y_shape):
+    # v 50
+
+    model = Sequential()
+    model.add(LSTM(256, return_sequences=True, input_shape=x_shape))
+    model.add(Dropout(0.5))
+    model.add(LSTM(256, return_sequences=True))
+    model.add(Dropout(0.5))
+    model.add(LSTM(256, return_sequences=False))
+    model.add(Dropout(0.5))
+    model.add(Dense(y_shape))
+    model.add(Activation('sigmoid'))
+
+    optimizer = RMSprop(lr=0.001)
+
+    model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+    model.summary()
+    return model

@@ -129,6 +129,25 @@ def trainer(makam, ver, model_name, exclude, set_size, main_epochs):
     save_model(makam, model_name, model)
 
 
+def whole_train(makam, ver, model_name, exclude, set_size, epochs):
+    x_train, y_train = dl.load_whole_data(makam, ver, set_size, exclude)
+    model = build_whole_model(x_train.shape[1:], y_train.shape[1])
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=10)
+    mc = ModelCheckpoint('cp' + model_name + '.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
+    start = time.time()
+    history = model.fit(x_train, y_train, epochs=epochs, shuffle=False, validation_split=0.15, callbacks=[es, mc])
+    end = time.time()
+    hours, rem = divmod(end - start, 3600)
+    minutes, seconds = divmod(rem, 60)
+    print("Elapsed {:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
+
+    save_model(makam, model_name, model)
+    plt.plot(history.history['loss'], label='train')
+    plt.plot(history.history['val_loss'], label='test')
+    plt.legend()
+    plt.show()
+
+
 def plot_loss(makam, model_name):
     path = os.path.join(os.path.abspath('..'), 'models', makam, model_name + '_histories.json')
     with open(path, 'r') as fp:
@@ -157,21 +176,25 @@ def make_song_ext(model, prob_calc, lower, upper, x, total):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v48'
+    model_name = 'lstm_v50'
     ver = 'v3'
 
     # set_size = 8  # v 41
     # set_size = 4  # v 44
     # set_size = 16  # v 45
-    set_size = 6  # v 46, 47, 48
-    exclude = [4, 14, 21, 32, 36, 55, 66, 88, 91, 94, 101, 109, 130]
+    # set_size = 6  # v 46, 47, 48
+    set_size = 8  # v 50
+    # exclude = [4, 14, 21, 32, 36, 55, 66, 88, 91, 94, 101, 109, 130]
+    exclude = [4, 14, 32, 55, 66, 88, 91, 94, 109, 130]  # v 50
     # main_epochs = 64  # v 44, 45, 46
     # main_epochs = 96  # v 47
     # main_epochs = 128  # v 48, 49
+    epochs = 5
+    whole_train(makam, ver, model_name, exclude, set_size, epochs)
     '''
     trainer(makam, ver, model_name, exclude, set_size, main_epochs)
     plot_loss(makam, model_name)
-    '''
+    
     pc = ProbabilityCalculator(makam, set_size)
     initiator = str(exclude[1])
     model = load_model(makam, model_name)
@@ -181,11 +204,12 @@ def main():
     accu = scores[1]
     upper = min(1.0, accu * 1.1)
     lower = max(0.4, accu * accu * accu)
-    song_len = 128
+    song_len = 64
     starter_notes = [x_test[0]]
     # 0.79 -> 0.7
     song = make_song_ext(model, pc, lower, upper, starter_notes, song_len)
     _ = data_to_mus2(song, makam, model_name, initiator)
+    '''
 
 
 if __name__ == '__main__':
