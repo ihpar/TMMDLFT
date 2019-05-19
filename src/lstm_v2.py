@@ -30,7 +30,8 @@ def train_by_all(makam, model, ver, set_size, exclude, main_epochs):
             print(f'Training on Song {i}: Main {e}')
             print('==============================================================')
             x_train, y_train = dl.load_data(makam, ver, str(i), set_size)
-            history = model.fit(x_train, y_train, epochs=1)
+            # history = model.fit(x_train, y_train, epochs=1) # v till 51
+            history = model.fit(x_train, y_train, epochs=1, batch_size=16)
             histories.append(history.history['loss'])
 
     return histories
@@ -178,25 +179,25 @@ def make_song_ext(model, prob_calc, lower, upper, x, total):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v50'
+    model_name = 'lstm_v51'
     ver = 'v3'
 
     # set_size = 8  # v 41
     # set_size = 4  # v 44
     # set_size = 16  # v 45
     # set_size = 6  # v 46, 47, 48
-    set_size = 8  # v 50
+    set_size = 8  # v 50, 51
     # exclude = [4, 14, 21, 32, 36, 55, 66, 88, 91, 94, 101, 109, 130]
-    exclude = [4, 14, 32, 55, 66, 88, 91, 94, 109, 130]  # v 50
+    exclude = [4, 14, 32, 55, 66, 88, 91, 94, 109, 130]  # v 50, 51
     # main_epochs = 64  # v 44, 45, 46
     # main_epochs = 96  # v 47
     # main_epochs = 128  # v 48, 49
-    epochs = 500
-    whole_train(makam, ver, model_name, exclude, set_size, epochs)
-    '''
+    main_epochs = 200  # v 51
+    # epochs = 500  # v 50
+    # whole_train(makam, ver, model_name, exclude, set_size, epochs)  # v 50
     trainer(makam, ver, model_name, exclude, set_size, main_epochs)
     plot_loss(makam, model_name)
-    
+    '''
     pc = ProbabilityCalculator(makam, set_size)
     initiator = str(exclude[1])
     model = load_model(makam, model_name)
