@@ -132,11 +132,8 @@ def main():
                 fc.write(nd + '\n')
                 if not nd:
                     print('----Not----')
-    '''
 
-    oh_man = OhManager('hicaz')
 
-    '''
     with open('hicaz--nc_corpus.txt', 'r') as crp:
         songs = crp.read().splitlines()
         for i, song in enumerate(songs):
@@ -147,6 +144,8 @@ def main():
                     lst.append(oh_man.nd_2_oh(nd).tolist())
                 tar.write(json.dumps(lst))
     '''
+
+    oh_man = OhManager('hicaz')
     with open('../data/hicaz/oh/s_1', 'r') as f:
         ohs = json.load(f)
         for oh in ohs:
