@@ -4,6 +4,7 @@ import os
 import consts
 from dur_dict import DurDictionary
 from nc_dictionary import NCDictionary
+from oh_manager import OhManager
 
 
 def get_roll(note_key, note_dur, min_dur):
@@ -133,6 +134,14 @@ def main():
                 if not nd:
                     print('----Not----')
     '''
+
+    oh_man = OhManager('hicaz')
+    print(oh_man.nd_2_oh('102:11'))
+
+    print(oh_man.oh_2_nd(oh_man.nd_2_oh('102:11')))
+
+    with open('data/hicaz/oh/s_0', 'w') as tar:
+        tar.write(oh_man.nd_2_oh('102:11'))
 
 
 if __name__ == '__main__':
