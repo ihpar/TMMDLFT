@@ -101,6 +101,7 @@ def corpus_2_one_hot(makam):
 
 
 def main():
+    '''
     corpus = corpus_2_extended_hot('hicaz--nc_')
     ver = 'v3'
 
@@ -113,6 +114,25 @@ def main():
             s.write(json.dumps(song))
             x.write(json.dumps(song_x))
             y.write(json.dumps(song_y))
+    '''
+    '''
+    with open('hicaz--nc_corpus.txt', 'r') as f:
+        unique_notedurs = set()
+        tot = 0
+        songs = f.read().splitlines()
+        for song in songs:
+            notes = song.split(' ')
+            for note in notes:
+                unique_notedurs.add(note)
+                tot += 1
+
+        print(len(unique_notedurs), tot)
+        with open('hicaz--ndsc.txt', 'w') as fc:
+            for nd in sorted(unique_notedurs):
+                fc.write(nd + '\n')
+                if not nd:
+                    print('----Not----')
+    '''
 
 
 if __name__ == '__main__':

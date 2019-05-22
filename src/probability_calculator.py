@@ -128,8 +128,9 @@ class ProbabilityCalculator:
 
 def main():
     pc = ProbabilityCalculator('hicaz', 6)
-    print(pc.sort_note_probabilities([63, 56, 51, 56, 63, 67], [63, 71, 76]))
-    print(pc.sort_dur_probabilities([12, 12, 12, 12, 12, 12], [11, 21, 4, 6]))
+    # print(pc.sort_note_probabilities([63, 56, 51, 56, 63, 67], [63, 71, 76]))
+    # print(pc.sort_dur_probabilities([12, 12, 12, 12, 12, 12], [11, 21, 4, 6]))
+    # pc.build_ngrams(9)
 
 
 if __name__ == '__main__':
