@@ -115,8 +115,7 @@ def main():
             s.write(json.dumps(song))
             x.write(json.dumps(song_x))
             y.write(json.dumps(song_y))
-    '''
-    '''
+
     with open('hicaz--nc_corpus.txt', 'r') as f:
         unique_notedurs = set()
         tot = 0
@@ -136,12 +135,22 @@ def main():
     '''
 
     oh_man = OhManager('hicaz')
-    print(oh_man.nd_2_oh('102:11'))
 
-    print(oh_man.oh_2_nd(oh_man.nd_2_oh('102:11')))
-
-    with open('data/hicaz/oh/s_0', 'w') as tar:
-        tar.write(oh_man.nd_2_oh('102:11'))
+    '''
+    with open('hicaz--nc_corpus.txt', 'r') as crp:
+        songs = crp.read().splitlines()
+        for i, song in enumerate(songs):
+            with open('../data/hicaz/oh/s_' + str(i), 'w') as tar:
+                nds = song.split(' ')
+                lst = []
+                for nd in nds:
+                    lst.append(oh_man.nd_2_oh(nd).tolist())
+                tar.write(json.dumps(lst))
+    '''
+    with open('../data/hicaz/oh/s_1', 'r') as f:
+        ohs = json.load(f)
+        for oh in ohs:
+            print(oh_man.oh_2_nd(oh))
 
 
 if __name__ == '__main__':
