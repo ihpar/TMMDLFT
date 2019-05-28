@@ -134,11 +134,11 @@ def whole_train(makam, ver, model_name, exclude, set_size, epochs):
     x_train, y_train = dl.load_whole_data(makam, ver, set_size, exclude)
 
     model = build_whole_model(x_train.shape[1:], y_train.shape[1])
-    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=10)
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=4)
     mc = ModelCheckpoint('cp_' + model_name + '.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
 
     start = time.time()
-    history = model.fit(x_train, y_train, epochs=epochs, shuffle=False, validation_split=0.15, callbacks=[es, mc])
+    history = model.fit(x_train, y_train, epochs=epochs, batch_size=16, shuffle=False, validation_split=0.1, callbacks=[es, mc])
     end = time.time()
     hours, rem = divmod(end - start, 3600)
     minutes, seconds = divmod(rem, 60)
@@ -189,14 +189,15 @@ def main():
     # set_size = 6  # v 46, 47, 48
     set_size = 8  # v 50, 51, 60
     # exclude = [4, 14, 21, 32, 36, 55, 66, 88, 91, 94, 101, 109, 130]
-    exclude = [4, 14, 32, 55, 66, 88, 91, 94, 109, 130]  # v 50, 51
+    exclude = [4, 14, 32, 55, 66, 88, 91, 94, 109, 130]  # v 50, 51, 60
     # main_epochs = 64  # v 44, 45, 46
     # main_epochs = 96  # v 47
     # main_epochs = 128  # v 48, 49
-    main_epochs = 200  # v 51
+    # main_epochs = 200  # v 51
     # epochs = 500  # v 50
-    # whole_train(makam, ver, model_name, exclude, set_size, epochs)  # v 50
-    trainer(makam, ver, model_name, exclude, set_size, main_epochs)
+    epochs = 500  # v 60
+    whole_train(makam, ver, model_name, exclude, set_size, epochs)  # v 50, 60
+    # trainer(makam, ver, model_name, exclude, set_size, main_epochs)
     # plot_loss(makam, model_name)
     '''
     pc = ProbabilityCalculator(makam, set_size)
