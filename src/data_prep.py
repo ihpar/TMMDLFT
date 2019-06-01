@@ -4,6 +4,7 @@ import os
 import consts
 from dur_dict import DurDictionary
 from nc_dictionary import NCDictionary
+from oh_manager import OhManager
 
 
 def get_roll(note_key, note_dur, min_dur):
@@ -101,6 +102,7 @@ def corpus_2_one_hot(makam):
 
 
 def main():
+    '''
     corpus = corpus_2_extended_hot('hicaz--nc_')
     ver = 'v3'
 
@@ -113,6 +115,41 @@ def main():
             s.write(json.dumps(song))
             x.write(json.dumps(song_x))
             y.write(json.dumps(song_y))
+
+    with open('hicaz--nc_corpus.txt', 'r') as f:
+        unique_notedurs = set()
+        tot = 0
+        songs = f.read().splitlines()
+        for song in songs:
+            notes = song.split(' ')
+            for note in notes:
+                unique_notedurs.add(note)
+                tot += 1
+
+        print(len(unique_notedurs), tot)
+        with open('hicaz--ndsc.txt', 'w') as fc:
+            for nd in sorted(unique_notedurs):
+                fc.write(nd + '\n')
+                if not nd:
+                    print('----Not----')
+
+
+    with open('hicaz--nc_corpus.txt', 'r') as crp:
+        songs = crp.read().splitlines()
+        for i, song in enumerate(songs):
+            with open('../data/hicaz/oh/s_' + str(i), 'w') as tar:
+                nds = song.split(' ')
+                lst = []
+                for nd in nds:
+                    lst.append(oh_man.nd_2_oh(nd).tolist())
+                tar.write(json.dumps(lst))
+    '''
+
+    oh_man = OhManager('hicaz')
+    with open('../data/hicaz/oh/s_1', 'r') as f:
+        ohs = json.load(f)
+        for oh in ohs:
+            print(oh_man.oh_2_nd(oh))
 
 
 if __name__ == '__main__':
