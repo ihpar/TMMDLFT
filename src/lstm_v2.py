@@ -179,24 +179,24 @@ def make_song_ext(model, prob_calc, lower, upper, x, total):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v60'
+    model_name = 'lstm_v61'
     # ver = 'v3'
-    ver = 'oh'  # v 60
+    ver = 'oh'  # v 60, 61
 
     # set_size = 8  # v 41
     # set_size = 4  # v 44
     # set_size = 16  # v 45
     # set_size = 6  # v 46, 47, 48
-    set_size = 8  # v 50, 51, 60
+    set_size = 8  # v 50, 51, 60, 61
     # exclude = [4, 14, 21, 32, 36, 55, 66, 88, 91, 94, 101, 109, 130]
-    exclude = [4, 14, 32, 55, 66, 88, 91, 94, 109, 130]  # v 50, 51, 60
+    exclude = [4, 14, 32, 55, 66, 88, 91, 94, 109, 130]  # v 50, 51, 60, 61
     # main_epochs = 64  # v 44, 45, 46
     # main_epochs = 96  # v 47
     # main_epochs = 128  # v 48, 49
     # main_epochs = 200  # v 51
     # epochs = 500  # v 50
-    epochs = 500  # v 60
-    whole_train(makam, ver, model_name, exclude, set_size, epochs)  # v 50, 60
+    epochs = 500  # v 60, 61
+    whole_train(makam, ver, model_name, exclude, set_size, epochs)  # v 50, 60, 61
     # trainer(makam, ver, model_name, exclude, set_size, main_epochs)
     # plot_loss(makam, model_name)
     '''

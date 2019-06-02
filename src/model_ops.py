@@ -143,6 +143,7 @@ def build_whole_model(x_shape, y_shape):
     optimizer = RMSprop(lr=0.001)
     model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     '''
+    '''
     # v 60
     model = Sequential()
     model.add(LSTM(420, return_sequences=True, input_shape=x_shape))
@@ -152,6 +153,17 @@ def build_whole_model(x_shape, y_shape):
     model.add(LSTM(420, return_sequences=True))
     model.add(Dropout(0.5))
     model.add(LSTM(420, return_sequences=False))
+    model.add(Dropout(0.5))
+    model.add(Dense(y_shape))
+    model.add(Activation('softmax'))
+    optimizer = RMSprop(lr=0.001)
+    model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+    '''
+    # v 61
+    model = Sequential()
+    model.add(LSTM(600, return_sequences=True, input_shape=x_shape))
+    model.add(Dropout(0.5))
+    model.add(LSTM(600, return_sequences=False))
     model.add(Dropout(0.5))
     model.add(Dense(y_shape))
     model.add(Activation('softmax'))
