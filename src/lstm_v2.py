@@ -268,7 +268,7 @@ def main():
     # plot_loss(makam, model_name)
 
     # pc = ProbabilityCalculator(makam, set_size)
-    initiator = str(exclude[0])
+    initiator = str(exclude[2])
     model = load_model(makam, model_name)
     x_test, y_test = dl.load_data(makam, ver, initiator, set_size)
     scores = model.evaluate(x_test, y_test, verbose=0)
