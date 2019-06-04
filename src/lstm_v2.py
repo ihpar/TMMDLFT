@@ -245,7 +245,7 @@ def make_mus2_oh(song, makam, song_title, initiator):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v60'
+    model_name = 'lstm_v62'
     # ver = 'v3'
     ver = 'oh'  # v 60, 61, 62
 
@@ -268,7 +268,7 @@ def main():
     # plot_loss(makam, model_name)
 
     # pc = ProbabilityCalculator(makam, set_size)
-    initiator = str(exclude[2])
+    initiator = str(exclude[1])
     model = load_model(makam, model_name)
     x_test, y_test = dl.load_data(makam, ver, initiator, set_size)
     scores = model.evaluate(x_test, y_test, verbose=0)
@@ -279,10 +279,10 @@ def main():
     song_len = 128
     starter_notes = [x_test[0]]
     # 0.79 -> 0.7
-    song = make_oh_song(model, starter_notes, song_len, 0.5, 0.1)  # ver oh
-    make_mus2_oh(song, makam, model_name, initiator)  # ver oh
     # song = make_song_ext(model, pc, lower, upper, starter_notes, song_len)
     # _ = data_to_mus2(song, makam, model_name, initiator)
+    song = make_oh_song(model, starter_notes, song_len, 0.5, 0.1)  # ver oh
+    make_mus2_oh(song, makam, model_name, initiator)  # ver oh
 
 
 if __name__ == '__main__':
