@@ -12,6 +12,8 @@ import json
 from nc_dictionary import NCDictionary
 import random
 import math
+
+from oh_manager import OhManager
 from probability_calculator import ProbabilityCalculator, dd_int
 
 
@@ -138,7 +140,8 @@ def whole_train(makam, ver, model_name, exclude, set_size, epochs):
     mc = ModelCheckpoint('cp_' + model_name + '.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
 
     start = time.time()
-    history = model.fit(x_train, y_train, epochs=epochs, batch_size=16, shuffle=False, validation_split=0.1, callbacks=[es, mc])
+    history = model.fit(x_train, y_train, epochs=epochs, batch_size=16, shuffle=False, validation_split=0.1,
+                        callbacks=[es, mc])
     end = time.time()
     hours, rem = divmod(end - start, 3600)
     minutes, seconds = divmod(rem, 60)
@@ -177,9 +180,72 @@ def make_song_ext(model, prob_calc, lower, upper, x, total):
     return song
 
 
+def make_oh_song(model, starter_notes, song_len, lo, hi):
+    song = np.copy(starter_notes)
+    xpy = song.shape[1]
+
+    for i in range(song_len):
+        part = song[:, -xpy:, :]
+        prediction = model.predict(part)
+        shape = prediction.shape
+        p_inner = np.copy(prediction[0])
+        max_index = np.argmax(p_inner)
+        print('Max prob: ', p_inner[max_index])
+        if p_inner[max_index] < lo:
+            p_cp = np.copy(p_inner)
+            p_cp[max_index] = 0
+            p_cp_max_index = np.argmax(p_cp)
+            second_best = p_cp[p_cp_max_index]
+            if second_best > hi:
+                print('Second best: ', second_best)
+                max_index = random.choice([max_index, p_cp_max_index])
+        p_inner = np.zeros(shape[1])
+        p_inner[max_index] = 1.0
+        song = np.append(song, np.array([[p_inner]]), axis=1)
+
+    return song
+
+
+def make_mus2_oh(song, makam, song_title, initiator):
+    note_dict = NCDictionary()
+    oh_manager = OhManager(makam)
+    lines = consts.mu2_header
+    lines[1] = lines[1].replace('{makam}', makam)
+    lines[7] = lines[7].replace('{song_title}', song_title)
+    for row in song[0]:
+        n_d = oh_manager.oh_2_nd(row)
+        parts = n_d.split(':')
+        note = int(parts[0])
+        dur = int(parts[1])
+        note = note_dict.get_note_by_num(note)
+        if not note:
+            raise Exception('Note N/A')
+        note = note.capitalize()
+
+        dur = note_dict.get_dur_by_num(dur).split('/')
+
+        if note == 'Rest':
+            lines.append('9		{num}	{denom}	95	96	64	.		0.5'
+                         .replace('{num}', dur[0])
+                         .replace('{denom}', dur[1]))
+        else:
+            lines.append('9	{nn}	{num}	{denom}	95	96	64	.		0.5'
+                         .replace('{nn}', note)
+                         .replace('{num}', dur[0])
+                         .replace('{denom}', dur[1]))
+
+    file_name = song_title + '_' + initiator + '.mu2'
+    path = os.path.join(os.path.abspath('..'), 'songs', makam, file_name)
+    with io.open(path, 'w', encoding='utf-8') as song_file:
+        for line in lines:
+            song_file.write(line + '\n')
+
+    print(f'{file_name} is saved to disk!')
+
+
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v62'
+    model_name = 'lstm_v60'
     # ver = 'v3'
     ver = 'oh'  # v 60, 61, 62
 
@@ -196,26 +262,27 @@ def main():
     # main_epochs = 200  # v 51
     # epochs = 500  # v 50
     # epochs = 500  # v 60, 61
-    main_epochs = 50  # v 62
+    # main_epochs = 50  # v 62
     # whole_train(makam, ver, model_name, exclude, set_size, epochs)  # v 50, 60, 61
-    trainer(makam, ver, model_name, exclude, set_size, main_epochs)  # v 62
-    plot_loss(makam, model_name)
-    '''
-    pc = ProbabilityCalculator(makam, set_size)
-    initiator = str(exclude[1])
+    # trainer(makam, ver, model_name, exclude, set_size, main_epochs)  # v 62
+    # plot_loss(makam, model_name)
+
+    # pc = ProbabilityCalculator(makam, set_size)
+    initiator = str(exclude[0])
     model = load_model(makam, model_name)
     x_test, y_test = dl.load_data(makam, ver, initiator, set_size)
     scores = model.evaluate(x_test, y_test, verbose=0)
     print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
-    accu = scores[1]
-    upper = min(1.0, accu * 1.1)
-    lower = max(0.4, accu * accu * accu)
+    # accu = scores[1]
+    # upper = min(1.0, accu * 1.1)
+    # lower = max(0.4, accu * accu * accu)
     song_len = 128
     starter_notes = [x_test[0]]
     # 0.79 -> 0.7
-    song = make_song_ext(model, pc, lower, upper, starter_notes, song_len)
-    _ = data_to_mus2(song, makam, model_name, initiator)
-    '''
+    song = make_oh_song(model, starter_notes, song_len, 0.5, 0.1)  # ver oh
+    make_mus2_oh(song, makam, model_name, initiator)  # ver oh
+    # song = make_song_ext(model, pc, lower, upper, starter_notes, song_len)
+    # _ = data_to_mus2(song, makam, model_name, initiator)
 
 
 if __name__ == '__main__':
