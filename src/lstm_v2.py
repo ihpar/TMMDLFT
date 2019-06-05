@@ -245,17 +245,17 @@ def make_mus2_oh(song, makam, song_title, initiator):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v62'
+    model_name = 'lstm_v63'
     # ver = 'v3'
-    ver = 'oh'  # v 60, 61, 62
+    ver = 'oh'  # v 60, 61, 62, 63
 
     # set_size = 8  # v 41
     # set_size = 4  # v 44
     # set_size = 16  # v 45
     # set_size = 6  # v 46, 47, 48
-    set_size = 8  # v 50, 51, 60, 61, 62
+    set_size = 8  # v 50, 51, 60, 61, 62, 63
     # exclude = [4, 14, 21, 32, 36, 55, 66, 88, 91, 94, 101, 109, 130]
-    exclude = [4, 14, 32, 55, 66, 88, 91, 94, 109, 130]  # v 50, 51, 60, 61, 62
+    exclude = [4, 14, 32, 55, 66, 88, 91, 94, 109, 130]  # v 50, 51, 60, 61, 62, 63
     # main_epochs = 64  # v 44, 45, 46
     # main_epochs = 96  # v 47
     # main_epochs = 128  # v 48, 49
@@ -263,10 +263,11 @@ def main():
     # epochs = 500  # v 50
     # epochs = 500  # v 60, 61
     # main_epochs = 50  # v 62
+    main_epochs = 100  # v 63
     # whole_train(makam, ver, model_name, exclude, set_size, epochs)  # v 50, 60, 61
-    # trainer(makam, ver, model_name, exclude, set_size, main_epochs)  # v 62
-    # plot_loss(makam, model_name)
-
+    trainer(makam, ver, model_name, exclude, set_size, main_epochs)  # v 62, 63
+    plot_loss(makam, model_name)
+    '''
     # pc = ProbabilityCalculator(makam, set_size)
     initiator = str(exclude[1])
     model = load_model(makam, model_name)
@@ -283,6 +284,7 @@ def main():
     # _ = data_to_mus2(song, makam, model_name, initiator)
     song = make_oh_song(model, starter_notes, song_len, 0.5, 0.1)  # ver oh
     make_mus2_oh(song, makam, model_name, initiator)  # ver oh
+    '''
 
 
 if __name__ == '__main__':
