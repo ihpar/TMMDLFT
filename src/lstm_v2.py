@@ -183,7 +183,7 @@ def make_song_ext(model, prob_calc, lower, upper, x, total):
 def make_oh_song(model, starter_notes, song_len, lo, hi):
     song = np.copy(starter_notes)
     xpy = song.shape[1]
-
+    chose_cnt = 0
     for i in range(song_len):
         part = song[:, -xpy:, :]
         prediction = model.predict(part)
@@ -197,12 +197,14 @@ def make_oh_song(model, starter_notes, song_len, lo, hi):
             p_cp_max_index = np.argmax(p_cp)
             second_best = p_cp[p_cp_max_index]
             if second_best > hi:
+                chose_cnt += 1
                 print('Second best: ', second_best)
                 max_index = random.choice([max_index, p_cp_max_index])
         p_inner = np.zeros(shape[1])
         p_inner[max_index] = 1.0
         song = np.append(song, np.array([[p_inner]]), axis=1)
 
+    print('Chose cnt: ', chose_cnt)
     return song
 
 
@@ -245,7 +247,7 @@ def make_mus2_oh(song, makam, song_title, initiator):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v63'
+    model_name = 'lstm_v61'
     # ver = 'v3'
     ver = 'oh'  # v 60, 61, 62, 63
 
@@ -263,13 +265,13 @@ def main():
     # epochs = 500  # v 50
     # epochs = 500  # v 60, 61
     # main_epochs = 50  # v 62
-    main_epochs = 100  # v 63
+    # main_epochs = 100  # v 63
     # whole_train(makam, ver, model_name, exclude, set_size, epochs)  # v 50, 60, 61
-    trainer(makam, ver, model_name, exclude, set_size, main_epochs)  # v 62, 63
-    plot_loss(makam, model_name)
-    '''
+    # trainer(makam, ver, model_name, exclude, set_size, main_epochs)  # v 62, 63
+    # plot_loss(makam, model_name)
+
     # pc = ProbabilityCalculator(makam, set_size)
-    initiator = str(exclude[1])
+    initiator = str(exclude[3])
     model = load_model(makam, model_name)
     x_test, y_test = dl.load_data(makam, ver, initiator, set_size)
     scores = model.evaluate(x_test, y_test, verbose=0)
@@ -284,7 +286,6 @@ def main():
     # _ = data_to_mus2(song, makam, model_name, initiator)
     song = make_oh_song(model, starter_notes, song_len, 0.5, 0.1)  # ver oh
     make_mus2_oh(song, makam, model_name, initiator)  # ver oh
-    '''
 
 
 if __name__ == '__main__':
