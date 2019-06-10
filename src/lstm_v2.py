@@ -247,7 +247,7 @@ def make_mus2_oh(song, makam, song_title, initiator):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v61'
+    model_name = 'lstm_v60'
     # ver = 'v3'
     ver = 'oh'  # v 60, 61, 62, 63
 
@@ -286,6 +286,7 @@ def main():
     # _ = data_to_mus2(song, makam, model_name, initiator)
     song = make_oh_song(model, starter_notes, song_len, 0.5, 0.1)  # ver oh
     make_mus2_oh(song, makam, model_name, initiator)  # ver oh
+    # chose_cnt = 55 (v60.55), 29 (v61.55), 17 (v62.55), 2 (v63.55)
 
 
 if __name__ == '__main__':
