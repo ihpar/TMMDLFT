@@ -3,7 +3,7 @@ import os
 from tensorflow.keras.models import Sequential, model_from_json
 from tensorflow.keras.layers import Dense, LSTM, Dropout, Activation
 from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint
-from tensorflow.python.keras.optimizers import RMSprop
+from tensorflow.python.keras.optimizers import RMSprop, SGD
 
 
 def build_model(in_shape, out_shape):
@@ -172,6 +172,7 @@ def build_whole_model(x_shape, y_shape):
     optimizer = RMSprop(lr=0.001)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     '''
+    '''
     # v 61
     model = Sequential()
     model.add(LSTM(600, return_sequences=True, input_shape=x_shape))
@@ -182,6 +183,18 @@ def build_whole_model(x_shape, y_shape):
     model.add(Activation('softmax'))
     optimizer = RMSprop(lr=0.001)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+    '''
+
+    # v 70
+    model = Sequential()
+    model.add(LSTM(600, return_sequences=True, input_shape=x_shape))
+    model.add(Dropout(0.5))
+    model.add(LSTM(600, return_sequences=False))
+    model.add(Dropout(0.5))
+    model.add(Dense(y_shape))
+    # model.add(Activation('softmax'))
+    optimizer = SGD(lr=0.0001)
+    model.compile(loss='mean_squared_error', optimizer=optimizer, metrics=['accuracy'])
 
     model.summary()
     return model
