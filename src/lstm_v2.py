@@ -264,7 +264,8 @@ def main():
     # main_epochs = 128  # v 48, 49
     # main_epochs = 200  # v 51
     # epochs = 500  # v 50
-    epochs = 500  # v 60, 61, 70
+    # epochs = 500  # v 60, 61
+    epochs = 50  # v 70
     # main_epochs = 50  # v 62
     # main_epochs = 100  # v 63
     whole_train(makam, ver, model_name, exclude, set_size, epochs)  # v 50, 60, 61, 70
