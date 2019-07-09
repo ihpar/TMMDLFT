@@ -1,4 +1,5 @@
 import data_loader as dl
+from flt_manager import FltManager
 from model_ops import *
 import numpy as np
 import matplotlib.pyplot as plt
@@ -208,6 +209,54 @@ def make_oh_song(model, starter_notes, song_len, lo, hi):
     return song
 
 
+def make_flt_song(flt_mgr, model, starter_notes, song_len):
+    song = np.copy(starter_notes)
+    xpy = song.shape[1]
+    for i in range(song_len):
+        part = song[:, -xpy:, :]
+        prediction = model.predict(part)
+        rounded = flt_mgr.round_num(prediction[0][0])
+        song = np.append(song, np.array([[[rounded]]]), axis=1)
+
+    return song
+
+
+def make_mus2_flt(flt_mgr, song, makam, song_title, initiator):
+    note_dict = NCDictionary()
+    lines = consts.mu2_header
+    lines[1] = lines[1].replace('{makam}', makam)
+    lines[7] = lines[7].replace('{song_title}', song_title)
+    for n in song[0]:
+        n_d = flt_mgr.flt_2_nd(n[0])
+        parts = n_d.split(':')
+        note = int(parts[0])
+        dur = int(parts[1])
+        note = note_dict.get_note_by_num(note)
+        if not note:
+            raise Exception('Note N/A')
+        note = note.capitalize()
+
+        dur = note_dict.get_dur_by_num(dur).split('/')
+
+        if note == 'Rest':
+            lines.append('9		{num}	{denom}	95	96	64	.		0.5'
+                         .replace('{num}', dur[0])
+                         .replace('{denom}', dur[1]))
+        else:
+            lines.append('9	{nn}	{num}	{denom}	95	96	64	.		0.5'
+                         .replace('{nn}', note)
+                         .replace('{num}', dur[0])
+                         .replace('{denom}', dur[1]))
+
+    file_name = song_title + '_' + initiator + '.mu2'
+    path = os.path.join(os.path.abspath('..'), 'songs', makam, file_name)
+    with io.open(path, 'w', encoding='utf-8') as song_file:
+        for line in lines:
+            song_file.write(line + '\n')
+
+    print(f'{file_name} is saved to disk!')
+
+
 def make_mus2_oh(song, makam, song_title, initiator):
     note_dict = NCDictionary()
     oh_manager = OhManager(makam)
@@ -265,14 +314,13 @@ def main():
     # main_epochs = 200  # v 51
     # epochs = 500  # v 50
     # epochs = 500  # v 60, 61
-    epochs = 50  # v 70
+    # epochs = 50  # v 70
     # main_epochs = 50  # v 62
     # main_epochs = 100  # v 63
-    whole_train(makam, ver, model_name, exclude, set_size, epochs)  # v 50, 60, 61, 70
+    # whole_train(makam, ver, model_name, exclude, set_size, epochs)  # v 50, 60, 61, 70
     # trainer(makam, ver, model_name, exclude, set_size, main_epochs)  # v 62, 63
     # plot_loss(makam, model_name)
 
-    '''
     # pc = ProbabilityCalculator(makam, set_size)
     initiator = str(exclude[3])
     model = load_model(makam, model_name)
@@ -287,10 +335,12 @@ def main():
     # 0.79 -> 0.7
     # song = make_song_ext(model, pc, lower, upper, starter_notes, song_len)
     # _ = data_to_mus2(song, makam, model_name, initiator)
-    song = make_oh_song(model, starter_notes, song_len, 0.5, 0.1)  # ver oh
-    make_mus2_oh(song, makam, model_name, initiator)  # ver oh
+    # song = make_oh_song(model, starter_notes, song_len, 0.5, 0.1)  # ver oh
+    flt_mgr = FltManager(makam)  # ver flt
+    song = make_flt_song(flt_mgr, model, starter_notes, song_len)  # ver flt
+    make_mus2_flt(flt_mgr, song, makam, model_name, initiator)   # ver flt
+    # make_mus2_oh(song, makam, model_name, initiator)  # ver oh
     # chose_cnt = 55 (v60.55), 29 (v61.55), 17 (v62.55), 2 (v63.55)
-    '''
 
 
 if __name__ == '__main__':
