@@ -296,10 +296,10 @@ def make_mus2_oh(song, makam, song_title, initiator):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v70'
+    model_name = 'lstm_v71'
     # ver = 'v3'
     # ver = 'oh'  # v 60, 61, 62, 63
-    ver = 'flt'  # v 70
+    ver = 'flt'  # v 70, 71
 
     # set_size = 8  # v 41
     # set_size = 4  # v 44
@@ -315,9 +315,10 @@ def main():
     # epochs = 500  # v 50
     # epochs = 500  # v 60, 61
     # epochs = 50  # v 70
+    # epochs = 6  # v 71
     # main_epochs = 50  # v 62
     # main_epochs = 100  # v 63
-    # whole_train(makam, ver, model_name, exclude, set_size, epochs)  # v 50, 60, 61, 70
+    # whole_train(makam, ver, model_name, exclude, set_size, epochs)  # v 50, 60, 61, 70, 71
     # trainer(makam, ver, model_name, exclude, set_size, main_epochs)  # v 62, 63
     # plot_loss(makam, model_name)
 
@@ -336,9 +337,9 @@ def main():
     # song = make_song_ext(model, pc, lower, upper, starter_notes, song_len)
     # _ = data_to_mus2(song, makam, model_name, initiator)
     # song = make_oh_song(model, starter_notes, song_len, 0.5, 0.1)  # ver oh
-    flt_mgr = FltManager(makam)  # ver flt
-    song = make_flt_song(flt_mgr, model, starter_notes, song_len)  # ver flt
-    make_mus2_flt(flt_mgr, song, makam, model_name, initiator)   # ver flt
+    flt_mgr = FltManager(makam)  # ver flt 70, 71
+    song = make_flt_song(flt_mgr, model, starter_notes, song_len)  # ver flt 70, 71
+    make_mus2_flt(flt_mgr, song, makam, model_name, initiator)   # ver flt 70, 71
     # make_mus2_oh(song, makam, model_name, initiator)  # ver oh
     # chose_cnt = 55 (v60.55), 29 (v61.55), 17 (v62.55), 2 (v63.55)
 

@@ -45,7 +45,7 @@ class FltManager:
                 if f != closest:
                     closest_2 = f
 
-        if abs(closest - closest_2) < 0.05 and random.randint(0, 2) == 1:
+        if abs(closest - closest_2) < 0.01 and random.randint(0, 2) == 1:
             closest = closest_2
 
         return closest
