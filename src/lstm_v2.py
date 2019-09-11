@@ -296,10 +296,10 @@ def make_mus2_oh(song, makam, song_title, initiator):
 
 def main():
     makam = 'hicaz'
-    model_name = 'lstm_v71'
+    model_name = 'lstm_v61'
     # ver = 'v3'
-    # ver = 'oh'  # v 60, 61, 62, 63
-    ver = 'flt'  # v 70, 71
+    ver = 'oh'  # v 60, 61, 62, 63
+    # ver = 'flt'  # v 70, 71
 
     # set_size = 8  # v 41
     # set_size = 4  # v 44
@@ -323,7 +323,7 @@ def main():
     # plot_loss(makam, model_name)
 
     # pc = ProbabilityCalculator(makam, set_size)
-    initiator = str(exclude[3])
+    initiator = str(exclude[4])
     model = load_model(makam, model_name)
     x_test, y_test = dl.load_data(makam, ver, initiator, set_size)
     scores = model.evaluate(x_test, y_test, verbose=0)
@@ -336,11 +336,11 @@ def main():
     # 0.79 -> 0.7
     # song = make_song_ext(model, pc, lower, upper, starter_notes, song_len)
     # _ = data_to_mus2(song, makam, model_name, initiator)
-    # song = make_oh_song(model, starter_notes, song_len, 0.5, 0.1)  # ver oh
-    flt_mgr = FltManager(makam)  # ver flt 70, 71
-    song = make_flt_song(flt_mgr, model, starter_notes, song_len)  # ver flt 70, 71
-    make_mus2_flt(flt_mgr, song, makam, model_name, initiator)   # ver flt 70, 71
-    # make_mus2_oh(song, makam, model_name, initiator)  # ver oh
+    song = make_oh_song(model, starter_notes, song_len, 0.5, 0.1)  # ver oh
+    # flt_mgr = FltManager(makam)  # ver flt 70, 71
+    # song = make_flt_song(flt_mgr, model, starter_notes, song_len)  # ver flt 70, 71
+    # make_mus2_flt(flt_mgr, song, makam, model_name, initiator)   # ver flt 70, 71
+    make_mus2_oh(song, makam, model_name, initiator)  # ver oh
     # chose_cnt = 55 (v60.55), 29 (v61.55), 17 (v62.55), 2 (v63.55)
 
 
