@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 import math
+from fractions import Fraction
 
 from nc_dictionary import NCDictionary
 from oh_manager import OhManager
@@ -14,7 +15,6 @@ def make_pic_from_mu2(fp, note_dict, oh_manager, edge):
     rp_index = 9
     nom_index = 3
     den_index = 4
-    lns_index = 5
 
     notes = []
     n_s, n_e = 0, 0
@@ -22,16 +22,43 @@ def make_pic_from_mu2(fp, note_dict, oh_manager, edge):
     doc = codecs.open(os.path.abspath(fp), 'rU', 'UTF-8')
     df = pd.read_csv(doc, sep='\t')
 
+    i, maxi = -1, 0
     for row in df.itertuples():
         row_key = row[1]
         if row_key == 9:
+            if row[lp_index] == '[':
+                n_s = i + 1
+            if row[rp_index] == ']':
+                n_e = i
+
             if not (np.isnan(row[nom_index]) or np.isnan(row[den_index])):
+                i += 1
                 note = 'rest' if pd.isnull(row[2]) else row[2].lower().strip()
-                dur = str(int(row[nom_index])) + '/' + str(int(row[den_index]))
-                note = note_dict.get_note_by_name(note)
+                dur = str(Fraction(int(row[nom_index]), int(row[den_index])))
+                dur_alt = str(int(row[nom_index])) + '/' + str(int(row[den_index]))
+                note_num = note_dict.get_note_by_name(note)
                 dur = note_dict.get_num_by_dur(dur)
-                combine = oh_manager.nd_2_int(str(note) + ':' + str(dur))
+                if not dur:
+                    dur = note_dict.get_num_by_dur(dur_alt)
+
+                combine = oh_manager.nd_2_int(str(note_num) + ':' + str(dur))
+                maxi = max(combine, maxi)
                 notes.append(combine)
+
+    # print('s:', notes[n_s], 'e:', notes[n_e])
+    in_edge = math.ceil(math.sqrt(i + 1))
+    notes = np.pad(notes, (0, (in_edge * in_edge) - len(notes)), 'constant').reshape(in_edge, in_edge)
+    offset = math.floor((edge - in_edge) / 2)
+    top_bot = (offset, edge - in_edge - offset)
+    left_right = (offset, edge - in_edge - offset)
+    notes = np.pad(notes, (top_bot, left_right), 'constant').reshape(edge, edge)
+    t_s, l_s = divmod(n_s, in_edge)
+    t_e, l_e = divmod(n_e, in_edge)
+    s_r, s_c = (top_bot[0] + t_s), (left_right[0] + l_s)  # start row, col
+    e_r, e_c = (top_bot[0] + t_e), (left_right[0] + l_e)  # end row, col
+    # print('s:', notes[s_r, s_c], 'e:', notes[e_r, e_c])
+    frame = (s_r, left_right[0], in_edge, (t_e - t_s))  # (top, left, width, height)
+    return notes, frame, maxi
 
 
 def count_len(fp):
@@ -64,9 +91,21 @@ def main():
 
     edge = math.ceil(math.sqrt(max_len))
 
+    maxi_norm = 0
+    corpus = []
+    frames = []
     for fp in files:
-        make_pic_from_mu2(fp, note_dict, oh_manager, edge)
-        break
+        notes, frame, maxi = make_pic_from_mu2(fp, note_dict, oh_manager, edge)
+        corpus.append(notes)
+        frames.append(frame)
+        maxi_norm = max(maxi, maxi_norm)
+
+    print(maxi_norm)
+    for i, n in enumerate(corpus):
+        corpus[i] = n / maxi_norm
+
+    print(corpus[1])
+    print(frames[1])
 
 
 if __name__ == '__main__':
