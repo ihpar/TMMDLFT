@@ -4,13 +4,13 @@ import pandas as pd
 import numpy as np
 import math
 from fractions import Fraction
+from PIL import Image
 
 from nc_dictionary import NCDictionary
 from oh_manager import OhManager
 
 
 def make_pic_from_mu2(fp, note_dict, oh_manager, edge):
-    print(fp)
     lp_index = 8
     rp_index = 9
     nom_index = 3
@@ -57,7 +57,9 @@ def make_pic_from_mu2(fp, note_dict, oh_manager, edge):
     s_r, s_c = (top_bot[0] + t_s), (left_right[0] + l_s)  # start row, col
     e_r, e_c = (top_bot[0] + t_e), (left_right[0] + l_e)  # end row, col
     # print('s:', notes[s_r, s_c], 'e:', notes[e_r, e_c])
-    frame = (s_r, left_right[0], in_edge, (t_e - t_s))  # (top, left, width, height)
+    frame = np.array([s_r, left_right[0], in_edge, (t_e - t_s)])  # (top, left, width, height)
+    if n_e == 0:
+        frame = None
     return notes, frame, maxi
 
 
@@ -96,16 +98,27 @@ def main():
     frames = []
     for fp in files:
         notes, frame, maxi = make_pic_from_mu2(fp, note_dict, oh_manager, edge)
+        if frame is None:
+            continue
         corpus.append(notes)
         frames.append(frame)
         maxi_norm = max(maxi, maxi_norm)
 
-    print(maxi_norm)
     for i, n in enumerate(corpus):
-        corpus[i] = n / maxi_norm
+        # corpus[i] = n / maxi_norm
+        corpus[i] = (n / maxi_norm) * 255  # map to 0-255 interval for images
 
-    print(corpus[1])
-    print(frames[1])
+    i = 0
+    r_dir = os.path.join(os.path.abspath(__file__ + "/../../"), 'data', makam, 'pic')
+    for c, f in zip(corpus, frames):
+        # pic_file = os.path.join(r_dir, 's_' + str(i) + '.npy')
+        # fr_file = os.path.join(r_dir, 'f_' + str(i) + '.npy')
+        # np.save(pic_file, c)  # k = np.load(pic_file)
+        # np.save(fr_file, f)
+        im = Image.fromarray(c)
+        im = im.convert('L')
+        im.save(os.path.join(r_dir, 's_' + str(i) + '.png'))
+        i += 1
 
 
 if __name__ == '__main__':
