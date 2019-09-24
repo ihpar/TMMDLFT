@@ -45,7 +45,6 @@ def make_pic_from_mu2(fp, note_dict, oh_manager, edge):
                 maxi = max(combine, maxi)
                 notes.append(combine)
 
-    # print('s:', notes[n_s], 'e:', notes[n_e])
     in_edge = math.ceil(math.sqrt(i + 1))
     notes = np.pad(notes, (0, (in_edge * in_edge) - len(notes)), 'constant').reshape(in_edge, in_edge)
     offset = math.floor((edge - in_edge) / 2)
@@ -58,8 +57,9 @@ def make_pic_from_mu2(fp, note_dict, oh_manager, edge):
     e_r, e_c = (top_bot[0] + t_e), (left_right[0] + l_e)  # end row, col
     # print('s:', notes[s_r, s_c], 'e:', notes[e_r, e_c])
     frame = np.array([s_r, left_right[0], in_edge, (t_e - t_s)])  # (top, left, width, height)
-    if n_e == 0:
+    if n_s == 0 or n_e == 0:
         frame = None
+
     return notes, frame, maxi
 
 
@@ -112,9 +112,9 @@ def main():
     r_dir = os.path.join(os.path.abspath(__file__ + "/../../"), 'data', makam, 'pic')
     for c, f in zip(corpus, frames):
         # pic_file = os.path.join(r_dir, 's_' + str(i) + '.npy')
-        # fr_file = os.path.join(r_dir, 'f_' + str(i) + '.npy')
         # np.save(pic_file, c)  # k = np.load(pic_file)
-        # np.save(fr_file, f)
+        fr_file = os.path.join(r_dir, 'f_' + str(i) + '.npy')
+        np.save(fr_file, f)
         im = Image.fromarray(c)
         im = im.convert('L')
         im.save(os.path.join(r_dir, 's_' + str(i) + '.png'))
