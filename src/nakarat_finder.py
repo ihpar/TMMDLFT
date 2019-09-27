@@ -78,8 +78,7 @@ def count_len(fp):
     return tot
 
 
-def main():
-    makam = 'hicaz'
+def build_corpus(makam):
     note_dict = NCDictionary()
     oh_manager = OhManager(makam)
     dp = os.path.join(os.path.normpath(os.path.expanduser('~/Desktop')), 'SymbTr-master', 'mu2')
@@ -111,14 +110,29 @@ def main():
     i = 0
     r_dir = os.path.join(os.path.abspath(__file__ + "/../../"), 'data', makam, 'pic')
     for c, f in zip(corpus, frames):
-        # pic_file = os.path.join(r_dir, 's_' + str(i) + '.npy')
-        # np.save(pic_file, c)  # k = np.load(pic_file)
         fr_file = os.path.join(r_dir, 'f_' + str(i) + '.npy')
         np.save(fr_file, f)
         im = Image.fromarray(c)
         im = im.convert('L')
         im.save(os.path.join(r_dir, 's_' + str(i) + '.png'))
         i += 1
+
+
+def main():
+    makam = 'hicaz'
+    build_corpus(makam)
+
+    # region for new guesses
+    edge = 26  # hicaz
+    maxi = 404
+    note_dict = NCDictionary()
+    oh_manager = OhManager(makam)
+    song_path = os.path.join(os.path.abspath(__file__ + "/../../"), 'songs', makam, 'lstm_v61_88.mu2')
+    notes, _, _ = make_pic_from_mu2(song_path, note_dict, oh_manager, edge)
+    notes = (notes / maxi) * 255
+    im = Image.fromarray(notes)
+    im = im.convert('L')
+    im.save(os.path.join(os.path.abspath(__file__ + "/../../"), 'songs', makam, 'lstm_v61_88.png'))
 
 
 if __name__ == '__main__':

@@ -323,7 +323,7 @@ def main():
     # plot_loss(makam, model_name)
 
     # pc = ProbabilityCalculator(makam, set_size)
-    initiator = str(exclude[4])
+    initiator = str(exclude[5])
     model = load_model(makam, model_name)
     x_test, y_test = dl.load_data(makam, ver, initiator, set_size)
     scores = model.evaluate(x_test, y_test, verbose=0)
@@ -331,7 +331,7 @@ def main():
     # accu = scores[1]
     # upper = min(1.0, accu * 1.1)
     # lower = max(0.4, accu * accu * accu)
-    song_len = 128
+    song_len = 256
     starter_notes = [x_test[0]]
     # 0.79 -> 0.7
     # song = make_song_ext(model, pc, lower, upper, starter_notes, song_len)
