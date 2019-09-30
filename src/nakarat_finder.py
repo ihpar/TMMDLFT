@@ -135,15 +135,14 @@ def place_nakarat(makam, edge, coords, song):
     with codecs.open(song_path, 'r', encoding='utf8') as sf:
         lines = sf.read().splitlines()
         for line in lines:
-            rows_list.append(line)
             parts = line.split('\t')
-            if int(parts[0]) == 9:
-                if parts[nom_index].isdigit() and parts[den_index].isdigit():
-                    if i == start_idx:
-                        rows_list.append('9							[		0.5')
-                    if i == end_idx:
-                        rows_list.append('9								]	0.5')
-                    i += 1
+            if int(parts[0]) == 9 and (parts[nom_index].isdigit() and parts[den_index].isdigit()):
+                if i == start_idx:
+                    rows_list.append('9							[		0.5')
+                if i == end_idx:
+                    rows_list.append('9								]	0.5')
+                i += 1
+            rows_list.append(line)
 
     song_path = os.path.join(os.path.abspath(__file__ + "/../../"), 'songs', makam, 'n_' + song + '.mu2')
     with codecs.open(song_path, 'w', encoding='utf8') as sf:
