@@ -57,7 +57,9 @@ def make_pic_from_mu2(fp, note_dict, oh_manager, edge):
     e_r, e_c = (top_bot[0] + t_e), (left_right[0] + l_e)  # end row, col
     # print('s:', notes[s_r, s_c], 'e:', notes[e_r, e_c])
     frame = np.array([s_r, left_right[0], in_edge, (t_e - t_s)])  # (top, left, width, height)
-    if n_s == 0 or n_e == 0:
+
+    # if n_s == 0 or n_e == 0:
+    if n_e == 0:
         frame = None
 
     return notes, frame, maxi
@@ -152,7 +154,7 @@ def place_nakarat(makam, edge, coords, song):
 
 def main():
     makam = 'hicaz'
-    # build_corpus(makam)
+    build_corpus(makam)
     edge = 26  # hicaz
 
     '''
@@ -166,10 +168,12 @@ def main():
     im = Image.fromarray(notes)
     im = im.convert('L')
     im.save(os.path.join(os.path.abspath(__file__ + "/../../"), 'songs', makam, 'lstm_v61_88.png'))
-    '''
+    
     # [10  6 14  4] <-> [top left width height] : lstm_v61_66.png
+    # [ 6  7 12 11] : last train lstm_v61_66.png
     coords = np.array([10, 6, 14, 4])
     place_nakarat(makam, edge, coords, 'lstm_v61_66')
+    '''
 
 
 if __name__ == '__main__':
