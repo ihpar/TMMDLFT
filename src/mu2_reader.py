@@ -5,6 +5,7 @@ from fractions import Fraction
 from nc_dictionary import NCDictionary
 from oh_manager import OhManager
 from songobj import SongObj
+from hicaz_parts import hicaz_songs
 
 
 def decompose_mu2(dp, fn, part_map, note_dict, oh_manager):
@@ -13,8 +14,8 @@ def decompose_mu2(dp, fn, part_map, note_dict, oh_manager):
     beat, tot = None, Fraction(0)
     measure_no = 0
     song_path = path.join(dp, fn)
-    song = SongObj(fn)
-    song.init_measures(part_map)
+    song = SongObj(fn, part_map)
+
     with codecs.open(song_path, 'r', encoding='utf8') as sf:
         lines = sf.read().splitlines()
         for line in lines:
@@ -28,7 +29,7 @@ def decompose_mu2(dp, fn, part_map, note_dict, oh_manager):
             elif parts[0] == 52:
                 song.set_tempo(int(parts[4]))
 
-            elif parts[0] == 9 and (parts[nom_index].isdigit() and parts[den_index].isdigit()):
+            elif (parts[0] == 9 or parts[0] == 24) and (parts[nom_index].isdigit() and parts[den_index].isdigit()):
                 # note name
                 note_name = parts[1].lower().strip()
                 if note_name == '':
@@ -49,15 +50,19 @@ def decompose_mu2(dp, fn, part_map, note_dict, oh_manager):
                 if tot == beat:
                     measure_no += 1
                     tot = Fraction(0)
+                if tot > beat:
+                    print('Broken')
+                    break
 
-    song.print_self()
+    print(song)
 
 
 def main():
     makam = 'hicaz'
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
-    song = 'hicaz--sarki--agiraksak--bak_ne--haci_arif_bey.mu2'
-    part_map = {'I': [0, 1, 2, [3, 4]], 'A': [5, 6, 7, 8], 'B': [9, 10, 11, 12], 'C': [13, 14, 15, 16]}
+    curr_song = hicaz_songs[1]
+    song = curr_song['file']
+    part_map = curr_song['parts_map']
     note_dict = NCDictionary()
     oh_manager = OhManager(makam)
     decompose_mu2(dir_path, song, part_map, note_dict, oh_manager)
