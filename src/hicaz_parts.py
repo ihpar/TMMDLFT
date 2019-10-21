@@ -62,7 +62,54 @@ hicaz_songs = [
                    'B': [29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40], 'C': [26, 27, 28]},
      'sf': []},
 
-    {'file': '.mu2',
-     'parts_map': {'I': [], 'A': [], 'B': [], 'C': []},
-     'sf': []}
+    {'file': 'hicaz--sarki--aksak--dil_yaresini--sevki_bey.mu2',
+     'parts_map': {'I': [0, 1, 2, [3, 4]], 'A': [5, 6, 7, 8, [9, 10]], 'B': [11, 12, 13, 14, [15, 16]],
+                   'C': [17, 18, 19, 20, 21]},
+     'sf': [16, 8]},
+
+    {'file': 'hicaz--sarki--aksak--gormedim_omrumun--kadri_sencalar.mu2',
+     'parts_map': {'I': [], 'A': [0, 1, 2, [3, 4]], 'B': [5, 6, 7, [8, 9]], 'C': [10, 11, 12, [13, 14]]},
+     'sf': [9, 6]},
+
+    {'file': 'hicaz--sarki--aksak--gulsen-i_husnune--rifat_bey.mu2',
+     'parts_map': {'I': [0, 1, 2, 3], 'A': [4, 5, [6, 7]], 'B': [8, 9, 10, 11, 12, 13], 'C': [14, 15, 16, 17, 18, 19]},
+     'sf': [13, 6]},
+
+    {'file': 'hicaz--sarki--aksak--hastayim_yasiyorum--udi_hrant.mu2',
+     'parts_map': {'I': [], 'A': [0, 1, 2, [3, 4]], 'B': [5, 6, 7, [8, 9]], 'C': [10, 11, 12, 13, 14, 15, 16, 17]},
+     'sf': [9, 7]},
+
+    {'file': 'hicaz--sarki--aksak--kis_geldi--sevki_bey.mu2',
+     'parts_map': {'I': [0, 1, 2, [3, 4]], 'A': [5, 6, 7, 8, 9, 10, 11, 12],
+                   'B': [13, 14, 15, 16, 17, 18, 19, 20, [21, 31]],
+                   'C': [22, 23, 24, 25, 26, 27, 28, 29, 30]},
+     'sf': []},
+
+    {'file': 'hicaz--sarki--aksak--matemzedeyim--tanburi_cemil_bey.mu2',
+     'parts_map': {'I': [], 'A': [0, 1, 2, 3, 4, 5], 'B': [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, [17, 24]],
+                   'C': [18, 19, 20, 21, 22, 23]},
+     'sf': []},
+
+    {'file': 'hicaz--sarki--aksak--ne_gunah--alaeddin_yavasca.mu2',
+     'parts_map': {'I': [0, 1, 2, 3, 4, 5, 6, [7, 8]], 'A': [9, 10, 11, 12, 13, 14],
+                   'B': [15, 16, 17, 18, 19, 20, 21, [22, 28]],
+                   'C': [23, 24, 25, [26, 27]]},
+     'sf': []},
+
+    {'file': 'hicaz--sarki--aksak--pencerenin_perdesini--muhlis_sabahaddin_ezgi.mu2',
+     'parts_map': {'I': [0, 1, 2, 3, 4, 5], 'A': [6, 7, 8, 9, 10, 11], 'B': [12, 13, 14, 15, 16, 17],
+                   'C': [18, 19, 20]},
+     'sf': []},
+
+    {'file': 'hicaz--sarki--aksak--sazlar_calinir--yesari_asim_arsoy.mu2',
+     'parts_map': {'I': [], 'A': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                   'B': [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, [21, 35]],
+                   'C': [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34]},
+     'sf': []},
+
+    {'file': 'hicaz--sarki--aksaksemai--sezdim_dargin--rifat_ayaydin.mu2',
+     'parts_map': {'I': [], 'A': [0, 1, 2, 3, 4, 5, 6, 7, 8, [9, 10]],
+                   'B': [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+                   'C': [23, 24, 25, 26, 27, 28, 29, 30, 31, 32]},
+     'sf': [18, 8]}
 ]

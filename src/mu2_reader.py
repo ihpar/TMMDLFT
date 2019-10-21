@@ -63,7 +63,7 @@ def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager):
 def main():
     makam = 'hicaz'
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
-    curr_song = hicaz_parts.hicaz_songs[13]
+    curr_song = hicaz_parts.hicaz_songs[23]
     song = curr_song['file']
     part_map = curr_song['parts_map']
     song_final = curr_song['sf']
