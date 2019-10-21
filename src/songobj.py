@@ -11,6 +11,9 @@ class Measure:
     def insert_note(self, note):
         self._notes.append(note)
 
+    def get_note(self, note_idx):
+        return self._notes[note_idx]
+
 
 class PartObj:
     def __init__(self, pid, m_list):
@@ -18,13 +21,17 @@ class PartObj:
         self._measures = []
         self._rev_measures = {}
         i = 0
-        for e in m_list:  # m_list = [4, 5, 6, [7, 8]]
+        for e in m_list:  # m_list = [4, 5, 6, [7, 8, 20]]
             if isinstance(e, list):
                 self._measures.append(Measure(e[0], True))
                 self._measures.append(Measure(e[1], True))
                 self._rev_measures[e[0]] = i
                 i += 1
                 self._rev_measures[e[1]] = i
+                if len(e) == 3:
+                    self._measures.append(Measure(e[2], True))
+                    i += 1
+                    self._rev_measures[e[2]] = i
             else:
                 self._measures.append(Measure(e))
                 self._rev_measures[e] = i
@@ -42,20 +49,30 @@ class PartObj:
         idx = self._rev_measures[curr_m_no]
         (self._measures[idx]).insert_note(note)
 
+    def get_note(self, measure_no, note_idx):
+        idx = self._rev_measures[measure_no]
+        return (self._measures[idx]).get_note(note_idx)
+
 
 class SongObj:
-    def __init__(self, song_name, parts_map, tempo=None, time_signature=None):
+    def __init__(self, song_name, parts_map, final, tempo=None, time_signature=None):
         self._name = song_name
         self._tempo = tempo
         self._time_sign = time_signature
         self._parts = []
         self._rev_parts = {}
         self.init_measures(parts_map)
+        self._final = final
 
     def __str__(self):
-        res = self._name + ' ' + str(self._time_sign) + ' ' + str(self._tempo) + '\n'
+        res = ''
         for part in self._parts:
             res += str(part) + '\n'
+        res += '\n' + self._name + ' - ' + str(self._time_sign) + ' - ' + str(self._tempo) + '\n'
+        if self._final:
+            res += 'fin: ' + str(self.get_note(self._final[0], self._final[1])) + '\n'
+        else:
+            res += 'fin: []\n'
         return res
 
     def set_tempo(self, tempo):
@@ -75,6 +92,8 @@ class SongObj:
                 if isinstance(el, list):
                     self._rev_parts[el[0]] = i
                     self._rev_parts[el[1]] = i
+                    if len(el) == 3:
+                        self._rev_parts[el[2]] = i
                 else:
                     self._rev_parts[el] = i
             i += 1
@@ -88,3 +107,7 @@ class SongObj:
     def insert_note(self, note, curr_m_no):
         idx = self._rev_parts[curr_m_no]
         (self._parts[idx]).insert_note(note, curr_m_no)
+
+    def get_note(self, measure_no, note_idx):
+        idx = self._rev_parts[measure_no]
+        return (self._parts[idx]).get_note(measure_no, note_idx)

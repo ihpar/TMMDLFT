@@ -5,20 +5,21 @@ from fractions import Fraction
 from nc_dictionary import NCDictionary
 from oh_manager import OhManager
 from songobj import SongObj
-from hicaz_parts import hicaz_songs
+import hicaz_parts
 
 
-def decompose_mu2(dp, fn, part_map, note_dict, oh_manager):
+def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager):
     nom_index = 2
     den_index = 3
     beat, tot = None, Fraction(0)
     measure_no = 0
     song_path = path.join(dp, fn)
-    song = SongObj(fn, part_map)
-
+    song = SongObj(fn, part_map, song_final)
+    i = 0
     with codecs.open(song_path, 'r', encoding='utf8') as sf:
         lines = sf.read().splitlines()
         for line in lines:
+            i += 1
             parts = line.split('\t')
             parts[0] = int(parts[0])
 
@@ -29,7 +30,8 @@ def decompose_mu2(dp, fn, part_map, note_dict, oh_manager):
             elif parts[0] == 52:
                 song.set_tempo(int(parts[4]))
 
-            elif (parts[0] == 9 or parts[0] == 24) and (parts[nom_index].isdigit() and parts[den_index].isdigit()):
+            elif (parts[0] in [1, 7, 9, 10, 11, 12, 24]) and (
+                    parts[nom_index].isdigit() and parts[den_index].isdigit()):
                 # note name
                 note_name = parts[1].lower().strip()
                 if note_name == '':
@@ -48,10 +50,11 @@ def decompose_mu2(dp, fn, part_map, note_dict, oh_manager):
 
                 tot += note_len
                 if tot == beat:
+                    # print(i, line)
                     measure_no += 1
                     tot = Fraction(0)
                 if tot > beat:
-                    print('Broken')
+                    print('--Broken--')
                     break
 
     print(song)
@@ -60,12 +63,13 @@ def decompose_mu2(dp, fn, part_map, note_dict, oh_manager):
 def main():
     makam = 'hicaz'
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
-    curr_song = hicaz_songs[1]
+    curr_song = hicaz_parts.hicaz_songs[0]
     song = curr_song['file']
     part_map = curr_song['parts_map']
+    song_final = curr_song['sf']
     note_dict = NCDictionary()
     oh_manager = OhManager(makam)
-    decompose_mu2(dir_path, song, part_map, note_dict, oh_manager)
+    decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager)
 
 
 if __name__ == '__main__':
