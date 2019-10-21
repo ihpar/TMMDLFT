@@ -30,7 +30,7 @@ def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager):
             elif parts[0] == 52:
                 song.set_tempo(int(parts[4]))
 
-            elif (parts[0] in [1, 7, 9, 10, 11, 12, 24]) and (
+            elif (parts[0] in [1, 7, 9, 10, 11, 12, 24, 28]) and (
                     parts[nom_index].isdigit() and parts[den_index].isdigit()):
                 # note name
                 note_name = parts[1].lower().strip()
@@ -63,7 +63,7 @@ def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager):
 def main():
     makam = 'hicaz'
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
-    curr_song = hicaz_parts.hicaz_songs[0]
+    curr_song = hicaz_parts.hicaz_songs[13]
     song = curr_song['file']
     part_map = curr_song['parts_map']
     song_final = curr_song['sf']
