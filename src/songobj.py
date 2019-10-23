@@ -14,6 +14,9 @@ class Measure:
     def get_note(self, note_idx):
         return self._notes[note_idx]
 
+    def get_notes(self):
+        return self._notes
+
 
 class PartObj:
     def __init__(self, pid, m_list):
@@ -53,6 +56,12 @@ class PartObj:
         idx = self._rev_measures[measure_no]
         return (self._measures[idx]).get_note(note_idx)
 
+    def flat_measures(self):
+        res = []
+        for measure in self._measures:
+            res = res + measure.get_notes()
+        return res
+
 
 class SongObj:
     def __init__(self, song_name, parts_map, final, tempo=None, time_signature=None):
@@ -61,6 +70,7 @@ class SongObj:
         self._time_sign = time_signature
         self._parts = []
         self._rev_parts = {}
+        self._part_ids = {}
         self.init_measures(parts_map)
         self._final = final
 
@@ -87,6 +97,7 @@ class SongObj:
             m_list = parts_map[k]
             # create part object and add to parts list
             self._parts.append(PartObj(k, m_list))
+            self._part_ids[k] = i
             # create a reverse mapping based on measure numbers
             for el in m_list:  # m_list = [1, 2, 3, [4, 5]]
                 if isinstance(el, list):
@@ -111,3 +122,6 @@ class SongObj:
     def get_note(self, measure_no, note_idx):
         idx = self._rev_parts[measure_no]
         return (self._parts[idx]).get_note(measure_no, note_idx)
+
+    def get_part(self, part_id):
+        return self._parts[self._part_ids[part_id]].flat_measures()

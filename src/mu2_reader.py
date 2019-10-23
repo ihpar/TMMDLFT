@@ -57,7 +57,7 @@ def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager):
                 if tot > beat:
                     raise Exception('--Broken--')
 
-    print(song)
+    return song
 
 
 def main():
