@@ -21,6 +21,7 @@ def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager):
         for line in lines:
             i += 1
             parts = line.split('\t')
+            parts = [s.strip() for s in parts]
             parts[0] = int(parts[0])
 
             if parts[0] == 51:
@@ -54,22 +55,25 @@ def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager):
                     measure_no += 1
                     tot = Fraction(0)
                 if tot > beat:
-                    print('--Broken--')
-                    break
+                    raise Exception('--Broken--')
 
     print(song)
 
 
 def main():
+    '''
     makam = 'hicaz'
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
-    curr_song = hicaz_parts.hicaz_songs[23]
-    song = curr_song['file']
-    part_map = curr_song['parts_map']
-    song_final = curr_song['sf']
     note_dict = NCDictionary()
     oh_manager = OhManager(makam)
-    decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager)
+
+    for curr_song in hicaz_parts.hicaz_songs:
+        song = curr_song['file']
+        part_map = curr_song['parts_map']
+        song_final = curr_song['sf']
+        decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager)
+    '''
+    pass
 
 
 if __name__ == '__main__':
