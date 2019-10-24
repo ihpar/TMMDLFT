@@ -1,3 +1,5 @@
+from tensorflow.python.keras.layers import LSTM
+
 from mu2_reader import *
 from model_ops import load_model
 import numpy as np
@@ -18,21 +20,29 @@ def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size):
         part = song.get_part(part_id)
         xs, ys = [], []
         for i in range(len(part) - set_size):
-            x_sec = np.array([oh_manager.int_2_oh(x) for x in part[i:i + set_size]])
-            y_sec = np.array(oh_manager.int_2_oh(part[i + set_size]))
+            x_sec = [oh_manager.int_2_oh(x) for x in part[i:i + set_size]]
+            y_sec = oh_manager.int_2_oh(part[i + set_size])
             xs.append(x_sec)
             ys.append(y_sec)
-        x_lst.append(xs)
-        y_lst.append(ys)
-    return np.array(x_lst), np.array(y_lst)
+        x_lst.append(np.array(xs))
+        y_lst.append(np.array(ys))
+    return x_lst, y_lst
 
 
 def train_model(makam, src_model, xs, ys, target_model):
-    model = load_model(makam, src_model)
+    base_model = load_model(makam, src_model)
+    for i, layer in enumerate(base_model.layers):
+        print(i, layer.name)
+        layer.trainable = False
+
+    o = base_model.output
+    o = LSTM(256, return_sequences=False, dropout=0.5)(o)
+    print(o)
+
+    '''
     for x, y in zip(xs, ys):
-        scores = model.evaluate(x, y, verbose=0)
-        print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
-        break
+        model.fit(x, y, epochs=1, batch_size=16)
+    '''
 
 
 def main():
