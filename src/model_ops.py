@@ -123,7 +123,7 @@ def save_model(makam, model_name, model):
     print("Saved model to disk")
 
 
-def load_model(makam, model_name):
+def load_model(makam, model_name, comp=True):
     path = os.path.join(os.path.abspath('..'), 'models', makam)
     json_path = os.path.join(path, model_name + '.json')
     w_path = os.path.join(path, model_name + '.h5')
@@ -136,6 +136,10 @@ def load_model(makam, model_name):
     # load weights into new model
     loaded_model.load_weights(w_path)
     print(f'Model loaded from {json_path}')
+
+    if not comp:
+        return loaded_model
+
     optimizer = RMSprop(lr=0.001)
     loaded_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     return loaded_model

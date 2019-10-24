@@ -1,5 +1,6 @@
 from tensorflow.python.keras.layers import LSTM
-
+from tensorflow.python.keras.models import Sequential, Model
+from tensorflow.python.keras.optimizers import RMSprop
 from mu2_reader import *
 from model_ops import load_model
 import numpy as np
@@ -30,19 +31,34 @@ def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size):
 
 
 def train_model(makam, src_model, xs, ys, target_model):
-    base_model = load_model(makam, src_model)
+    in_shape = xs[0].shape[1:]
+    out_shape = ys[0].shape[1]
+
+    base_model = load_model(makam, src_model, False)
+    base_model.trainable = False
+    new_model = Sequential()
     for i, layer in enumerate(base_model.layers):
-        print(i, layer.name)
+        layer.trainable = False
+        new_model.add(layer)
+        new_model.layers[i].trainable = False
+
+    for layer in new_model.layers:
         layer.trainable = False
 
-    o = base_model.output
-    o = LSTM(256, return_sequences=False, dropout=0.5)(o)
-    print(o)
+    optimizer = RMSprop(lr=0.001)
+    base_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+    new_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+    new_model.summary()
 
-    '''
     for x, y in zip(xs, ys):
-        model.fit(x, y, epochs=1, batch_size=16)
-    '''
+        scores = new_model.evaluate(x, y, verbose=0)
+        print("new: %s: %.2f%%" % (new_model.metrics_names[1], scores[1] * 100))
+
+        scores = base_model.evaluate(x, y, verbose=0)
+        print("base: %s: %.2f%%" % (base_model.metrics_names[1], scores[1] * 100))
+
+        new_model.fit(x, y, epochs=4, batch_size=16)
+        break
 
 
 def main():
