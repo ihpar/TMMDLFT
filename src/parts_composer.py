@@ -4,6 +4,7 @@ from tensorflow.python.keras.optimizers import RMSprop
 from mu2_reader import *
 from model_ops import load_model
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size):
@@ -46,34 +47,20 @@ def train_model(makam, src_model, xs, ys, target_model):
     new_model.add(Activation('softmax'))
 
     optimizer = RMSprop(lr=0.001)
-    # base_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     new_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     new_model.summary()
 
-    '''
-    weights = []
-    for layer in new_model.layers:
-        weights.append(layer.get_weights())
-    '''
+    histories = []
 
-    for x, y in zip(xs, ys):
-        scores = new_model.evaluate(x, y, verbose=0)
-        print("new: %s: %.2f%%" % (new_model.metrics_names[1], scores[1] * 100))
+    for i in range(5):
+        print(f'=== Main loop: {i} ===')
+        for x, y in zip(xs, ys):
+            history = new_model.fit(x, y, epochs=1, batch_size=16)
+            histories.extend(history.history['loss'])
 
-        scores = base_model.evaluate(x, y, verbose=0)
-        print("base: %s: %.2f%%" % (base_model.metrics_names[1], scores[1] * 100))
+    plt.plot(histories)
+    plt.show()
 
-        new_model.fit(x, y, epochs=1, batch_size=16)
-
-    '''
-    for i, layer in enumerate(new_model.layers):
-        print(i, layer.name)
-        new_model_weights = layer.get_weights()
-        if all([np.array_equal(a1, a2) for a1, a2 in zip(new_model_weights, weights[i])]):
-            print('Not changed')
-        else:
-            print('Changed!!!!')
-    '''
 
 def main():
     makam = 'hicaz'

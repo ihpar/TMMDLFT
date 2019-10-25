@@ -16,6 +16,16 @@ Changed!!!!
 Not changed
 
 
+
+for i, layer in enumerate(new_model.layers):
+        print(i, layer.name)
+        new_model_weights = layer.get_weights()
+        if all([np.array_equal(a1, a2) for a1, a2 in zip(new_model_weights, weights[i])]):
+            print('Not changed')
+        else:
+            print('Changed!!!!')
+
+
 <script type="application/ld+json">
     {
         "@context": "http://schema.org",
