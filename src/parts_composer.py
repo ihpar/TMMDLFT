@@ -2,7 +2,7 @@ from tensorflow.python.keras.layers import LSTM, Activation, Dense
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.optimizers import RMSprop
 from mu2_reader import *
-from model_ops import load_model
+from model_ops import load_model, save_model
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -58,6 +58,7 @@ def train_model(makam, src_model, xs, ys, target_model):
             history = new_model.fit(x, y, epochs=1, batch_size=16)
             histories.extend(history.history['loss'])
 
+    save_model(makam, target_model, new_model)
     plt.plot(histories)
     plt.show()
 
@@ -68,10 +69,11 @@ def main():
     note_dict = NCDictionary()
     oh_manager = OhManager(makam)
     set_size = 8
+    ver = '61'
     xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size)
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
-    train_model(makam, 'lstm_v61', xs, ys, 'intro_v61')
+    train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_A_v' + ver)
 
 
 if __name__ == '__main__':

@@ -8,6 +8,9 @@ class Measure:
         res = '\n' + '\t' + 'No: ' + str(self._no) + ', Rep: ' + str(self._rep) + ', Notes: ' + str(self._notes)
         return res
 
+    def get_no(self):
+        return self._no
+
     def insert_note(self, note):
         self._notes.append(note)
 
@@ -16,6 +19,9 @@ class Measure:
 
     def get_notes(self):
         return self._notes
+
+    def is_repeat(self):
+        return self._rep
 
 
 class PartObj:
@@ -58,8 +64,26 @@ class PartObj:
 
     def flat_measures(self):
         res = []
+        repeat_started = False
+        repeat_ended = False
+        last_repeated_measure = None
         for measure in self._measures:
-            res = res + measure.get_notes()
+            if measure.is_repeat():
+                repeat_started = True
+                repeat_ended = False
+                last_repeated_measure = measure
+            else:
+                if repeat_started:
+                    repeat_started = False
+                    repeat_ended = True
+
+            if repeat_ended:
+                res = res + last_repeated_measure.get_notes()
+                repeat_ended = False
+            if not repeat_started:
+                res = res + measure.get_notes()
+        if repeat_started:
+            res = res + last_repeated_measure.get_notes()
         return res
 
 
