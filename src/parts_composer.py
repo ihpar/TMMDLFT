@@ -1,4 +1,4 @@
-from tensorflow.python.keras.layers import LSTM
+from tensorflow.python.keras.layers import LSTM, Activation, Dense
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.optimizers import RMSprop
 from mu2_reader import *
@@ -35,20 +35,26 @@ def train_model(makam, src_model, xs, ys, target_model):
     out_shape = ys[0].shape[1]
 
     base_model = load_model(makam, src_model, False)
-    base_model.trainable = False
     new_model = Sequential()
     for i, layer in enumerate(base_model.layers):
+        if i == 4:
+            break
         layer.trainable = False
         new_model.add(layer)
-        new_model.layers[i].trainable = False
 
-    for layer in new_model.layers:
-        layer.trainable = False
+    new_model.add(Dense(out_shape))
+    new_model.add(Activation('softmax'))
 
     optimizer = RMSprop(lr=0.001)
-    base_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+    # base_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     new_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     new_model.summary()
+
+    '''
+    weights = []
+    for layer in new_model.layers:
+        weights.append(layer.get_weights())
+    '''
 
     for x, y in zip(xs, ys):
         scores = new_model.evaluate(x, y, verbose=0)
@@ -57,9 +63,17 @@ def train_model(makam, src_model, xs, ys, target_model):
         scores = base_model.evaluate(x, y, verbose=0)
         print("base: %s: %.2f%%" % (base_model.metrics_names[1], scores[1] * 100))
 
-        new_model.fit(x, y, epochs=4, batch_size=16)
-        break
+        new_model.fit(x, y, epochs=1, batch_size=16)
 
+    '''
+    for i, layer in enumerate(new_model.layers):
+        print(i, layer.name)
+        new_model_weights = layer.get_weights()
+        if all([np.array_equal(a1, a2) for a1, a2 in zip(new_model_weights, weights[i])]):
+            print('Not changed')
+        else:
+            print('Changed!!!!')
+    '''
 
 def main():
     makam = 'hicaz'

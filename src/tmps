@@ -2,6 +2,19 @@
      'parts_map': {'I': [], 'A': [], 'B': [], 'C': []},
      'sf': []}
 
+0 lstm
+Not changed
+1 dropout
+Not changed
+2 lstm_1
+Changed!!!!
+3 dropout_1
+Not changed
+4 dense
+Changed!!!!
+5 activation
+Not changed
+
 
 <script type="application/ld+json">
     {
