@@ -56,7 +56,7 @@ def train_model(makam, src_model, xs, ys, target_model):
 
     histories = []
 
-    for i in range(10):
+    for i in range(40):
         print(f'=== Main loop: {i} ===')
         for x, y in zip(xs, ys):
             history = new_model.fit(x, y, epochs=1, batch_size=16)
@@ -172,11 +172,11 @@ def main():
     set_size = 8
     time_sig = Fraction(9, 4)
     ver = '61'
-    xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size)
+    # xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size)
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
-    train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_A1_v' + ver)
-    # compose(makam, time_sig, 4, 'init-hicaz-0.mu2', 'sec_A_v61', set_size, note_dict, oh_manager, 't_sec_A_v61')
+    # train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_A40_v' + ver)
+    compose(makam, time_sig, 4, 'init-hicaz-0.mu2', 'sec_A40_v61', set_size, note_dict, oh_manager, 't_sec_A40_v61')
 
 
 if __name__ == '__main__':
