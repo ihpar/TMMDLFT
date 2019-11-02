@@ -1,6 +1,7 @@
 from tensorflow.python.keras.layers import LSTM, Activation, Dense
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.optimizers import RMSprop
+from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint
 
 import consts
 from mu2_reader import *
@@ -11,7 +12,7 @@ import os
 import io
 
 
-def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size):
+def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size, is_whole=False):
     songs = []
 
     for curr_song in hicaz_parts.hicaz_songs:
@@ -30,9 +31,46 @@ def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size):
             y_sec = oh_manager.int_2_oh(part[i + set_size])
             xs.append(x_sec)
             ys.append(y_sec)
-        x_lst.append(np.array(xs))
-        y_lst.append(np.array(ys))
-    return x_lst, y_lst
+
+        if not is_whole:
+            x_lst.append(np.array(xs))
+            y_lst.append(np.array(ys))
+        else:
+            x_lst.extend(xs)
+            y_lst.extend(ys)
+    if not is_whole:
+        return x_lst, y_lst
+    else:
+        return np.array(x_lst), np.array(y_lst)
+
+
+def train_whole(makam, src_model, xs, ys, target_model):
+    in_shape = xs.shape[1:]
+    out_shape = ys.shape[1]
+
+    base_model = load_model(makam, src_model, False)
+    new_model = Sequential()
+    for i, layer in enumerate(base_model.layers):
+        if i == 4:
+            break
+        layer.trainable = False
+        new_model.add(layer)
+
+    new_model.add(Dense(out_shape))
+    new_model.add(Activation('softmax'))
+
+    optimizer = RMSprop(lr=0.001)
+    new_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+    new_model.summary()
+
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=2)
+    # mc = ModelCheckpoint('cp_' + target_model + '.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
+
+    history = new_model.fit(xs, ys, epochs=100, batch_size=16, shuffle=True, validation_split=0.1, callbacks=[es])
+
+    save_model(makam, target_model, new_model)
+    plt.plot(history.history['loss'])
+    plt.show()
 
 
 def train_model(makam, src_model, xs, ys, target_model):
@@ -172,11 +210,15 @@ def main():
     set_size = 8
     time_sig = Fraction(9, 4)
     ver = '61'
+
     # xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size)
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
     # train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_A40_v' + ver)
-    compose(makam, time_sig, 4, 'init-hicaz-0.mu2', 'sec_A40_v61', set_size, note_dict, oh_manager, 't_sec_A40_v61')
+
+    xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_B0_v' + ver)
+    # compose(makam, time_sig, 4, 'init-hicaz-0.mu2', 'sec_A40_v61', set_size, note_dict, oh_manager, 't_sec_A40_v61')
 
 
 if __name__ == '__main__':
