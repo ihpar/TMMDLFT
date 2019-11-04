@@ -244,7 +244,7 @@ def main():
     measure_cnt = 4
     lo = 0.1
     hi = 0.5
-    init = '9'
+    init = '6'
     initiator = 'init-hicaz-' + init + '.mu2'
     model = 'sec_A20_v61'
     song_name = 't_A2061_i' + init
