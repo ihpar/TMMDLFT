@@ -1,7 +1,7 @@
-from tensorflow.python.keras.layers import LSTM, Activation, Dense
-from tensorflow.python.keras.models import Sequential, Model
+from tensorflow.python.keras.layers import Activation, Dense
+from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.optimizers import RMSprop
-from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.python.keras.callbacks import EarlyStopping
 
 import consts
 from mu2_reader import *
@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import io
+import random
 
 
 def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size, is_whole=False):
@@ -63,13 +64,15 @@ def train_whole(makam, src_model, xs, ys, target_model):
     new_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     new_model.summary()
 
-    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=2)
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=10)
     # mc = ModelCheckpoint('cp_' + target_model + '.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
 
     history = new_model.fit(xs, ys, epochs=100, batch_size=16, shuffle=True, validation_split=0.1, callbacks=[es])
 
     save_model(makam, target_model, new_model)
-    plt.plot(history.history['loss'])
+    plt.plot(history.history['loss'], label='train')
+    plt.plot(history.history['val_loss'], label='test')
+    plt.legend()
     plt.show()
 
 
@@ -141,12 +144,14 @@ def get_starters(init_file, set_size, note_dict, oh_manager):
     return np.array(starters), tot
 
 
-def compose(makam, time_sig, measure_cnt, init_file, model_name, set_size, note_dict, oh_manager, song_title):
+def compose(makam, time_sig, measure_cnt, init_file, model_name, set_size, lo, hi, note_dict, oh_manager, song_title):
     starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
     target_dur = time_sig * measure_cnt - tot
     song = np.array([np.copy(starters)])
     xpy = song.shape[1]
     model = load_model(makam, model_name)
+
+    tot_certain, tot_rand = 0, 0
 
     while target_dur > 0:
         part = song[:, -xpy:, :]
@@ -154,7 +159,24 @@ def compose(makam, time_sig, measure_cnt, init_file, model_name, set_size, note_
         shape = prediction.shape
         p_inner = np.copy(prediction[0])
         max_index = np.argmax(p_inner)
-        print('Max prob: ', p_inner[max_index])
+
+        if p_inner[max_index] < hi:
+            # print(f'Low probability: {p_inner[max_index]}')
+            candidates = [max_index]
+            has_candidates = True
+            while has_candidates:
+                p_inner[max_index] = 0
+                max_index = np.argmax(p_inner)
+                if p_inner[max_index] > lo:
+                    candidates.append(max_index)
+                else:
+                    has_candidates = False
+            print(f'Random from {len(candidates)} notes')
+            max_index = random.choice(candidates)
+            tot_rand += 1
+        else:
+            print(f'Probability: {p_inner[max_index]}')
+            tot_certain += 1
 
         p_inner = np.zeros(shape[1])
         p_inner[max_index] = 1.0
@@ -200,6 +222,7 @@ def compose(makam, time_sig, measure_cnt, init_file, model_name, set_size, note_
             song_file.write(line + '\n')
 
     print(f'{file_name} is saved to disk!')
+    print(f'Certain: {tot_certain}, Rand: {tot_rand}, Ratio: {tot_certain / tot_rand}')
 
 
 def main():
@@ -216,9 +239,16 @@ def main():
     # ys = [[n1,n2,...,nm], song:[outs]]
     # train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_A40_v' + ver)
 
-    xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_B0_v' + ver)
-    # compose(makam, time_sig, 4, 'init-hicaz-0.mu2', 'sec_A40_v61', set_size, note_dict, oh_manager, 't_sec_A40_v61')
+    # xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    # train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_B0_v' + ver)
+    measure_cnt = 4
+    lo = 0.1
+    hi = 0.5
+    init = '9'
+    initiator = 'init-hicaz-' + init + '.mu2'
+    model = 'sec_A20_v61'
+    song_name = 't_A2061_i' + init
+    compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, note_dict, oh_manager, song_name)
 
 
 if __name__ == '__main__':
