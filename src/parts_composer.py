@@ -64,10 +64,12 @@ def train_whole(makam, src_model, xs, ys, target_model):
     new_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     new_model.summary()
 
-    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=10)
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=4)
     # mc = ModelCheckpoint('cp_' + target_model + '.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
 
-    history = new_model.fit(xs, ys, epochs=100, batch_size=16, shuffle=True, validation_split=0.1, callbacks=[es])
+    # shuffle = True: sec_B0_v61
+    # shuffle = False: sec_B1_v61
+    history = new_model.fit(xs, ys, epochs=100, batch_size=16, shuffle=False, validation_split=0.1, callbacks=[es])
 
     save_model(makam, target_model, new_model)
     plt.plot(history.history['loss'], label='train')
@@ -232,22 +234,23 @@ def main():
     oh_manager = OhManager(makam)
     set_size = 8
     time_sig = Fraction(9, 4)
-    ver = '61'
-
-    # xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size)
+    ver = '62'
+    '''
+    xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size)
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
-    # train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_A40_v' + ver)
-
-    # xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    # train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_B0_v' + ver)
+    train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_A40_v' + ver)  # sec_A1_v61, sec_A20_v61, sec_A40_v61
+    
+    xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_B1_v' + ver)  # sec_B0_v61, sec_B1_v61
+    '''
     measure_cnt = 4
     lo = 0.1
     hi = 0.5
-    init = '6'
+    init = '0'
     initiator = 'init-hicaz-' + init + '.mu2'
-    model = 'sec_A20_v61'
-    song_name = 't_A2061_i' + init
+    model = 'sec_A40_v' + ver
+    song_name = 't_A40' + ver + '_i' + init
     compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, note_dict, oh_manager, song_name)
 
 
