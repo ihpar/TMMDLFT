@@ -45,7 +45,7 @@ def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size, is_whole=
         return np.array(x_lst), np.array(y_lst)
 
 
-def train_whole(makam, src_model, xs, ys, target_model):
+def train_whole(makam, src_model, xs, ys, target_model, eps=0):
     in_shape = xs.shape[1:]
     out_shape = ys.shape[1]
 
@@ -69,11 +69,15 @@ def train_whole(makam, src_model, xs, ys, target_model):
 
     # shuffle = True: sec_B0_v61
     # shuffle = False: sec_B1_v61
-    history = new_model.fit(xs, ys, epochs=100, batch_size=16, shuffle=False, validation_split=0.1, callbacks=[es])
+    if eps == 0:
+        history = new_model.fit(xs, ys, epochs=100, batch_size=16, shuffle=False, validation_split=0.1, callbacks=[es])
+    else:
+        history = new_model.fit(xs, ys, epochs=eps, batch_size=16, shuffle=False)
 
     save_model(makam, target_model, new_model)
     plt.plot(history.history['loss'], label='train')
-    plt.plot(history.history['val_loss'], label='test')
+    if eps == 0:
+        plt.plot(history.history['val_loss'], label='test')
     plt.legend()
     plt.show()
 
@@ -238,20 +242,21 @@ def main():
     '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
-    xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size)
+    # xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size)
     # A1_v61, A20_v61, A40_v61, A10_v62, A20_v62, A40_v62, A40_v70
-    train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_A10_v' + ver, 10)
-    
+    # train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_A10_v' + ver, 10)
+
     xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_B1_v' + ver)  # sec_B0_v61, sec_B1_v61
+    # B0_v61, B1_v61, AH20_v62, AH40_v62
+    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_AH40_v' + ver, eps=40)
     '''
     measure_cnt = 4
     lo = 0.1
     hi = 0.5
-    init = '4'
+    init = '1'
     initiator = 'init-hicaz-' + init + '.mu2'
-    model = 'sec_A10_v' + ver
-    song_name = 't_A10' + ver + '_i' + init
+    model = 'sec_AH40_v' + ver
+    song_name = 't_AH40' + ver + '_i' + init
     compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, note_dict, oh_manager, song_name)
 
 
