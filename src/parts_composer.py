@@ -150,12 +150,12 @@ def get_starters(init_file, set_size, note_dict, oh_manager):
     return np.array(starters), tot
 
 
-def compose(makam, time_sig, measure_cnt, init_file, model_name, set_size, lo, hi, note_dict, oh_manager, song_title):
+def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, note_dict, oh_manager, song_title):
     starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
     target_dur = time_sig * measure_cnt - tot
     song = np.array([np.copy(starters)])
     xpy = song.shape[1]
-    model = load_model(makam, model_name)
+    # model = load_model(makam, model_name)
 
     tot_certain, tot_rand = 0, 0
 
@@ -177,11 +177,11 @@ def compose(makam, time_sig, measure_cnt, init_file, model_name, set_size, lo, h
                     candidates.append(max_index)
                 else:
                     has_candidates = False
-            print(f'Random from {len(candidates)} notes')
+            # print(f'Random from {len(candidates)} notes')
             max_index = random.choice(candidates)
             tot_rand += 1
         else:
-            print(f'Probability: {p_inner[max_index]}')
+            # print(f'Probability: {p_inner[max_index]}')
             tot_certain += 1
 
         p_inner = np.zeros(shape[1])
@@ -194,7 +194,7 @@ def compose(makam, time_sig, measure_cnt, init_file, model_name, set_size, lo, h
         target_dur -= Fraction(dur)
         song = np.append(song, np.array([[p_inner]]), axis=1)
 
-    lines = consts.mu2_header
+    lines = consts.mu2_header.copy()
     lines[0] = '9	4	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	0.444444444'
     lines[2] = '51		9	4				Agiraksak		'
     lines[1] = lines[1].replace('{makam}', makam)
@@ -227,8 +227,8 @@ def compose(makam, time_sig, measure_cnt, init_file, model_name, set_size, lo, h
         for line in lines:
             song_file.write(line + '\n')
 
-    print(f'{file_name} is saved to disk!')
     print(f'Certain: {tot_certain}, Rand: {tot_rand}, Ratio: {tot_certain / tot_rand}')
+    print(f'{file_name} is saved to disk!')
 
 
 def main():
@@ -239,13 +239,15 @@ def main():
     set_size = 8
     time_sig = Fraction(9, 4)
     ver = '62'
+    sep = 'A40'
     '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
-    # xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size)
+    xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size)
     # A1_v61, A20_v61, A40_v61, A10_v62, A20_v62, A40_v62, A40_v70
-    # train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_A10_v' + ver, 10)
-
+    eps = 20
+    train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_A' + str(eps) + '_v' + ver, eps)
+    
     xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     # B0_v61, B1_v61, AH20_v62, AH40_v62
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_AH40_v' + ver, eps=40)
@@ -253,11 +255,13 @@ def main():
     measure_cnt = 4
     lo = 0.1
     hi = 0.5
-    init = '1'
-    initiator = 'init-hicaz-' + init + '.mu2'
-    model = 'sec_AH40_v' + ver
-    song_name = 't_AH40' + ver + '_i' + init
-    compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, note_dict, oh_manager, song_name)
+    model = load_model(makam, 'sec_' + sep + '_v' + ver)
+    for i in range(10):
+        init = str(i)
+        # model = 'sec_' + sep + '_v' + ver
+        song_name = 't_' + sep + '_v' + ver + '_' + init
+        initiator = 'init-hicaz-' + init + '.mu2'
+        compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, note_dict, oh_manager, song_name)
 
 
 if __name__ == '__main__':
