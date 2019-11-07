@@ -32,13 +32,15 @@ def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size, is_whole=
             y_sec = oh_manager.int_2_oh(part[i + set_size])
             xs.append(x_sec)
             ys.append(y_sec)
-
+        if not xs:
+            continue
         if not is_whole:
             x_lst.append(np.array(xs))
             y_lst.append(np.array(ys))
         else:
             x_lst.extend(xs)
             y_lst.extend(ys)
+
     if not is_whole:
         return x_lst, y_lst
     else:
@@ -54,7 +56,8 @@ def train_whole(makam, src_model, xs, ys, target_model, eps=0):
     for i, layer in enumerate(base_model.layers):
         if i == 4:
             break
-        layer.trainable = False
+        if i < 2:
+            layer.trainable = False
         new_model.add(layer)
 
     new_model.add(Dense(out_shape))
@@ -64,11 +67,9 @@ def train_whole(makam, src_model, xs, ys, target_model, eps=0):
     new_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     new_model.summary()
 
-    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=4)
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=1)
     # mc = ModelCheckpoint('cp_' + target_model + '.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
 
-    # shuffle = True: sec_B0_v61
-    # shuffle = False: sec_B1_v61
     if eps == 0:
         history = new_model.fit(xs, ys, epochs=100, batch_size=16, shuffle=False, validation_split=0.1, callbacks=[es])
     else:
@@ -238,30 +239,42 @@ def main():
     oh_manager = OhManager(makam)
     set_size = 8
     time_sig = Fraction(9, 4)
-    ver = '62'
-    sep = 'A40'
+    ver = '61'
+    sep = 'AW6'
     '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
     xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size)
-    # A1_v61, A20_v61, A40_v61, A10_v62, A20_v62, A40_v62, A40_v70
-    eps = 20
-    train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_A' + str(eps) + '_v' + ver, eps)
-    
-    xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    # B0_v61, B1_v61, AH20_v62, AH40_v62
-    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_AH40_v' + ver, eps=40)
+    xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size)
+    xs.extend(xi)
+    ys.extend(yi)
+    # A1_v61, A20_v61, A40_v61, A10_v62, A20_v62, A40_v62, A40_v70, AE20_v61
+    eps = 10
+    train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_AE' + str(eps) + '_v' + ver, eps)
+    '''
+    xa, ya = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    xb, yb = make_db(makam, 'B', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    xs = np.concatenate((xi, xa), axis=0)
+    xs = np.concatenate((xs, xb), axis=0)
+    xs = np.concatenate((xs, xc), axis=0)
+    ys = np.concatenate((yi, ya), axis=0)
+    ys = np.concatenate((ys, yb), axis=0)
+    ys = np.concatenate((ys, yc), axis=0)
+    # B0_v61, B1_v61, AH20_v62, AH40_v62, sec_AW_v61, AW5 (freeze 1st)
+    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=12)
     '''
     measure_cnt = 4
     lo = 0.1
-    hi = 0.5
+    hi = 0.4
     model = load_model(makam, 'sec_' + sep + '_v' + ver)
     for i in range(10):
         init = str(i)
-        # model = 'sec_' + sep + '_v' + ver
         song_name = 't_' + sep + '_v' + ver + '_' + init
         initiator = 'init-hicaz-' + init + '.mu2'
         compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, note_dict, oh_manager, song_name)
+    '''
 
 
 if __name__ == '__main__':

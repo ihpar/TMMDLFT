@@ -149,3 +149,6 @@ class SongObj:
 
     def get_part(self, part_id):
         return self._parts[self._part_ids[part_id]].flat_measures()
+
+    def get_name(self):
+        return self._name
