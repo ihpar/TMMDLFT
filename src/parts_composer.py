@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import os
 import io
 import random
+from candidate_picker import CandidatePicker
 
 
 def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size, is_whole=False):
@@ -151,7 +152,7 @@ def get_starters(init_file, set_size, note_dict, oh_manager):
     return np.array(starters), tot
 
 
-def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, note_dict, oh_manager, song_title):
+def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp, note_dict, oh_manager, song_title):
     starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
     target_dur = time_sig * measure_cnt - tot
     song = np.array([np.copy(starters)])
@@ -251,7 +252,7 @@ def main():
     # A1_v61, A20_v61, A40_v61, A10_v62, A20_v62, A40_v62, A40_v70, AE20_v61
     eps = 10
     train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_AE' + str(eps) + '_v' + ver, eps)
-  
+    '''
     xa, ya = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     xb, yb = make_db(makam, 'B', dir_path, note_dict, oh_manager, set_size, is_whole=True)
@@ -262,9 +263,11 @@ def main():
     ys = np.concatenate((yi, ya), axis=0)
     ys = np.concatenate((ys, yb), axis=0)
     ys = np.concatenate((ys, yc), axis=0)
-    # B0_v61, B1_v61, AH20_v62, AH40_v62, sec_AW_v61, AW5 (freeze 1st)
-    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
-    '''
+    # B0_v61, B1_v61, AH20_v62, AH40_v62, sec_AW_v61, AW5 (freeze 1st), AW6 (freeze 1st), AW7 (freeze 1st, keep dense)
+    # train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
+
+    cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A', 'B', 'C'], dir_path, note_dict, oh_manager,
+                         set_size)
     measure_cnt = 4
     lo = 0.1
     hi = 0.5
@@ -273,7 +276,7 @@ def main():
         init = str(i)
         song_name = 't_' + sep + '_v' + ver + '_' + init
         initiator = 'init-hicaz-' + init + '.mu2'
-        compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, note_dict, oh_manager, song_name)
+        compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
 
 
 if __name__ == '__main__':
