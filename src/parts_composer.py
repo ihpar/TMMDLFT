@@ -54,14 +54,14 @@ def train_whole(makam, src_model, xs, ys, target_model, eps=0):
     base_model = load_model(makam, src_model, False)
     new_model = Sequential()
     for i, layer in enumerate(base_model.layers):
-        if i == 4:
-            break
+        # if i == 4:
+        #     break
         if i < 2:
             layer.trainable = False
         new_model.add(layer)
 
-    new_model.add(Dense(out_shape))
-    new_model.add(Activation('softmax'))
+    # new_model.add(Dense(out_shape))
+    # new_model.add(Activation('softmax'))
 
     optimizer = RMSprop(lr=0.001)
     new_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
@@ -239,8 +239,8 @@ def main():
     oh_manager = OhManager(makam)
     set_size = 8
     time_sig = Fraction(9, 4)
-    ver = '61'
-    sep = 'AW6'
+    ver = '62'
+    sep = 'AW7'
     '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
@@ -251,7 +251,7 @@ def main():
     # A1_v61, A20_v61, A40_v61, A10_v62, A20_v62, A40_v62, A40_v70, AE20_v61
     eps = 10
     train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_AE' + str(eps) + '_v' + ver, eps)
-    '''
+  
     xa, ya = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     xb, yb = make_db(makam, 'B', dir_path, note_dict, oh_manager, set_size, is_whole=True)
@@ -263,18 +263,17 @@ def main():
     ys = np.concatenate((ys, yb), axis=0)
     ys = np.concatenate((ys, yc), axis=0)
     # B0_v61, B1_v61, AH20_v62, AH40_v62, sec_AW_v61, AW5 (freeze 1st)
-    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=12)
+    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
     '''
     measure_cnt = 4
     lo = 0.1
-    hi = 0.4
+    hi = 0.5
     model = load_model(makam, 'sec_' + sep + '_v' + ver)
     for i in range(10):
         init = str(i)
         song_name = 't_' + sep + '_v' + ver + '_' + init
         initiator = 'init-hicaz-' + init + '.mu2'
         compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, note_dict, oh_manager, song_name)
-    '''
 
 
 if __name__ == '__main__':
