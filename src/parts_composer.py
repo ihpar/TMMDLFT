@@ -170,17 +170,18 @@ def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp
 
         if p_inner[max_index] < hi:
             # print(f'Low probability: {p_inner[max_index]}')
-            candidates = [max_index]
+            index_candidates = [max_index]
             has_candidates = True
             while has_candidates:
                 p_inner[max_index] = 0
                 max_index = np.argmax(p_inner)
                 if p_inner[max_index] > lo:
-                    candidates.append(max_index)
+                    index_candidates.append(max_index)
                 else:
                     has_candidates = False
             # print(f'Random from {len(candidates)} notes')
-            max_index = random.choice(candidates)
+            max_index = random.choice(index_candidates)
+            # max_index = cp.pick_candidate(part, index_candidates)
             tot_rand += 1
         else:
             # print(f'Probability: {p_inner[max_index]}')
