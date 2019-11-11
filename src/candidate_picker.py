@@ -1,5 +1,6 @@
 from mu2_reader import decompose_mu2
 import numpy as np
+import random
 
 
 class CandidatePicker:
@@ -7,6 +8,7 @@ class CandidatePicker:
         self.songs = []
         self.probabilities = {}  # only in sarki form
         self.br_probabilities = {}  # broad corpus
+        self.set_size = set_size
 
         for curr_song in songs_arr:
             song = curr_song['file']
@@ -14,13 +16,13 @@ class CandidatePicker:
             song_final = curr_song['sf']
             song = decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager)
             self.songs.append(song)
-        part_ids = ['I', 'A', 'B', 'C']
+
         total = 0
-        for part_id in part_ids:
+        for part_id in parts:
             for song in self.songs:
                 part = song.get_part(part_id)
-                for i in range(len(part) - set_size):
-                    sec = self.str_rep(part[i:i + set_size + 1])
+                for i in range(len(part) - int(set_size / 2)):
+                    sec = self.str_rep(part[i:i + int(set_size / 2) + 1])
                     if sec in self.probabilities:
                         self.probabilities[sec] += 1
                     else:
@@ -31,12 +33,12 @@ class CandidatePicker:
             self.probabilities[k] = self.probabilities[k] / total
 
         total = 0
-        with open(makam + '--nc_corpus', 'r') as crp:
+        with open(makam + '--nc_corpus.txt', 'r') as crp:
             songs = crp.read().splitlines()
             for song in songs:
                 notes = song.split(' ')
-                for i in range(len(notes) - set_size):
-                    sec = self.str_rep([oh_manager.nd_2_int(note) for note in notes[i:i + set_size + 1]])
+                for i in range(len(notes) - int(set_size / 2)):
+                    sec = self.str_rep([oh_manager.nd_2_int(note) for note in notes[i:i + int(set_size / 2) + 1]])
                     if sec in self.br_probabilities:
                         self.br_probabilities[sec] += 1
                     else:
@@ -45,26 +47,32 @@ class CandidatePicker:
         for k in self.br_probabilities:
             self.br_probabilities[k] = self.br_probabilities[k] / total
 
-    def pick_candidate(self, prev_notes, candidates):
+    def pick_candidate(self, prev_notes, candidates, n_probs):
         probs = []
-        for cand in candidates:
-            prob = self.calc_prob(prev_notes, cand)
+        for i, cand in enumerate(candidates):
+            prob = self.calc_prob(prev_notes, cand, n_probs[i])
             probs.append(prob)
-        max_idx = probs.index(max(probs))
-        return candidates[max_idx]
+        max_prob = max(probs)
+        res_set = []
+        for i, prob in enumerate(probs):
+            if prob == max_prob:
+                res_set.append(candidates[i])
+        return random.choice(res_set)
 
-    def calc_prob(self, prev_notes, candidate):
+    def calc_prob(self, prev_notes, candidate, n_prob):
         # prev_notes = [[0,0,1,...,0], [0,0,0,...,0], ..., [0,1,0,...,0]]
         # candidate = 135
         prev_notes_nums = []
-        for n in prev_notes[0]:
+        for i, n in enumerate(prev_notes[0]):
+            if i < int(self.set_size / 2):
+                continue
             prev_notes_nums.append(np.argmax(n))
         prev_notes_nums.append(candidate)
         s_rep = self.str_rep(prev_notes_nums)
         if s_rep in self.probabilities:
-            return 1 + self.probabilities[s_rep]
+            return 2 + self.probabilities[s_rep]
         if s_rep in self.br_probabilities:
-            return self.br_probabilities[s_rep]
+            return 1 + self.br_probabilities[s_rep]
         return 0
 
     def str_rep(self, arr):
