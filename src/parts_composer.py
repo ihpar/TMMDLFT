@@ -180,8 +180,8 @@ def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp
                 else:
                     has_candidates = False
             # print(f'Random from {len(candidates)} notes')
+            max_index = cp.pick_candidate(part, index_candidates)
             max_index = random.choice(index_candidates)
-            # max_index = cp.pick_candidate(part, index_candidates)
             tot_rand += 1
         else:
             # print(f'Probability: {p_inner[max_index]}')
@@ -196,7 +196,7 @@ def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp
         dur = note_dict.get_dur_by_num(dur)
         target_dur -= Fraction(dur)
         song = np.append(song, np.array([[p_inner]]), axis=1)
-
+    return
     lines = consts.mu2_header.copy()
     lines[0] = '9	4	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	0.444444444'
     lines[2] = '51		9	4				Agiraksak		'
