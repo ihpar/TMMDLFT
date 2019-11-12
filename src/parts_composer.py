@@ -154,12 +154,16 @@ def get_starters(init_file, set_size, note_dict, oh_manager):
 
 def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp, note_dict, oh_manager, song_title):
     starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
+    if tot > time_sig:
+        raise Exception('Starter notes exceed time signature limit!')
     target_dur = time_sig * measure_cnt - tot
     song = np.array([np.copy(starters)])
     xpy = song.shape[1]
-    # model = load_model(makam, model_name)
 
     tot_certain, tot_rand = 0, 0
+    measure_remainder = time_sig - tot
+    if measure_remainder == Fraction(0):
+        measure_remainder = time_sig
 
     while target_dur > 0:
         part = song[:, -xpy:, :]
@@ -169,7 +173,6 @@ def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp
         max_index = np.argmax(p_inner)
 
         if p_inner[max_index] < hi:
-            # print(f'Low probability: {p_inner[max_index]}')
             index_candidates = [max_index]
             n_probs = [p_inner[max_index]]
             has_candidates = True
@@ -181,22 +184,32 @@ def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp
                     n_probs.append(p_inner[max_index])
                 else:
                     has_candidates = False
-            # print(f'Random from {len(candidates)} notes')
             max_index = cp.pick_candidate(part, index_candidates, n_probs)
             # max_index = random.choice(index_candidates)
             tot_rand += 1
         else:
-            # print(f'Probability: {p_inner[max_index]}')
             tot_certain += 1
 
-        p_inner = np.zeros(shape[1])
-        p_inner[max_index] = 1.0
-        n_d = oh_manager.oh_2_nd(p_inner)
+        n_d = oh_manager.int_2_nd(max_index)
         parts = n_d.split(':')
-        note = int(parts[0])
+        note_num = int(parts[0])
         dur = int(parts[1])
-        dur = note_dict.get_dur_by_num(dur)
-        target_dur -= Fraction(dur)
+        dur = Fraction(note_dict.get_dur_by_num(dur))
+        if dur < measure_remainder:
+            measure_remainder -= dur
+        else:
+            dur = measure_remainder
+            measure_remainder = time_sig
+
+        target_dur -= dur
+
+        dur_num = note_dict.get_num_by_dur(str(dur))
+        n_d = str(note_num) + ':' + str(dur_num)
+        n_d_num = oh_manager.nd_2_int(n_d)
+        p_inner = np.zeros(shape[1])
+        # p_inner[max_index] = 1.0
+        p_inner[n_d_num] = 1.0
+
         song = np.append(song, np.array([[p_inner]]), axis=1)
 
     lines = consts.mu2_header.copy()
