@@ -29,6 +29,13 @@ class OhManager:
         num = np.argmax(oh)
         return self.int_2_nd(num)
 
+    def oh_2_zo(self, oh):
+        num = np.argmax(oh)
+        return num / self.__total
+
+    def int_2_zo(self, num):
+        return num / self.__total
+
     def int_2_oh(self, num):
         res = np.zeros(self.__total)
         res[num] = 1
