@@ -160,7 +160,7 @@ def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp
     song = np.array([np.copy(starters)])
     xpy = song.shape[1]
 
-    tot_certain, tot_rand = 0, 0
+    tot_certain, tot_rand = 0, 1
     measure_remainder = time_sig - tot
     if measure_remainder == Fraction(0):
         measure_remainder = time_sig
@@ -212,11 +212,16 @@ def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp
 
         song = np.append(song, np.array([[p_inner]]), axis=1)
 
+    print(f'Certain: {tot_certain}, Rand: {tot_rand}, Ratio: {tot_certain / tot_rand}')
+    # song_2_mus(song, makam, song_title, oh_manager, note_dict)
+
+
+def song_2_mus(song, makam, title, oh_manager, note_dict):
     lines = consts.mu2_header.copy()
     lines[0] = '9	4	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	0.444444444'
     lines[2] = '51		9	4				Agiraksak		'
     lines[1] = lines[1].replace('{makam}', makam)
-    lines[7] = lines[7].replace('{song_title}', song_title)
+    lines[7] = lines[7].replace('{song_title}', title)
     for row in song[0]:
         n_d = oh_manager.oh_2_nd(row)
         parts = n_d.split(':')
@@ -239,13 +244,12 @@ def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp
                          .replace('{num}', dur[0])
                          .replace('{denom}', dur[1]))
 
-    file_name = song_title + '.mu2'
+    file_name = title + '.mu2'
     song_path = os.path.join(os.path.abspath('..'), 'songs', makam, file_name)
     with io.open(song_path, 'w', encoding='utf-8') as song_file:
         for line in lines:
             song_file.write(line + '\n')
 
-    print(f'Certain: {tot_certain}, Rand: {tot_rand}, Ratio: {tot_certain / tot_rand}')
     print(f'{file_name} is saved to disk!')
 
 
