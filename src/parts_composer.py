@@ -216,6 +216,61 @@ def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp
     # song_2_mus(song, makam, song_title, oh_manager, note_dict)
 
 
+def get_prediction(model_a, part, lo, hi, cp):
+    return 0
+
+
+def choose_prediction(p_a, p_b, decider):
+    return 1
+
+
+def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi, cp, note_dict, oh_manager,
+               song_title):
+    model_a = models[0]
+    model_b = models[1]
+    decider = models[2]
+
+    starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
+    if tot > time_sig:
+        raise Exception('Starter notes exceed time signature limit!')
+    target_dur = time_sig * measure_cnt - tot
+    song = np.array([np.copy(starters)])
+    xpy = song.shape[1]
+
+    measure_remainder = time_sig - tot
+    if measure_remainder == Fraction(0):
+        measure_remainder = time_sig
+
+    while target_dur > 0:
+        part = song[:, -xpy:, :]
+        p_a = get_prediction(model_a, part, lo, hi, cp)
+        p_b = get_prediction(model_b, part, lo, hi, cp)
+
+        chosen = choose_prediction(p_a, p_b, decider)
+
+        n_d = oh_manager.int_2_nd(chosen)
+        parts = n_d.split(':')
+        note_num = int(parts[0])
+        dur = int(parts[1])
+        dur = Fraction(note_dict.get_dur_by_num(dur))
+        if dur < measure_remainder:
+            measure_remainder -= dur
+        else:
+            dur = measure_remainder
+            measure_remainder = time_sig
+
+        target_dur -= dur
+
+        dur_num = note_dict.get_num_by_dur(str(dur))
+        n_d = str(note_num) + ':' + str(dur_num)
+        n_d_num = oh_manager.nd_2_int(n_d)
+        p_inner = np.zeros(part.shape[2])
+        p_inner[n_d_num] = 1.0
+
+        song = np.append(song, np.array([[p_inner]]), axis=1)
+    # song_2_mus(song, makam, song_title, oh_manager, note_dict)
+
+
 def song_2_mus(song, makam, title, oh_manager, note_dict):
     lines = consts.mu2_header.copy()
     lines[0] = '9	4	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	0.444444444'
@@ -272,7 +327,7 @@ def main():
     # A1_v61, A20_v61, A40_v61, A10_v62, A20_v62, A40_v62, A40_v70, AE20_v61
     eps = 10
     train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_AE' + str(eps) + '_v' + ver, eps)
-    '''
+    
     xa, ya = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     xb, yb = make_db(makam, 'B', dir_path, note_dict, oh_manager, set_size, is_whole=True)
@@ -285,18 +340,22 @@ def main():
     ys = np.concatenate((ys, yc), axis=0)
     # B0_v61, B1_v61, AH20_v62, AH40_v62, sec_AW_v61, AW5 (freeze 1st), AW6 (freeze 1st), AW7 (freeze 1st, keep dense)
     # train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
-
+    '''
     cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A', 'B', 'C'], dir_path, note_dict, oh_manager,
                          set_size)
     measure_cnt = 4
     lo = 0.1
     hi = 0.5
-    model = load_model(makam, 'sec_' + sep + '_v' + ver)
+    # model = load_model(makam, 'sec_' + sep + '_v' + ver)
+    models = [load_model(makam, 'sec_AW6_v61'), load_model(makam, 'sec_AW7_v62'), load_model(makam, 'decider_v2')]
+
     for i in range(10):
         init = str(i)
         song_name = 't_' + sep + '_v' + ver + '_' + init
         initiator = 'init-hicaz-' + init + '.mu2'
-        compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
+        # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
+        compose_v2(makam, time_sig, measure_cnt, initiator, models, set_size, lo, hi, cp, note_dict, oh_manager,
+                   song_name)
 
 
 if __name__ == '__main__':
