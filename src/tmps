@@ -15,7 +15,17 @@ Changed!!!!
 5 activation
 Not changed
 
+v0
+113059/113059 [==============================] - 34s 298us/step - loss: 0.6779 - acc: 0.5453 - val_loss: 0.6621 - val_acc: 0.5242
+Epoch 00027: early stopping
 
+v1
+113059/113059 [==============================] - 37s 326us/step - loss: 0.6782 - acc: 0.5509 - val_loss: 0.6615 - val_acc: 0.5070
+Epoch 00020: early stopping
+
+v2
+113059/113059 [==============================] - 37s 325us/step - loss: 0.6687 - acc: 0.5435 - val_loss: 0.6532 - val_acc: 0.5623
+Epoch 00025: early stopping
 
 for i, layer in enumerate(new_model.layers):
         print(i, layer.name)
@@ -24,47 +34,3 @@ for i, layer in enumerate(new_model.layers):
             print('Not changed')
         else:
             print('Changed!!!!')
-
-
-<script type="application/ld+json">
-    {
-        "@context": "http://schema.org",
-        "@type": "ItemList",
-        "numberOfItems": "3",
-        "itemListElement": [
-            {
-                "@type": "ListItem",
-                "position": "1",
-                "item": {
-                    "@type": "product",
-                    "url": "https://anubodh.com/catalog.php#/standard-bansuri",
-                    "name": "Bass, Middle and Treble Bansuri Flutes",
-                    "image": "https://anubodh.com/img/instruments/bansuri_splash.jpg",
-                    "description": "Choose your bansuri from this catalog of standard Concert Bansuri flutes."
-                }
-            },
-            {
-                "@type": "ListItem",
-                "position": "2",
-                "item": {
-                    "@type": "product",
-                    "url": "https://anubodh.com/catalog.php#/carnatic-flutes",
-                    "name": "Carnatik Flutes",
-                    "image": "https://anubodh.com/img/instruments/carnatic_close.jpg",
-                    "description": "Pulangoil, Venu, Karnatic flute, Pullanguzhal are various names given to this unique eight-hole south Indian flute."
-                }
-            },
-            {
-                "@type": "ListItem",
-                "position": "3",
-                "item": {
-                    "@type": "product",
-                    "url": "https://anubodh.com/catalog.php#/world-flutes",
-                    "name": "Komal Bansuri, baans-Peul Flute, Vajra Bansuri",
-                    "image": "https://anubodh.com/img/instruments/world_flutes.jpg",
-                    "description": "A result of several years of conceptualizing, researching and experimenting - finally here are three new innovative design of flutes with exciting new sounds, scales and ways of playing."
-                }
-            }
-        ]
-    }
-</script>

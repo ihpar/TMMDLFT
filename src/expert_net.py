@@ -1,10 +1,16 @@
 from nc_dictionary import NCDictionary
 from oh_manager import OhManager
-from model_ops import load_model
+from model_ops import load_model, save_model
 from data_loader import load_whole_data
 import numpy as np
 import os
 import json
+import matplotlib.pyplot as plt
+
+from tensorflow.python.keras.layers import Activation, Dense, LSTM, Dropout
+from tensorflow.python.keras.models import Sequential
+from tensorflow.python.keras.optimizers import RMSprop
+from tensorflow.python.keras.callbacks import EarlyStopping
 
 
 def distance(r_o, n_a, n_b, oh_manager):
@@ -73,14 +79,61 @@ def create_training_data(makam, model_a, model_b, oh_manager):
     print('Files created, exiting...')
 
 
+def load_training_data(makam):
+    x_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'xs')
+    y_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'ys')
+    with open(x_file, 'r') as fx, open(y_file, 'r') as fy:
+        xs = json.load(fx)
+        ys = json.load(fy)
+
+    xs, ys = np.array(xs), np.array(ys)
+    # (NumberOfExamples, TimeSteps, FeaturesPerStep)
+    x_shape = xs.shape
+    xs = xs.reshape((x_shape[0], 1, x_shape[1]))
+    return xs, ys
+
+
+def make_model(in_shape, out_shape):
+    model = Sequential()
+    model.add(LSTM(100, return_sequences=True, input_shape=in_shape))
+    model.add(Dropout(0.4))
+    model.add(LSTM(100, return_sequences=False))
+    model.add(Dropout(0.4))
+    model.add(Dense(out_shape))
+    model.add(Activation('softmax'))
+    optimizer = RMSprop(lr=0.001)
+    model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+
+    model.summary()
+    return model
+
+
+def train_model(makam, model, model_name, x, y):
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=2)
+    history = model.fit(x, y, epochs=50, batch_size=16, shuffle=False, validation_split=0.1, callbacks=[es])
+
+    save_model(makam, model_name, model)
+
+    plt.plot(history.history['loss'], label='train')
+    plt.plot(history.history['val_loss'], label='test')
+    plt.legend()
+    plt.show()
+
+
 def main():
     makam = 'hicaz'
+    '''
     oh_manager = OhManager(makam)
-
     model_a = load_model(makam, 'sec_AW6_v61')
     model_b = load_model(makam, 'sec_AW7_v62')
-
     create_training_data(makam, model_a, model_b, oh_manager)
+    '''
+    # v0: LSTM(100), v1: LSTM(200), v2: LSTM(100)*LSTM(100)
+    v = 'v2'
+    x_train, y_train = load_training_data(makam)
+    print(x_train.shape, y_train.shape)
+    model = make_model(x_train.shape[1:], y_train.shape[1])
+    train_model(makam, model, 'decider_' + v, x_train, y_train)
 
 
 if __name__ == '__main__':
