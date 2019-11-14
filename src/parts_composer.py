@@ -216,12 +216,39 @@ def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp
     # song_2_mus(song, makam, song_title, oh_manager, note_dict)
 
 
-def get_prediction(model_a, part, lo, hi, cp):
-    return 0
+def get_prediction(model, part, lo, hi, cp):
+    prediction = model.predict(part)
+    p_inner = np.copy(prediction[0])
+    max_index = np.argmax(p_inner)
+
+    if p_inner[max_index] < hi:
+        index_candidates = [max_index]
+        n_probs = [p_inner[max_index]]
+        has_candidates = True
+        while has_candidates:
+            p_inner[max_index] = 0
+            max_index = np.argmax(p_inner)
+            if p_inner[max_index] > lo:
+                index_candidates.append(max_index)
+                n_probs.append(p_inner[max_index])
+            else:
+                has_candidates = False
+        max_index = cp.pick_candidate(part, index_candidates, n_probs)
+    return max_index
 
 
-def choose_prediction(p_a, p_b, decider):
-    return 1
+def choose_prediction(part, p_a, p_b, decider, oh_manager):
+    inp = []
+    for nd in part[0]:
+        inp.append(oh_manager.oh_2_zo(nd))
+    inp.append(oh_manager.int_2_zo(p_a))
+    inp.append(oh_manager.int_2_zo(p_b))
+    inp = np.array([inp])
+    inp = inp.reshape((inp.shape[0], 1, inp.shape[1]))
+    pred = decider.predict(inp)[0]
+    if np.argmax(pred) == 0:
+        return p_a
+    return p_b
 
 
 def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi, cp, note_dict, oh_manager,
@@ -246,7 +273,7 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
         p_a = get_prediction(model_a, part, lo, hi, cp)
         p_b = get_prediction(model_b, part, lo, hi, cp)
 
-        chosen = choose_prediction(p_a, p_b, decider)
+        chosen = choose_prediction(part, p_a, p_b, decider, oh_manager)
 
         n_d = oh_manager.int_2_nd(chosen)
         parts = n_d.split(':')
@@ -268,7 +295,7 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
         p_inner[n_d_num] = 1.0
 
         song = np.append(song, np.array([[p_inner]]), axis=1)
-    # song_2_mus(song, makam, song_title, oh_manager, note_dict)
+    song_2_mus(song, makam, song_title, oh_manager, note_dict)
 
 
 def song_2_mus(song, makam, title, oh_manager, note_dict):
@@ -351,7 +378,8 @@ def main():
 
     for i in range(10):
         init = str(i)
-        song_name = 't_' + sep + '_v' + ver + '_' + init
+        # song_name = 't_' + sep + '_v' + ver + '_' + init
+        song_name = 't_Dec_v6162_' + init
         initiator = 'init-hicaz-' + init + '.mu2'
         # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
         compose_v2(makam, time_sig, measure_cnt, initiator, models, set_size, lo, hi, cp, note_dict, oh_manager,
