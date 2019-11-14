@@ -13,6 +13,8 @@ import io
 import random
 from candidate_picker import CandidatePicker
 
+cnt_pa, cnt_pb = 0, 0
+
 
 def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size, is_whole=False):
     songs = []
@@ -238,6 +240,7 @@ def get_prediction(model, part, lo, hi, cp):
 
 
 def choose_prediction(part, p_a, p_b, decider, oh_manager):
+    global cnt_pa, cnt_pb
     inp = []
     for nd in part[0]:
         inp.append(oh_manager.oh_2_zo(nd))
@@ -247,12 +250,15 @@ def choose_prediction(part, p_a, p_b, decider, oh_manager):
     inp = inp.reshape((inp.shape[0], 1, inp.shape[1]))
     pred = decider.predict(inp)[0]
     if np.argmax(pred) == 0:
+        cnt_pa += 1
         return p_a
+    cnt_pb += 1
     return p_b
 
 
 def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi, cp, note_dict, oh_manager,
                song_title):
+    global cnt_pa, cnt_pb
     model_a = models[0]
     model_b = models[1]
     decider = models[2]
@@ -295,6 +301,8 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
         p_inner[n_d_num] = 1.0
 
         song = np.append(song, np.array([[p_inner]]), axis=1)
+    print(f'PA:{cnt_pa}, PB:{cnt_pb}')
+    cnt_pa, cnt_pb = 0, 0
     song_2_mus(song, makam, song_title, oh_manager, note_dict)
 
 
@@ -372,7 +380,7 @@ def main():
                          set_size)
     measure_cnt = 4
     lo = 0.1
-    hi = 0.5
+    hi = 0.3
     # model = load_model(makam, 'sec_' + sep + '_v' + ver)
     models = [load_model(makam, 'sec_AW6_v61'), load_model(makam, 'sec_AW7_v62'), load_model(makam, 'decider_v2')]
 
