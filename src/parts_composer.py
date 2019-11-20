@@ -308,8 +308,8 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
 
 def song_2_mus(song, makam, title, oh_manager, note_dict):
     lines = consts.mu2_header.copy()
-    lines[0] = '9	4	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	0.444444444'
-    lines[2] = '51		9	4				Agiraksak		'
+    lines[0] = '9	8	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	0.888888889'
+    lines[2] = '51		9	8				Aksak		'
     lines[1] = lines[1].replace('{makam}', makam)
     lines[7] = lines[7].replace('{song_title}', title)
     for row in song[0]:
@@ -349,7 +349,7 @@ def main():
     note_dict = NCDictionary()
     oh_manager = OhManager(makam)
     set_size = 8
-    time_sig = Fraction(9, 4)
+    time_sig = Fraction(9, 8)
     ver = '62'
     sep = 'AW7'
     '''
@@ -380,11 +380,11 @@ def main():
                          set_size)
     measure_cnt = 4
     lo = 0.1
-    hi = 0.3
+    hi = 0.4
     # model = load_model(makam, 'sec_' + sep + '_v' + ver)
     models = [load_model(makam, 'sec_AW6_v61'), load_model(makam, 'sec_AW7_v62'), load_model(makam, 'decider_v2')]
 
-    for i in range(10):
+    for i in range(1):
         init = str(i)
         # song_name = 't_' + sep + '_v' + ver + '_' + init
         song_name = 't_Dec_v6162_' + init
