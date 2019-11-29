@@ -46,9 +46,13 @@ def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager):
                 if not dur:
                     dur = note_dict.get_num_by_dur(dur_alt)
                 # repr
-                combine = oh_manager.nd_2_int(str(note_num) + ':' + str(dur))
-                song.insert_note(combine, measure_no)
-
+                try:
+                    combine = oh_manager.nd_2_int(str(note_num) + ':' + str(dur))
+                    song.insert_note(combine, measure_no)
+                except KeyError as e:
+                    print(f'Ex in {fn}: {note_name},{str(note_len)}')
+                    print(str(e))
+                    raise Exception('No correspondence')
                 tot += note_len
                 if tot == beat:
                     # print(i, line)
