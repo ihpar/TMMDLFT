@@ -57,14 +57,14 @@ def train_whole(makam, src_model, xs, ys, target_model, eps=0):
     base_model = load_model(makam, src_model, False)
     new_model = Sequential()
     for i, layer in enumerate(base_model.layers):
-        # if i == 4:
-        #     break
+        if i == 4:
+            break
         if i < 2:
             layer.trainable = False
         new_model.add(layer)
 
-    # new_model.add(Dense(out_shape))
-    # new_model.add(Activation('softmax'))
+    new_model.add(Dense(out_shape))
+    new_model.add(Activation('softmax'))
 
     optimizer = RMSprop(lr=0.001)
     new_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
@@ -350,9 +350,9 @@ def main():
     oh_manager = OhManager(makam)
     set_size = 8
     time_sig = Fraction(9, 8)
-    ver = '62'
-    sep = 'AW7'
-
+    ver = '61'
+    sep = 'AW8'
+    '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
     xs, ys = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size)
@@ -365,17 +365,18 @@ def main():
     '''
     xa, ya = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    xb, yb = make_db(makam, 'B', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    # xb, yb = make_db(makam, 'B', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    # xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     xs = np.concatenate((xi, xa), axis=0)
-    xs = np.concatenate((xs, xb), axis=0)
-    xs = np.concatenate((xs, xc), axis=0)
+    # xs = np.concatenate((xs, xb), axis=0)
+    # xs = np.concatenate((xs, xc), axis=0)
     ys = np.concatenate((yi, ya), axis=0)
-    ys = np.concatenate((ys, yb), axis=0)
-    ys = np.concatenate((ys, yc), axis=0)
+    # ys = np.concatenate((ys, yb), axis=0)
+    # ys = np.concatenate((ys, yc), axis=0)
     # B0_v61, B1_v61, AH20_v62, AH40_v62, sec_AW_v61, AW5 (freeze 1st), AW6 (freeze 1st), AW7 (freeze 1st, keep dense)
-    # train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
-    
+    # AW8 (freeze 1st, new dense)
+    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
+    '''
     cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A', 'B', 'C'], dir_path, note_dict, oh_manager,
                          set_size)
     measure_cnt = 4
