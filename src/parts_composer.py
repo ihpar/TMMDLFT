@@ -74,7 +74,7 @@ def train_whole(makam, src_model, xs, ys, target_model, eps=0):
     # mc = ModelCheckpoint('cp_' + target_model + '.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
 
     if eps == 0:
-        history = new_model.fit(xs, ys, epochs=100, batch_size=16, shuffle=False, validation_split=0.25, callbacks=[es])
+        history = new_model.fit(xs, ys, epochs=100, batch_size=16, shuffle=False, validation_split=0.1, callbacks=[es])
     else:
         history = new_model.fit(xs, ys, epochs=eps, batch_size=16, shuffle=False)
 
@@ -350,8 +350,8 @@ def main():
     oh_manager = OhManager(makam)
     set_size = 8
     time_sig = Fraction(9, 8)
-    ver = '61'
-    sep = 'AW9'
+    ver = '62'
+    sep = 'AW10'
     '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
@@ -362,19 +362,20 @@ def main():
     # A1_v61, A20_v61, A40_v61, A10_v62, A20_v62, A40_v62, A40_v70, AE20_v61
     eps = 10
     # train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_AE' + str(eps) + '_v' + ver, eps)
-    
+    '''
     xa, ya = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    # xb, yb = make_db(makam, 'B', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    # xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    xb, yb = make_db(makam, 'B', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     xs = np.concatenate((xi, xa), axis=0)
-    # xs = np.concatenate((xs, xb), axis=0)
-    # xs = np.concatenate((xs, xc), axis=0)
+    xs = np.concatenate((xs, xb), axis=0)
+    xs = np.concatenate((xs, xc), axis=0)
     ys = np.concatenate((yi, ya), axis=0)
-    # ys = np.concatenate((ys, yb), axis=0)
-    # ys = np.concatenate((ys, yc), axis=0)
+    ys = np.concatenate((ys, yb), axis=0)
+    ys = np.concatenate((ys, yc), axis=0)
     # B0_v61, B1_v61, AH20_v62, AH40_v62, sec_AW_v61, AW5 (freeze 1st), AW6 (freeze 1st), AW7 (freeze 1st, keep dense)
-    # AW8 (freeze 1st, new dense), AW9 (freeze 1st, keep dense, val_split: 0.1->0.25)
+    # AW8 (freeze 1st, new dense), AW9 (freeze 1st, keep dense, val_split: 0.1->0.25),
+    # AW10 (freeze 1st, keep dense, val_split: 0.1)
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
     '''
     cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A', 'B', 'C'], dir_path, note_dict, oh_manager, set_size)
@@ -391,6 +392,7 @@ def main():
         initiator = 'init-hicaz-' + init + '.mu2'
         compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
         # compose_v2(makam, time_sig, measure_cnt, initiator, models, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
+    '''
 
 
 if __name__ == '__main__':
