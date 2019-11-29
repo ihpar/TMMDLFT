@@ -57,24 +57,24 @@ def train_whole(makam, src_model, xs, ys, target_model, eps=0):
     base_model = load_model(makam, src_model, False)
     new_model = Sequential()
     for i, layer in enumerate(base_model.layers):
-        if i == 4:
-            break
+        # if i == 4:
+        #     break
         if i < 2:
             layer.trainable = False
         new_model.add(layer)
 
-    new_model.add(Dense(out_shape))
-    new_model.add(Activation('softmax'))
+    # new_model.add(Dense(out_shape))
+    # new_model.add(Activation('softmax'))
 
     optimizer = RMSprop(lr=0.001)
     new_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     new_model.summary()
 
-    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=1)
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=2)
     # mc = ModelCheckpoint('cp_' + target_model + '.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
 
     if eps == 0:
-        history = new_model.fit(xs, ys, epochs=100, batch_size=16, shuffle=False, validation_split=0.1, callbacks=[es])
+        history = new_model.fit(xs, ys, epochs=100, batch_size=16, shuffle=False, validation_split=0.25, callbacks=[es])
     else:
         history = new_model.fit(xs, ys, epochs=eps, batch_size=16, shuffle=False)
 
@@ -215,7 +215,7 @@ def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp
         song = np.append(song, np.array([[p_inner]]), axis=1)
 
     print(f'Certain: {tot_certain}, Rand: {tot_rand}, Ratio: {tot_certain / tot_rand}')
-    # song_2_mus(song, makam, song_title, oh_manager, note_dict)
+    song_2_mus(song, makam, song_title, oh_manager, note_dict)
 
 
 def get_prediction(model, part, lo, hi, cp):
@@ -351,7 +351,7 @@ def main():
     set_size = 8
     time_sig = Fraction(9, 8)
     ver = '61'
-    sep = 'AW8'
+    sep = 'AW9'
     '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
@@ -362,7 +362,7 @@ def main():
     # A1_v61, A20_v61, A40_v61, A10_v62, A20_v62, A40_v62, A40_v70, AE20_v61
     eps = 10
     # train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_AE' + str(eps) + '_v' + ver, eps)
-    '''
+    
     xa, ya = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     # xb, yb = make_db(makam, 'B', dir_path, note_dict, oh_manager, set_size, is_whole=True)
@@ -374,26 +374,23 @@ def main():
     # ys = np.concatenate((ys, yb), axis=0)
     # ys = np.concatenate((ys, yc), axis=0)
     # B0_v61, B1_v61, AH20_v62, AH40_v62, sec_AW_v61, AW5 (freeze 1st), AW6 (freeze 1st), AW7 (freeze 1st, keep dense)
-    # AW8 (freeze 1st, new dense)
+    # AW8 (freeze 1st, new dense), AW9 (freeze 1st, keep dense, val_split: 0.1->0.25)
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
     '''
-    cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A', 'B', 'C'], dir_path, note_dict, oh_manager,
-                         set_size)
+    cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A', 'B', 'C'], dir_path, note_dict, oh_manager, set_size)
     measure_cnt = 4
     lo = 0.1
     hi = 0.4
-    # model = load_model(makam, 'sec_' + sep + '_v' + ver)
-    models = [load_model(makam, 'sec_AW6_v61'), load_model(makam, 'sec_AW7_v62'), load_model(makam, 'decider_v2')]
+    model = load_model(makam, 'sec_' + sep + '_v' + ver)
+    # models = [load_model(makam, 'sec_AW6_v61'), load_model(makam, 'sec_AW7_v62'), load_model(makam, 'decider_v2')]
 
-    for i in range(1):
+    for i in range(3):
         init = str(i)
-        # song_name = 't_' + sep + '_v' + ver + '_' + init
-        song_name = 't_Dec_v6162_' + init
+        song_name = 't_' + sep + '_v' + ver + '_' + init
+        # song_name = 't_Dec_v6162_' + init
         initiator = 'init-hicaz-' + init + '.mu2'
-        # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
-        compose_v2(makam, time_sig, measure_cnt, initiator, models, set_size, lo, hi, cp, note_dict, oh_manager,
-                   song_name)
-    '''
+        compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
+        # compose_v2(makam, time_sig, measure_cnt, initiator, models, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
 
 
 if __name__ == '__main__':

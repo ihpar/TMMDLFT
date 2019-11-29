@@ -7,7 +7,7 @@ mu2_header = [
     '0	0	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	1',
     '50							{makam}	B4b4/F5#4/C5#4	',
     '51		0	0				[Serbest]		',
-    '52		1	8	132					',
+    '52		1	8	124					',
     '57							Beste		',
     '58							ismail par		',
     '59							DEU		',
