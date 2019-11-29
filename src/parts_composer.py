@@ -384,7 +384,7 @@ def main():
     model = load_model(makam, 'sec_' + sep + '_v' + ver)
     # models = [load_model(makam, 'sec_AW6_v61'), load_model(makam, 'sec_AW7_v62'), load_model(makam, 'decider_v2')]
 
-    for i in range(3):
+    for i in range(10):
         init = str(i)
         song_name = 't_' + sep + '_v' + ver + '_' + init
         # song_name = 't_Dec_v6162_' + init
