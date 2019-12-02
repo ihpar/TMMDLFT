@@ -249,6 +249,14 @@ def choose_prediction(part, p_a, p_b, decider, oh_manager):
     inp = np.array([inp])
     inp = inp.reshape((inp.shape[0], 1, inp.shape[1]))
     pred = decider.predict(inp)[0]
+    if abs(pred[0] - pred[1]) < 0.1:
+        chosen = random.choice([0, 1])
+        if chosen == 0:
+            cnt_pa += 1
+            return p_a
+        else:
+            cnt_pb += 1
+            return p_b
     if np.argmax(pred) == 0:
         cnt_pa += 1
         return p_a
@@ -362,7 +370,7 @@ def main():
     # A1_v61, A20_v61, A40_v61, A10_v62, A20_v62, A40_v62, A40_v70, AE20_v61
     eps = 10
     # train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_AE' + str(eps) + '_v' + ver, eps)
-    '''
+    
     xa, ya = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     xb, yb = make_db(makam, 'B', dir_path, note_dict, oh_manager, set_size, is_whole=True)
@@ -382,17 +390,16 @@ def main():
     measure_cnt = 4
     lo = 0.1
     hi = 0.4
-    model = load_model(makam, 'sec_' + sep + '_v' + ver)
-    # models = [load_model(makam, 'sec_AW6_v61'), load_model(makam, 'sec_AW7_v62'), load_model(makam, 'decider_v2')]
+    # model = load_model(makam, 'sec_' + sep + '_v' + ver)
+    models = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
 
     for i in range(10):
         init = str(i)
-        song_name = 't_' + sep + '_v' + ver + '_' + init
-        # song_name = 't_Dec_v6162_' + init
+        # song_name = 't_' + sep + '_v' + ver + '_' + init
+        song_name = 't_Dec_v6162_' + init
         initiator = 'init-hicaz-' + init + '.mu2'
-        compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
-        # compose_v2(makam, time_sig, measure_cnt, initiator, models, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
-    '''
+        # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
+        compose_v2(makam, time_sig, measure_cnt, initiator, models, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
 
 
 if __name__ == '__main__':
