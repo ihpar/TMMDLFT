@@ -16,6 +16,18 @@ from candidate_picker import CandidatePicker
 cnt_pa, cnt_pb = 0, 0
 
 
+def get_flattened_parts(makam, part_id, dir_path, note_dict, oh_manager):
+    parts = []
+    for curr_song in hicaz_parts.hicaz_songs:
+        song = curr_song['file']
+        part_map = curr_song['parts_map']
+        song_final = curr_song['sf']
+        song = decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager)
+        part = song.get_part(part_id)
+        parts.append(part)
+    return parts
+
+
 def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size, is_whole=False):
     songs = []
 
@@ -351,6 +363,27 @@ def song_2_mus(song, makam, title, oh_manager, note_dict):
     print(f'{file_name} is saved to disk!')
 
 
+def make_ab_db(makam, part_ids, dir_path, note_dict, oh_manager, set_size):
+    x_lst, y_lst = [], []
+    parts_a = get_flattened_parts(makam, part_ids[0], dir_path, note_dict, oh_manager)
+    parts_b = get_flattened_parts(makam, part_ids[1], dir_path, note_dict, oh_manager)
+    if len(parts_a) != len(parts_b):
+        raise Exception('Part lengths must be equal!')
+
+    for a, b in zip(parts_a, parts_b):
+        a_lst = a[-8:]
+        b = a_lst + b
+        xs, ys = [], []
+        for i in range(len(b) - set_size):
+            x_sec = [oh_manager.int_2_oh(x) for x in b[i:i + set_size]]
+            y_sec = oh_manager.int_2_oh(b[i + set_size])
+            xs.append(x_sec)
+            ys.append(y_sec)
+        x_lst.extend(xs)
+        y_lst.extend(ys)
+    return np.array(x_lst), np.array(y_lst)
+
+
 def main():
     makam = 'hicaz'
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
@@ -358,8 +391,8 @@ def main():
     oh_manager = OhManager(makam)
     set_size = 8
     time_sig = Fraction(9, 8)
-    ver = '62'
-    sep = 'AW10'
+    ver = '61'
+    sep = 'BW1'
     '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
@@ -370,7 +403,8 @@ def main():
     # A1_v61, A20_v61, A40_v61, A10_v62, A20_v62, A40_v62, A40_v70, AE20_v61
     eps = 10
     # train_model(makam, 'lstm_v' + ver, xs, ys, 'sec_AE' + str(eps) + '_v' + ver, eps)
-    
+    '''
+    '''
     xa, ya = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     xb, yb = make_db(makam, 'B', dir_path, note_dict, oh_manager, set_size, is_whole=True)
@@ -381,6 +415,8 @@ def main():
     ys = np.concatenate((yi, ya), axis=0)
     ys = np.concatenate((ys, yb), axis=0)
     ys = np.concatenate((ys, yc), axis=0)
+    '''
+    xs, ys = make_ab_db(makam, ['A', 'B'], dir_path, note_dict, oh_manager, set_size)
     # B0_v61, B1_v61, AH20_v62, AH40_v62, sec_AW_v61, AW5 (freeze 1st), AW6 (freeze 1st), AW7 (freeze 1st, keep dense)
     # AW8 (freeze 1st, new dense), AW9 (freeze 1st, keep dense, val_split: 0.1->0.25),
     # AW10 (freeze 1st, keep dense, val_split: 0.1)
@@ -400,6 +436,7 @@ def main():
         initiator = 'init-hicaz-' + init + '.mu2'
         # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
         compose_v2(makam, time_sig, measure_cnt, initiator, models, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
+    '''
 
 
 if __name__ == '__main__':
