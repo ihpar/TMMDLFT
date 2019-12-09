@@ -12,6 +12,8 @@ from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.optimizers import RMSprop
 from tensorflow.python.keras.callbacks import EarlyStopping
 
+import time
+
 
 def distance(r_o, n_a, n_b, oh_manager):
     nd_o = oh_manager.int_2_nd(r_o)
@@ -32,6 +34,10 @@ def distance(r_o, n_a, n_b, oh_manager):
     if abs(n_o - n_a) < abs(n_o - n_b):
         return [1, 0]
     if abs(n_o - n_a) > abs(n_o - n_b):
+        return [0, 1]
+    if abs(d_o - d_a) < abs(d_o - d_b):
+        return [1, 0]
+    if abs(d_o - d_a) > abs(d_o - d_b):
         return [0, 1]
     return [0.5, 0.5]
 
@@ -71,8 +77,8 @@ def create_training_data(makam, model_a, model_b, oh_manager):
             print(f'd {counter}')
         counter += 1
 
-    x_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'xs')
-    y_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'ys')
+    x_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'b_xs')
+    y_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'b_ys')
     with open(x_file, 'w') as fx, open(y_file, 'w') as fy:
         fx.write(json.dumps(x_train))
         fy.write(json.dumps(y_train))
@@ -121,12 +127,19 @@ def train_model(makam, model, model_name, x, y):
 
 
 def main():
+    start = time.time()
     makam = 'hicaz'
-    '''
+
     oh_manager = OhManager(makam)
-    model_a = load_model(makam, 'sec_AW6_v61')
-    model_b = load_model(makam, 'sec_AW7_v62')
+    model_a = load_model(makam, 'sec_BW1_v61')
+    model_b = load_model(makam, 'sec_BW2_v62')
     create_training_data(makam, model_a, model_b, oh_manager)
+
+    end = time.time()
+    hours, rem = divmod(end - start, 3600)
+    minutes, seconds = divmod(rem, 60)
+    print("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
+
     '''
     # v0: LSTM(100), v1: LSTM(200), v2: LSTM(100)*LSTM(100)
     v = 'v2'
@@ -134,6 +147,7 @@ def main():
     print(x_train.shape, y_train.shape)
     model = make_model(x_train.shape[1:], y_train.shape[1])
     train_model(makam, model, 'decider_' + v, x_train, y_train)
+    '''
 
 
 if __name__ == '__main__':
