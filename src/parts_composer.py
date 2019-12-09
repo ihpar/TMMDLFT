@@ -166,6 +166,32 @@ def get_starters(init_file, set_size, note_dict, oh_manager):
     return np.array(starters), tot
 
 
+def get_starters_by_part(init_part, set_size, note_dict, oh_manager, models, lo, hi, cp):
+    starter = init_part[0][-set_size:]
+    song = np.array([np.copy(starter)])
+    total = Fraction(0)
+    xpy = song.shape[1]
+    model_a = models[0]
+    model_b = models[1]
+    decider = models[2]
+    for i in range(set_size):
+        part = song[:, -xpy:, :]
+        p_a = get_prediction(model_a, part, lo, hi, cp)
+        p_b = get_prediction(model_b, part, lo, hi, cp)
+        chosen = choose_prediction(part, p_a, p_b, decider, oh_manager)
+        n_d = oh_manager.int_2_nd(chosen)
+        parts = n_d.split(':')
+        dur = int(parts[1])
+        dur = Fraction(note_dict.get_dur_by_num(dur))
+        total += dur
+        p_inner = np.zeros(part.shape[2])
+        p_inner[chosen] = 1.0
+
+        song = np.append(song, np.array([[p_inner]]), axis=1)
+
+    return song[:, -xpy:, :][0], total
+
+
 def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp, note_dict, oh_manager, song_title):
     starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
     if tot > time_sig:
@@ -277,15 +303,18 @@ def choose_prediction(part, p_a, p_b, decider, oh_manager):
 
 
 def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi, cp, note_dict, oh_manager,
-               song_title):
+               song_title, by_part=False):
     global cnt_pa, cnt_pb
     model_a = models[0]
     model_b = models[1]
     decider = models[2]
 
-    starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
-    if tot > time_sig:
-        raise Exception('Starter notes exceed time signature limit!')
+    if not by_part:
+        starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
+    else:
+        starters, tot = get_starters_by_part(init_file, set_size, note_dict, oh_manager, models, lo, hi, cp)
+    if tot > time_sig * measure_cnt:
+        raise Exception('Starter notes duration exceeded time limit!')
     target_dur = time_sig * measure_cnt - tot
     song = np.array([np.copy(starters)])
     xpy = song.shape[1]
@@ -323,7 +352,8 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
         song = np.append(song, np.array([[p_inner]]), axis=1)
     print(f'PA:{cnt_pa}, PB:{cnt_pb}')
     cnt_pa, cnt_pb = 0, 0
-    song_2_mus(song, makam, song_title, oh_manager, note_dict)
+    return song
+    # song_2_mus(song, makam, song_title, oh_manager, note_dict)
 
 
 def song_2_mus(song, makam, title, oh_manager, note_dict):
@@ -391,8 +421,8 @@ def main():
     oh_manager = OhManager(makam)
     set_size = 8
     time_sig = Fraction(9, 8)
-    ver = '61'
-    sep = 'BW1'
+    ver = '62'
+    sep = 'BW2'
     '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
@@ -415,28 +445,37 @@ def main():
     ys = np.concatenate((yi, ya), axis=0)
     ys = np.concatenate((ys, yb), axis=0)
     ys = np.concatenate((ys, yc), axis=0)
-    '''
+    
+    # nakarat train begin
     xs, ys = make_ab_db(makam, ['A', 'B'], dir_path, note_dict, oh_manager, set_size)
+    xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    xs = np.concatenate((xs, xc), axis=0)
+    ys = np.concatenate((ys, yc), axis=0)
     # B0_v61, B1_v61, AH20_v62, AH40_v62, sec_AW_v61, AW5 (freeze 1st), AW6 (freeze 1st), AW7 (freeze 1st, keep dense)
     # AW8 (freeze 1st, new dense), AW9 (freeze 1st, keep dense, val_split: 0.1->0.25),
     # AW10 (freeze 1st, keep dense, val_split: 0.1)
+    # BW1, BW2 (freeze 1st, keep dense, val_split: 0.1)
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
+    # nakarat train end
     '''
     cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A', 'B', 'C'], dir_path, note_dict, oh_manager, set_size)
     measure_cnt = 4
     lo = 0.1
     hi = 0.4
     # model = load_model(makam, 'sec_' + sep + '_v' + ver)
-    models = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
+    models_A = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
+    models_B = [load_model(makam, 'sec_BW1_v61'), load_model(makam, 'sec_BW2_v62'), load_model(makam, 'decider_v2')]
 
-    for i in range(10):
+    for i in range(1):
         init = str(i)
         # song_name = 't_' + sep + '_v' + ver + '_' + init
-        song_name = 't_Dec_v6162_' + init
+        song_name = 't_DecAB_v6162_' + init
         initiator = 'init-hicaz-' + init + '.mu2'
         # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
-        compose_v2(makam, time_sig, measure_cnt, initiator, models, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
-    '''
+        part_a = compose_v2(makam, time_sig, measure_cnt, initiator, models_A, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
+        part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_B, set_size, lo, hi, cp, note_dict, oh_manager, song_name, by_part=True)
+        song = np.append(part_a, part_b, axis=1)
+        song_2_mus(song, makam, song_name, oh_manager, note_dict)
 
 
 if __name__ == '__main__':
