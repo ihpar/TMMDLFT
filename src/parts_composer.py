@@ -70,21 +70,20 @@ def train_whole(makam, src_model, xs, ys, target_model, eps=0):
     base_model = load_model(makam, src_model, False)
     new_model = Sequential()
     for i, layer in enumerate(base_model.layers):
-        # if i == 4:
-        #     break
+        if i == 4:
+            break
         if i < 2:
             layer.trainable = False
         new_model.add(layer)
 
-    # new_model.add(Dense(out_shape))
-    # new_model.add(Activation('softmax'))
+    new_model.add(Dense(out_shape))
+    new_model.add(Activation('softmax'))
 
     optimizer = RMSprop(lr=0.001)
     new_model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     new_model.summary()
 
-    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=2)
-    # mc = ModelCheckpoint('cp_' + target_model + '.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=3)
 
     if eps == 0:
         history = new_model.fit(xs, ys, epochs=100, batch_size=16, shuffle=False, validation_split=0.1, callbacks=[es])
@@ -371,12 +370,14 @@ def choose_prediction(part, p_a, p_b, decider, oh_manager):
     return p_b
 
 
-def song_2_mus(song, makam, title, oh_manager, note_dict, mcs=''):
+def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs=''):
     lines = consts.mu2_header.copy()
     lines[0] = '9	8	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	0.888888889'
     lines[2] = '51		9	8				Aksak		'
     lines[1] = lines[1].replace('{makam}', makam)
     lines[7] = lines[7].replace('{song_title}', title)
+    m_tot = Fraction(0)
+    m_cnt = 0
     for row in song[0]:
         n_d = oh_manager.oh_2_nd(row)
         parts = n_d.split(':')
@@ -399,6 +400,32 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, mcs=''):
                          .replace('{num}', dur[0])
                          .replace('{denom}', dur[1]))
 
+        m_tot += Fraction(int(dur[0]), int(dur[1]))
+        if m_tot >= time_sig:
+            m_tot = Fraction(0)
+            m_cnt += 1
+            if m_cnt not in [4, 8, 12]:
+                if m_cnt % 2 == 0:
+                    lines.append('21									0.0')
+                lines.append('14									0.0')
+
+            if m_cnt == 4:
+                lines.append('9								:	0.0')
+                lines.append('9								)	0.0')
+                lines.append('21									0.0')
+                lines.append('14									0.0')
+                lines.append('9							[		7')
+                lines.append('9							(		7')
+            if m_cnt == 8:
+                lines.append('9								:	0.0')
+                lines.append('9								)	0.0')
+                lines.append('9								]	0.0')
+                lines.append('21									0.0')
+                lines.append('9							(		')
+            if m_cnt == 12:
+                lines.append('9								:	0.0')
+                lines.append('9								)	0.0')
+                lines.append('9								$	0.0')
     file_name = title + '.mu2'
     song_path = os.path.join(os.path.abspath('..'), 'songs', makam, file_name)
     with io.open(song_path, 'w', encoding='utf-8') as song_file:
@@ -437,7 +464,7 @@ def main():
     set_size = 8
     time_sig = Fraction(9, 8)
     ver = '62'
-    sep = 'BW2'
+    sep = 'BW3'
     '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
@@ -460,7 +487,8 @@ def main():
     ys = np.concatenate((yi, ya), axis=0)
     ys = np.concatenate((ys, yb), axis=0)
     ys = np.concatenate((ys, yc), axis=0)
-    
+    '''
+    '''
     # nakarat train begin
     xs, ys = make_ab_db(makam, ['A', 'B'], dir_path, note_dict, oh_manager, set_size)
     xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
@@ -469,7 +497,7 @@ def main():
     # B0_v61, B1_v61, AH20_v62, AH40_v62, sec_AW_v61, AW5 (freeze 1st), AW6 (freeze 1st), AW7 (freeze 1st, keep dense)
     # AW8 (freeze 1st, new dense), AW9 (freeze 1st, keep dense, val_split: 0.1->0.25),
     # AW10 (freeze 1st, keep dense, val_split: 0.1)
-    # BW1, BW2 (freeze 1st, keep dense, val_split: 0.1)
+    # BW1/2 (freeze 1st, keep dense, val_split: 0.1), BW3 (freeze 1st, new dense, val_split: 0.1)
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
     # nakarat train end
     '''
@@ -479,24 +507,28 @@ def main():
     hi = 0.4
     # model = load_model(makam, 'sec_' + sep + '_v' + ver)
     models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
-    models_b = [load_model(makam, 'sec_BW2_v62'), load_model(makam, 'sec_BW2_v62'), load_model(makam, 'b_decider_v3')]
+    models_b = [load_model(makam, 'sec_BW1_v61'), load_model(makam, 'sec_BW3_v62'), load_model(makam, 'b_decider_v3')]
 
-    for i in range(10):
+    for i in range(1):
         init = str(i)
         # song_name = 't_' + sep + '_v' + ver + '_' + init
-        song_name = 't_Dec_BW2_v62_' + init
+        song_name = 't_DecAB_v6162_' + init
         initiator = 'init-hicaz-' + init + '.mu2'
         # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
         part_a = compose_v2(makam, time_sig, measure_cnt, initiator, models_a, set_size, lo, hi, cp, note_dict, oh_manager)
         if len(part_a) == 0:
             continue
-        # part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
-        starters, tot = get_starters_by_part(part_a, set_size, note_dict, oh_manager, models_b, lo, hi, cp)
-        part_b = compose(makam, time_sig, measure_cnt, starters, models_b[0], set_size, lo, hi, cp, note_dict, oh_manager, by_part=True, totil=tot)
+        part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+        # starters, tot = get_starters_by_part(part_a, set_size, note_dict, oh_manager, models_b, lo, hi, cp)
+        # part_b = compose(makam, time_sig, measure_cnt, starters, models_b[0], set_size, lo, hi, cp, note_dict, oh_manager, by_part=True, totil=tot)
         if len(part_b) == 0:
             continue
+
+        part_c = np.copy(part_b)
+
         song = np.append(part_a, part_b, axis=1)
-        song_2_mus(song, makam, song_name, oh_manager, note_dict, mcs='4,4')
+        song = np.append(song, part_c, axis=1)
+        song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, mcs='4,4')
 
 
 if __name__ == '__main__':
