@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import os
 import io
 import random
+import math
 from candidate_picker import CandidatePicker
 
 cnt_pa, cnt_pb = 0, 0
@@ -302,8 +303,7 @@ def choose_prediction(part, p_a, p_b, decider, oh_manager):
     return p_b
 
 
-def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi, cp, note_dict, oh_manager,
-               song_title, by_part=False):
+def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi, cp, note_dict, oh_manager, by_part=False):
     global cnt_pa, cnt_pb
     model_a = models[0]
     model_b = models[1]
@@ -313,13 +313,17 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
         starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
     else:
         starters, tot = get_starters_by_part(init_file, set_size, note_dict, oh_manager, models, lo, hi, cp)
-    if tot > time_sig * measure_cnt:
+
+    if tot > (time_sig * measure_cnt):
         raise Exception('Starter notes duration exceeded time limit!')
-    target_dur = time_sig * measure_cnt - tot
+
     song = np.array([np.copy(starters)])
     xpy = song.shape[1]
 
-    measure_remainder = time_sig - tot
+    elapsed_measures = math.floor(tot / time_sig)
+    measure_remainder = time_sig - (tot - (elapsed_measures * time_sig))
+    target_dur = (time_sig * measure_cnt) - tot
+
     if measure_remainder == Fraction(0):
         measure_remainder = time_sig
 
@@ -335,6 +339,7 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
         note_num = int(parts[0])
         dur = int(parts[1])
         dur = Fraction(note_dict.get_dur_by_num(dur))
+        dur_cpy = dur
         if dur < measure_remainder:
             measure_remainder -= dur
         else:
@@ -344,12 +349,18 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
         target_dur -= dur
 
         dur_num = note_dict.get_num_by_dur(str(dur))
-        n_d = str(note_num) + ':' + str(dur_num)
-        n_d_num = oh_manager.nd_2_int(n_d)
-        p_inner = np.zeros(part.shape[2])
-        p_inner[n_d_num] = 1.0
+        n_c_d = str(note_num) + ':' + str(dur_num)
+        try:
+            n_d_num = oh_manager.nd_2_int(n_c_d)
+            p_inner = np.zeros(part.shape[2])
+            p_inner[n_d_num] = 1.0
 
-        song = np.append(song, np.array([[p_inner]]), axis=1)
+            song = np.append(song, np.array([[p_inner]]), axis=1)
+        except KeyError as e:
+            print(n_d, dur_cpy, dur, note_num)
+            print(f'Key Error: {str(e)}')
+            return []
+
     print(f'PA:{cnt_pa}, PB:{cnt_pb}')
     cnt_pa, cnt_pb = 0, 0
     return song
@@ -462,8 +473,8 @@ def main():
     lo = 0.1
     hi = 0.4
     # model = load_model(makam, 'sec_' + sep + '_v' + ver)
-    models_A = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
-    models_B = [load_model(makam, 'sec_BW1_v61'), load_model(makam, 'sec_BW2_v62'), load_model(makam, 'b_decider_v3')]
+    models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
+    models_b = [load_model(makam, 'sec_BW1_v61'), load_model(makam, 'sec_BW2_v62'), load_model(makam, 'b_decider_v3')]
 
     for i in range(10):
         init = str(i)
@@ -471,8 +482,12 @@ def main():
         song_name = 't_DecAB_v6162_' + init
         initiator = 'init-hicaz-' + init + '.mu2'
         # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
-        part_a = compose_v2(makam, time_sig, measure_cnt, initiator, models_A, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
-        part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_B, set_size, lo, hi, cp, note_dict, oh_manager, song_name, by_part=True)
+        part_a = compose_v2(makam, time_sig, measure_cnt, initiator, models_a, set_size, lo, hi, cp, note_dict, oh_manager)
+        if len(part_a) == 0:
+            continue
+        part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+        if len(part_b) == 0:
+            continue
         song = np.append(part_a, part_b, axis=1)
         song_2_mus(song, makam, song_name, oh_manager, note_dict)
 
