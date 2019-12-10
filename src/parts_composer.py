@@ -353,7 +353,6 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
     print(f'PA:{cnt_pa}, PB:{cnt_pb}')
     cnt_pa, cnt_pb = 0, 0
     return song
-    # song_2_mus(song, makam, song_title, oh_manager, note_dict)
 
 
 def song_2_mus(song, makam, title, oh_manager, note_dict):
@@ -464,9 +463,9 @@ def main():
     hi = 0.4
     # model = load_model(makam, 'sec_' + sep + '_v' + ver)
     models_A = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
-    models_B = [load_model(makam, 'sec_BW1_v61'), load_model(makam, 'sec_BW2_v62'), load_model(makam, 'decider_v2')]
+    models_B = [load_model(makam, 'sec_BW1_v61'), load_model(makam, 'sec_BW2_v62'), load_model(makam, 'b_decider_v3')]
 
-    for i in range(1):
+    for i in range(10):
         init = str(i)
         # song_name = 't_' + sep + '_v' + ver + '_' + init
         song_name = 't_DecAB_v6162_' + init
