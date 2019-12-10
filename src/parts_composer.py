@@ -509,7 +509,7 @@ def main():
     models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
     models_b = [load_model(makam, 'sec_BW1_v61'), load_model(makam, 'sec_BW3_v62'), load_model(makam, 'b_decider_v3')]
 
-    for i in range(1):
+    for i in range(9, 10):
         init = str(i)
         # song_name = 't_' + sep + '_v' + ver + '_' + init
         song_name = 't_DecAB_v6162_' + init
@@ -524,7 +524,7 @@ def main():
         if len(part_b) == 0:
             continue
 
-        part_c = np.copy(part_b)
+        part_c = np.copy(part_a)
 
         song = np.append(part_a, part_b, axis=1)
         song = np.append(song, part_c, axis=1)
