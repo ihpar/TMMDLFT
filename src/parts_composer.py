@@ -193,20 +193,28 @@ def get_starters_by_part(init_part, set_size, note_dict, oh_manager, models, lo,
     return song[:, -xpy:, :][0], total
 
 
-def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp, note_dict, oh_manager, song_title):
-    starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
-    if tot > time_sig:
-        raise Exception('Starter notes exceed time signature limit!')
-    target_dur = time_sig * measure_cnt - tot
+def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp, note_dict, oh_manager, by_part=False, totil=0):
+    if not by_part:
+        starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
+    else:
+        starters, tot = init_file, totil
+
+    if tot > (time_sig * measure_cnt):
+        raise Exception('Starter notes duration exceeded time limit!')
+
     song = np.array([np.copy(starters)])
     xpy = song.shape[1]
 
     tot_certain, tot_rand = 0, 1
-    measure_remainder = time_sig - tot
-    if measure_remainder == Fraction(0):
-        measure_remainder = time_sig
+
+    elapsed_measures = math.floor(tot / time_sig)
+    measure_remainder = time_sig - (tot - (elapsed_measures * time_sig))
+    target_dur = (time_sig * measure_cnt) - tot
 
     while target_dur > 0:
+        if measure_remainder == Fraction(0):
+            measure_remainder = time_sig
+
         part = song[:, -xpy:, :]
         prediction = model.predict(part)
         shape = prediction.shape
@@ -236,13 +244,8 @@ def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp
         note_num = int(parts[0])
         dur = int(parts[1])
         dur = Fraction(note_dict.get_dur_by_num(dur))
-        if dur < measure_remainder:
-            measure_remainder -= dur
-        else:
+        if dur > measure_remainder:
             dur = measure_remainder
-            measure_remainder = time_sig
-
-        target_dur -= dur
 
         dur_num = note_dict.get_num_by_dur(str(dur))
         n_d = str(note_num) + ':' + str(dur_num)
@@ -253,8 +256,73 @@ def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp
 
         song = np.append(song, np.array([[p_inner]]), axis=1)
 
+        measure_remainder -= dur
+        target_dur -= dur
+
     print(f'Certain: {tot_certain}, Rand: {tot_rand}, Ratio: {tot_certain / tot_rand}')
-    song_2_mus(song, makam, song_title, oh_manager, note_dict)
+    return song
+
+
+def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi, cp, note_dict, oh_manager, by_part=False):
+    global cnt_pa, cnt_pb
+    model_a = models[0]
+    model_b = models[1]
+    decider = models[2]
+
+    if not by_part:
+        starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
+    else:
+        starters, tot = get_starters_by_part(init_file, set_size, note_dict, oh_manager, models, lo, hi, cp)
+
+    if tot > (time_sig * measure_cnt):
+        raise Exception('Starter notes duration exceeded time limit!')
+
+    song = np.array([np.copy(starters)])
+    xpy = song.shape[1]
+
+    elapsed_measures = math.floor(tot / time_sig)
+    measure_remainder = time_sig - (tot - (elapsed_measures * time_sig))
+    target_dur = (time_sig * measure_cnt) - tot
+
+    while target_dur > 0:
+        if measure_remainder == Fraction(0):
+            measure_remainder = time_sig
+
+        part = song[:, -xpy:, :]
+        p_a = get_prediction(model_a, part, lo, hi, cp)
+        p_b = get_prediction(model_b, part, lo, hi, cp)
+
+        chosen = choose_prediction(part, p_a, p_b, decider, oh_manager)
+
+        n_d = oh_manager.int_2_nd(chosen)
+        parts = n_d.split(':')
+        note_num = int(parts[0])
+        dur = int(parts[1])
+        dur = Fraction(note_dict.get_dur_by_num(dur))
+        dur_cpy = dur
+
+        if dur > measure_remainder:
+            dur = measure_remainder
+
+        dur_num = note_dict.get_num_by_dur(str(dur))
+        n_c_d = str(note_num) + ':' + str(dur_num)
+        try:
+            n_d_num = oh_manager.nd_2_int(n_c_d)
+            p_inner = np.zeros(part.shape[2])
+            p_inner[n_d_num] = 1.0
+
+            song = np.append(song, np.array([[p_inner]]), axis=1)
+        except KeyError as e:
+            print(n_d, dur_cpy, dur, note_num)
+            print(f'Key Error: {str(e)}')
+            return []
+
+        measure_remainder -= dur
+        target_dur -= dur
+
+    print(f'PA:{cnt_pa}, PB:{cnt_pb}')
+    cnt_pa, cnt_pb = 0, 0
+    return song
 
 
 def get_prediction(model, part, lo, hi, cp):
@@ -303,70 +371,7 @@ def choose_prediction(part, p_a, p_b, decider, oh_manager):
     return p_b
 
 
-def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi, cp, note_dict, oh_manager, by_part=False):
-    global cnt_pa, cnt_pb
-    model_a = models[0]
-    model_b = models[1]
-    decider = models[2]
-
-    if not by_part:
-        starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
-    else:
-        starters, tot = get_starters_by_part(init_file, set_size, note_dict, oh_manager, models, lo, hi, cp)
-
-    if tot > (time_sig * measure_cnt):
-        raise Exception('Starter notes duration exceeded time limit!')
-
-    song = np.array([np.copy(starters)])
-    xpy = song.shape[1]
-
-    elapsed_measures = math.floor(tot / time_sig)
-    measure_remainder = time_sig - (tot - (elapsed_measures * time_sig))
-    target_dur = (time_sig * measure_cnt) - tot
-
-    if measure_remainder == Fraction(0):
-        measure_remainder = time_sig
-
-    while target_dur > 0:
-        part = song[:, -xpy:, :]
-        p_a = get_prediction(model_a, part, lo, hi, cp)
-        p_b = get_prediction(model_b, part, lo, hi, cp)
-
-        chosen = choose_prediction(part, p_a, p_b, decider, oh_manager)
-
-        n_d = oh_manager.int_2_nd(chosen)
-        parts = n_d.split(':')
-        note_num = int(parts[0])
-        dur = int(parts[1])
-        dur = Fraction(note_dict.get_dur_by_num(dur))
-        dur_cpy = dur
-        if dur < measure_remainder:
-            measure_remainder -= dur
-        else:
-            dur = measure_remainder
-            measure_remainder = time_sig
-
-        target_dur -= dur
-
-        dur_num = note_dict.get_num_by_dur(str(dur))
-        n_c_d = str(note_num) + ':' + str(dur_num)
-        try:
-            n_d_num = oh_manager.nd_2_int(n_c_d)
-            p_inner = np.zeros(part.shape[2])
-            p_inner[n_d_num] = 1.0
-
-            song = np.append(song, np.array([[p_inner]]), axis=1)
-        except KeyError as e:
-            print(n_d, dur_cpy, dur, note_num)
-            print(f'Key Error: {str(e)}')
-            return []
-
-    print(f'PA:{cnt_pa}, PB:{cnt_pb}')
-    cnt_pa, cnt_pb = 0, 0
-    return song
-
-
-def song_2_mus(song, makam, title, oh_manager, note_dict):
+def song_2_mus(song, makam, title, oh_manager, note_dict, mcs=''):
     lines = consts.mu2_header.copy()
     lines[0] = '9	8	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	0.888888889'
     lines[2] = '51		9	8				Aksak		'
@@ -385,11 +390,11 @@ def song_2_mus(song, makam, title, oh_manager, note_dict):
         dur = note_dict.get_dur_by_num(dur).split('/')
 
         if note == 'Rest':
-            lines.append('9		{num}	{denom}	95	96	64	.		0.5'
+            lines.append('9		{num}	{denom}	100					0.0'
                          .replace('{num}', dur[0])
                          .replace('{denom}', dur[1]))
         else:
-            lines.append('9	{nn}	{num}	{denom}	95	96	64	.		0.5'
+            lines.append('9	{nn}	{num}	{denom}	95	96	64	 		0.0'
                          .replace('{nn}', note)
                          .replace('{num}', dur[0])
                          .replace('{denom}', dur[1]))
@@ -474,22 +479,24 @@ def main():
     hi = 0.4
     # model = load_model(makam, 'sec_' + sep + '_v' + ver)
     models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
-    models_b = [load_model(makam, 'sec_BW1_v61'), load_model(makam, 'sec_BW2_v62'), load_model(makam, 'b_decider_v3')]
+    models_b = [load_model(makam, 'sec_BW2_v62'), load_model(makam, 'sec_BW2_v62'), load_model(makam, 'b_decider_v3')]
 
     for i in range(10):
         init = str(i)
         # song_name = 't_' + sep + '_v' + ver + '_' + init
-        song_name = 't_DecAB_v6162_' + init
+        song_name = 't_Dec_BW2_v62_' + init
         initiator = 'init-hicaz-' + init + '.mu2'
         # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
         part_a = compose_v2(makam, time_sig, measure_cnt, initiator, models_a, set_size, lo, hi, cp, note_dict, oh_manager)
         if len(part_a) == 0:
             continue
-        part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+        # part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+        starters, tot = get_starters_by_part(part_a, set_size, note_dict, oh_manager, models_b, lo, hi, cp)
+        part_b = compose(makam, time_sig, measure_cnt, starters, models_b[0], set_size, lo, hi, cp, note_dict, oh_manager, by_part=True, totil=tot)
         if len(part_b) == 0:
             continue
         song = np.append(part_a, part_b, axis=1)
-        song_2_mus(song, makam, song_name, oh_manager, note_dict)
+        song_2_mus(song, makam, song_name, oh_manager, note_dict, mcs='4,4')
 
 
 if __name__ == '__main__':
