@@ -507,12 +507,12 @@ def main():
     cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A', 'B', 'C'], dir_path, note_dict, oh_manager, set_size)
     measure_cnt = 4
     lo = 0.1
-    hi = 0.4
+    hi = 0.6
     # model = load_model(makam, 'sec_' + sep + '_v' + ver)
     models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
     models_b = [load_model(makam, 'sec_BW5_v61'), load_model(makam, 'sec_IABCW1_v62'), load_model(makam, 'b_decider_v3')]
 
-    for i in range(0, 1):
+    for i in range(1, 2):
         init = str(i)
         # song_name = 't_' + sep + '_v' + ver + '_' + init
         song_name = 't_DecAB_v6162_' + init
@@ -521,6 +521,8 @@ def main():
         part_a = compose_v2(makam, time_sig, measure_cnt, initiator, models_a, set_size, lo, hi, cp, note_dict, oh_manager)
         if len(part_a) == 0:
             continue
+        lo = 0.1
+        hi = 0.3
         part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
         # starters, tot = get_starters_by_part(part_a, set_size, note_dict, oh_manager, models_b, lo, hi, cp)
         # part_b = compose(makam, time_sig, measure_cnt, starters, models_b[0], set_size, lo, hi, cp, note_dict, oh_manager, by_part=True, totil=tot)
