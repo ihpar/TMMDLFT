@@ -292,7 +292,7 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
     else:
         starters, tot = get_starters_by_part(init_file, set_size, note_dict, oh_manager, models, lo, hi, cp, time_sig)
 
-    print_notes(starters, oh_manager, note_dict)
+    # print_notes(starters, oh_manager, note_dict)
 
     if tot > (time_sig * measure_cnt):
         raise Exception('Starter notes duration exceeded time limit!')
@@ -304,9 +304,9 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
     measure_remainder = time_sig - (tot - (elapsed_measures * time_sig))
     target_dur = (time_sig * measure_cnt) - tot
 
-    print('---------------------------------------------')
-    print(f'total:{str(tot)}, elapsed:{str(elapsed_measures)}, m.rem:{str(measure_remainder)}, target:{str(target_dur)}')
-    print('---------------------------------------------')
+    # print('---------------------------------------------')
+    # print(f'total:{str(tot)}, elapsed:{str(elapsed_measures)}, m.rem:{str(measure_remainder)}, target:{str(target_dur)}')
+    # print('---------------------------------------------')
 
     while target_dur > 0:
         if measure_remainder == Fraction(0):
