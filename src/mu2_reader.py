@@ -31,7 +31,7 @@ def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager):
             elif parts[0] == 52:
                 song.set_tempo(int(parts[4]))
 
-            elif (parts[0] in [1, 7, 9, 10, 11, 12, 24, 28]) and (
+            elif (parts[0] in [1, 7, 9, 10, 11, 12, 23, 24, 28]) and (
                     parts[nom_index].isdigit() and parts[den_index].isdigit()):
                 # note name
                 note_name = parts[1].lower().strip()
@@ -50,7 +50,7 @@ def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager):
                     combine = oh_manager.nd_2_int(str(note_num) + ':' + str(dur))
                     song.insert_note(combine, measure_no)
                 except KeyError as e:
-                    print(f'Ex in {fn}: {note_name},{str(note_len)}')
+                    print(f'Ex in {fn}: {i}, {note_name},{str(note_len)}')
                     print(str(e))
                     raise Exception('No correspondence')
                 tot += note_len
@@ -59,6 +59,8 @@ def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager):
                     measure_no += 1
                     tot = Fraction(0)
                 if tot > beat:
+                    print(i, line)
+                    print(song_path)
                     raise Exception('--Broken--')
 
     return song

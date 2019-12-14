@@ -490,9 +490,13 @@ def main():
     # IABCW2 (unfreeze all, new dense, val_split: 0.1, batch=32)
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
     '''
-    '''
+
     # nakarat train begin
-    xs, ys = make_ab_db(makam, ['A', 'B'], dir_path, note_dict, oh_manager, set_size)
+    xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    xa, ya = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    xb, yb = make_db(makam, 'B', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    # xs, ys = make_ab_db(makam, ['A', 'B'], dir_path, note_dict, oh_manager, set_size)
     # xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     # xs = np.concatenate((xs, xc), axis=0)
     # ys = np.concatenate((ys, yc), axis=0)
@@ -503,7 +507,7 @@ def main():
     # BW4 (unfreeze all, new dense, val_split: 0.1, batch=8), BW5 (unfreeze all, new dense, val_split: 0.1, batch=32)
     # BW6 (unfreeze all, new dense, val_split: 0.1, batch=64)
     # BW7 (freeze 1st, new dense, val_split: 0, batch=16), BW8 (freeze 1st , 2nd, new dense, val_split: 0, batch=16)
-    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=12)
+    # train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=12)
     # nakarat train end
     '''
     cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A', 'B', 'C'], dir_path, note_dict, oh_manager, set_size)
@@ -537,6 +541,7 @@ def main():
         song = np.append(part_a, part_b, axis=1)
         song = np.append(song, part_c, axis=1)
         song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, mcs='4,4')
+    '''
 
 
 if __name__ == '__main__':

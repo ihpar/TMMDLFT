@@ -190,6 +190,35 @@ hicaz_songs = [
      'parts_map': {'I': [], 'A': [0, 1, 2, 3], 'B': [4, 5, 6, 7], 'C': [8, 9, 10, 11]},
      'sf': []},
 
+    {'file': 'hicaz_humayun--sarki--agiraksak--nitti_bana--sivelioglu_yorgaki.mu2',
+     'parts_map': {'I': [0, 1, 2, 3], 'A': [4, 5, 6, 7], 'B': [8, 9, 10, [11, 12]], 'C': [13, 14, 15, 16]},
+     'sf': []},
+
+    {'file': 'hicaz_humayun--sarki--agiraksak--pek_cefacusun--kemani_riza_efendi.mu2',
+     'parts_map': {'I': [0, 1, 2, [3, 4]], 'A': [5, 6, 7, 8], 'B': [9, 10, 11, 12], 'C': [13, 14, 15, 16]},
+     'sf': [12, 11]},
+
+    {'file': 'hicaz_humayun--sarki--aksak--beni_canimdan--muzaffer_ilkar.mu2',
+     'parts_map': {'I': [0, 1, 2, [3, 4]], 'A': [5, 6, 7, 8, [9, 10]], 'B': [11, 12, 13, 14, 15, 16, 17, 18, 19, [20, 27]], 'C': [21, 22, 23, 24, 25, 26]},
+     'sf': []},
+
+    {'file': 'hicaz_humayun--sarki--aksak--kurbanin_olam--haci_arif_bey.mu2',
+     'parts_map': {'I': [], 'A': [0, 1, 2, 3], 'B': [4, 5, 6, [7, 8, 14]], 'C': [9, 10, 11, [12, 13]]},
+     'sf': []},
+
+    {'file': 'hicaz_uzzal--sarki--agiraksak--doktor_ne--sevki_bey.mu2',
+     'parts_map': {'I': [0, 1, 2, 3, 4, 5, 6, 7], 'A': [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], 'B': [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
+                   'C': [32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51]},
+     'sf': []},
+
+    {'file': 'hicaz_uzzal--sarki--aksak--kurdu_meclis--haci_arif_bey.mu2',
+     'parts_map': {'I': [0, 1, 2, 3], 'A': [4, 5, 6, [7, 8]], 'B': [9, 10, 11, 12, 13, 14, 15, 16], 'C': [17, 18, 19, 20, 21, 22, 23, 24]},
+     'sf': [16, 0]},
+
+    {'file': 'hicaz_zemzeme--sarki--aksak--gideyim_de--muallim_ismail_hakki_bey.mu2',
+     'parts_map': {'I': [], 'A': [0, 1, 2, 3], 'B': [4, 5, 6, [7, 8]], 'C': [9, 10, 11, 12]},
+     'sf': [8, 5]},
+
     {'file': 'bes-hicaz-12.mu2',
      'parts_map': {'I': [], 'A': [0, 1, 2, 3], 'B': [4, 5, 6, 7], 'C': [8, 9, 10, 11]},
      'sf': []}
