@@ -72,8 +72,8 @@ def train_whole(makam, src_model, xs, ys, target_model, eps=0):
     for i, layer in enumerate(base_model.layers):
         if i == 4:
             break
-        # if i < 2:
-        layer.trainable = False
+        if i < 2:
+            layer.trainable = False
         new_model.add(layer)
 
     new_model.add(Dense(out_shape))
@@ -166,7 +166,7 @@ def get_starters(init_file, set_size, note_dict, oh_manager):
     return np.array(starters), tot
 
 
-def get_starters_by_part(init_part, set_size, note_dict, oh_manager, models, lo, hi, cp):
+def get_starters_by_part(init_part, set_size, note_dict, oh_manager, models, lo, hi, cp, time_sig):
     starter = init_part[0][-set_size:]
     song = np.array([np.copy(starter)])
     total = Fraction(0)
@@ -174,16 +174,26 @@ def get_starters_by_part(init_part, set_size, note_dict, oh_manager, models, lo,
     model_a = models[0]
     model_b = models[1]
     decider = models[2]
+    m_remainder = time_sig
     for i in range(set_size):
+        if m_remainder == Fraction(0):
+            m_remainder = time_sig
         part = song[:, -xpy:, :]
         p_a = get_prediction(model_a, part, lo, hi, cp)
         p_b = get_prediction(model_b, part, lo, hi, cp)
         chosen = choose_prediction(part, p_a, p_b, decider, oh_manager)
         n_d = oh_manager.int_2_nd(chosen)
         parts = n_d.split(':')
-        dur = int(parts[1])
-        dur = Fraction(note_dict.get_dur_by_num(dur))
+        note_num = int(parts[0])
+        dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
+        if dur > m_remainder:
+            dur = m_remainder
+            dur_num = note_dict.get_num_by_dur(str(dur))
+            chosen = oh_manager.nd_2_int(str(note_num) + ':' + str(dur_num))
+
+        m_remainder -= dur
         total += dur
+
         p_inner = np.zeros(part.shape[2])
         p_inner[chosen] = 1.0
 
@@ -262,6 +272,15 @@ def compose(makam, time_sig, measure_cnt, init_file, model, set_size, lo, hi, cp
     return song
 
 
+def print_notes(notes, oh_manager, note_dict):
+    for note in notes:
+        nd = oh_manager.oh_2_nd(note)
+        parts = nd.split(':')
+        note_name = note_dict.get_note_by_num(int(parts[0]))
+        note_dur = note_dict.get_dur_by_num(int(parts[1]))
+        print(f'{note_name}, {note_dur}')
+
+
 def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi, cp, note_dict, oh_manager, by_part=False):
     global cnt_pa, cnt_pb
     model_a = models[0]
@@ -271,7 +290,9 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
     if not by_part:
         starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
     else:
-        starters, tot = get_starters_by_part(init_file, set_size, note_dict, oh_manager, models, lo, hi, cp)
+        starters, tot = get_starters_by_part(init_file, set_size, note_dict, oh_manager, models, lo, hi, cp, time_sig)
+
+    print_notes(starters, oh_manager, note_dict)
 
     if tot > (time_sig * measure_cnt):
         raise Exception('Starter notes duration exceeded time limit!')
@@ -282,6 +303,10 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
     elapsed_measures = math.floor(tot / time_sig)
     measure_remainder = time_sig - (tot - (elapsed_measures * time_sig))
     target_dur = (time_sig * measure_cnt) - tot
+
+    print('---------------------------------------------')
+    print(f'total:{str(tot)}, elapsed:{str(elapsed_measures)}, m.rem:{str(measure_remainder)}, target:{str(target_dur)}')
+    print('---------------------------------------------')
 
     while target_dur > 0:
         if measure_remainder == Fraction(0):
@@ -464,7 +489,7 @@ def main():
     set_size = 8
     time_sig = Fraction(9, 8)
     ver = '62'
-    sep = 'BW8'
+    sep = 'BW10'
     '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
@@ -490,13 +515,9 @@ def main():
     # IABCW2 (unfreeze all, new dense, val_split: 0.1, batch=32)
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
     '''
-
+    '''
     # nakarat train begin
-    xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    xa, ya = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    xb, yb = make_db(makam, 'B', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    # xs, ys = make_ab_db(makam, ['A', 'B'], dir_path, note_dict, oh_manager, set_size)
+    xs, ys = make_ab_db(makam, ['A', 'B'], dir_path, note_dict, oh_manager, set_size)
     # xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     # xs = np.concatenate((xs, xc), axis=0)
     # ys = np.concatenate((ys, yc), axis=0)
@@ -507,18 +528,19 @@ def main():
     # BW4 (unfreeze all, new dense, val_split: 0.1, batch=8), BW5 (unfreeze all, new dense, val_split: 0.1, batch=32)
     # BW6 (unfreeze all, new dense, val_split: 0.1, batch=64)
     # BW7 (freeze 1st, new dense, val_split: 0, batch=16), BW8 (freeze 1st , 2nd, new dense, val_split: 0, batch=16)
-    # train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=12)
+    # BW9,10 (freeze 1st, new dense, val_split: 0, batch=16)
+    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=12)
     # nakarat train end
     '''
-    cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A', 'B', 'C'], dir_path, note_dict, oh_manager, set_size)
+    cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
     measure_cnt = 4
     lo = 0.1
-    hi = 0.5
+    hi = 0.4
     # model = load_model(makam, 'sec_' + sep + '_v' + ver)
     models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
-    models_b = [load_model(makam, 'sec_BW7_v61'), load_model(makam, 'sec_BW4_v61'), load_model(makam, 'decider_v2')]
+    models_b = [load_model(makam, 'sec_BW9_v61'), load_model(makam, 'sec_BW10_v62'), load_model(makam, 'decider_v2')]
 
-    for i in range(1, 2):
+    for i in range(0, 1):
         init = str(i)
         # song_name = 't_' + sep + '_v' + ver + '_' + init
         song_name = 't_DecAB_v6162_' + init
@@ -528,7 +550,7 @@ def main():
         if len(part_a) == 0:
             continue
 
-        hi = 0.6
+        # hi = 0.6
         cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['B', 'C'], dir_path, note_dict, oh_manager, set_size)
         part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
         # starters, tot = get_starters_by_part(part_a, set_size, note_dict, oh_manager, models_b, lo, hi, cp)
@@ -541,7 +563,6 @@ def main():
         song = np.append(part_a, part_b, axis=1)
         song = np.append(song, part_c, axis=1)
         song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, mcs='4,4')
-    '''
 
 
 if __name__ == '__main__':
