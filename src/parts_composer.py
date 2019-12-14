@@ -73,7 +73,7 @@ def train_whole(makam, src_model, xs, ys, target_model, eps=0):
         if i == 4:
             break
         # if i < 2:
-        #    layer.trainable = False
+        layer.trainable = False
         new_model.add(layer)
 
     new_model.add(Dense(out_shape))
@@ -86,7 +86,7 @@ def train_whole(makam, src_model, xs, ys, target_model, eps=0):
     es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=3)
 
     if eps == 0:
-        history = new_model.fit(xs, ys, epochs=100, batch_size=32, shuffle=False, validation_split=0.1, callbacks=[es])
+        history = new_model.fit(xs, ys, epochs=100, batch_size=16, shuffle=False, validation_split=0.1, callbacks=[es])
     else:
         history = new_model.fit(xs, ys, epochs=eps, batch_size=16, shuffle=False)
 
@@ -464,7 +464,7 @@ def main():
     set_size = 8
     time_sig = Fraction(9, 8)
     ver = '62'
-    sep = 'IABCW2'
+    sep = 'BW8'
     '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
@@ -489,28 +489,30 @@ def main():
     # IABCW1 (freeze 1st, new dense, val_split: 0.1),
     # IABCW2 (unfreeze all, new dense, val_split: 0.1, batch=32)
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
- 
+    '''
+    '''
     # nakarat train begin
     xs, ys = make_ab_db(makam, ['A', 'B'], dir_path, note_dict, oh_manager, set_size)
-    xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    xs = np.concatenate((xs, xc), axis=0)
-    ys = np.concatenate((ys, yc), axis=0)
+    # xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    # xs = np.concatenate((xs, xc), axis=0)
+    # ys = np.concatenate((ys, yc), axis=0)
     # B0_v61, B1_v61, AH20_v62, AH40_v62, sec_AW_v61, AW5 (freeze 1st), AW6 (freeze 1st), AW7 (freeze 1st, keep dense)
     # AW8 (freeze 1st, new dense), AW9 (freeze 1st, keep dense, val_split: 0.1->0.25),
     # AW10 (freeze 1st, keep dense, val_split: 0.1)
     # BW1/2 (freeze 1st, keep dense, val_split: 0.1), BW3 (freeze 1st, new dense, val_split: 0.1)
     # BW4 (unfreeze all, new dense, val_split: 0.1, batch=8), BW5 (unfreeze all, new dense, val_split: 0.1, batch=32)
     # BW6 (unfreeze all, new dense, val_split: 0.1, batch=64)
-    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
+    # BW7 (freeze 1st, new dense, val_split: 0, batch=16), BW8 (freeze 1st , 2nd, new dense, val_split: 0, batch=16)
+    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=12)
     # nakarat train end
     '''
     cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A', 'B', 'C'], dir_path, note_dict, oh_manager, set_size)
     measure_cnt = 4
     lo = 0.1
-    hi = 0.6
+    hi = 0.5
     # model = load_model(makam, 'sec_' + sep + '_v' + ver)
     models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
-    models_b = [load_model(makam, 'sec_BW5_v61'), load_model(makam, 'sec_IABCW1_v62'), load_model(makam, 'b_decider_v3')]
+    models_b = [load_model(makam, 'sec_BW7_v61'), load_model(makam, 'sec_BW4_v61'), load_model(makam, 'decider_v2')]
 
     for i in range(1, 2):
         init = str(i)
@@ -521,8 +523,9 @@ def main():
         part_a = compose_v2(makam, time_sig, measure_cnt, initiator, models_a, set_size, lo, hi, cp, note_dict, oh_manager)
         if len(part_a) == 0:
             continue
-        lo = 0.1
-        hi = 0.3
+
+        hi = 0.6
+        cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['B', 'C'], dir_path, note_dict, oh_manager, set_size)
         part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
         # starters, tot = get_starters_by_part(part_a, set_size, note_dict, oh_manager, models_b, lo, hi, cp)
         # part_b = compose(makam, time_sig, measure_cnt, starters, models_b[0], set_size, lo, hi, cp, note_dict, oh_manager, by_part=True, totil=tot)
