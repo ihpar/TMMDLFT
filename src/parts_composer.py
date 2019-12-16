@@ -540,7 +540,7 @@ def main():
     models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
     models_b = [load_model(makam, 'sec_BW9_v61'), load_model(makam, 'sec_BW10_v62'), load_model(makam, 'decider_v2')]
 
-    for i in range(0, 1):
+    for i in range(1, 2):
         init = str(i)
         # song_name = 't_' + sep + '_v' + ver + '_' + init
         song_name = 't_DecAB_v6162_' + init
