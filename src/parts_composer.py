@@ -64,7 +64,6 @@ def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size, is_whole=
 
 
 def train_whole(makam, src_model, xs, ys, target_model, eps=0):
-    in_shape = xs.shape[1:]
     out_shape = ys.shape[1]
 
     base_model = load_model(makam, src_model, False)
@@ -99,7 +98,6 @@ def train_whole(makam, src_model, xs, ys, target_model, eps=0):
 
 
 def train_model(makam, src_model, xs, ys, target_model, eps):
-    in_shape = xs[0].shape[1:]
     out_shape = ys[0].shape[1]
 
     base_model = load_model(makam, src_model, False)
@@ -489,7 +487,7 @@ def main():
     set_size = 8
     time_sig = Fraction(9, 8)
     ver = '62'
-    sep = 'AW12'
+    sep = 'CW2'
     '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
@@ -526,11 +524,16 @@ def main():
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=10)
     # nakarat train end
     '''
-
+    # C train begin
+    xs, ys = make_ab_db(makam, ['B', 'C'], dir_path, note_dict, oh_manager, set_size)
+    # CW1,2 (freeze 1st, new dense, val_split: 0.1, batch=16)
+    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=10)
+    # C train end
+    '''
     cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
     measure_cnt = 4
     lo = 0.1
-    hi = 0.4
+    hi = 0.3
     # model = load_model(makam, 'sec_' + sep + '_v' + ver)
     models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
     models_b = [load_model(makam, 'sec_BW11_v61'), load_model(makam, 'sec_BW12_v62'), load_model(makam, 'decider_v2')]
@@ -558,6 +561,7 @@ def main():
         song = np.append(part_a, part_b, axis=1)
         song = np.append(song, part_c, axis=1)
         song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, mcs='4,4')
+    '''
 
 
 if __name__ == '__main__':
