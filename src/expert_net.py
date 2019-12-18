@@ -77,8 +77,8 @@ def create_training_data(makam, model_a, model_b, oh_manager):
             print(f'd {counter}')
         counter += 1
 
-    x_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'b_xs')
-    y_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'b_ys')
+    x_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'b_xsN')
+    y_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'b_ysN')
     with open(x_file, 'w') as fx, open(y_file, 'w') as fy:
         fx.write(json.dumps(x_train))
         fy.write(json.dumps(y_train))
@@ -86,8 +86,8 @@ def create_training_data(makam, model_a, model_b, oh_manager):
 
 
 def load_training_data(makam):
-    x_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'b_xs')
-    y_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'b_ys')
+    x_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'b_xsN')
+    y_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'b_ysN')
     with open(x_file, 'r') as fx, open(y_file, 'r') as fy:
         xs = json.load(fx)
         ys = json.load(fy)
@@ -129,14 +129,14 @@ def train_model(makam, model, model_name, x, y):
 def main():
     start = time.time()
     makam = 'hicaz'
-    '''
+
     oh_manager = OhManager(makam)
-    model_a = load_model(makam, 'sec_BW1_v61')
-    model_b = load_model(makam, 'sec_BW2_v62')
+    model_a = load_model(makam, 'sec_BW11_v61')
+    model_b = load_model(makam, 'sec_BW12_v62')
     create_training_data(makam, model_a, model_b, oh_manager)
-    '''
+
     # v0: LSTM(100), v1: LSTM(200), v2: LSTM(100)*LSTM(100)
-    v = 'v3'
+    v = 'v4'
     x_train, y_train = load_training_data(makam)
     print(x_train.shape, y_train.shape)
     model = make_model(x_train.shape[1:], y_train.shape[1])

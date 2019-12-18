@@ -490,7 +490,7 @@ def main():
     time_sig = Fraction(9, 8)
     ver = '62'
     sep = 'AW12'
-
+    '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
     xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
@@ -507,7 +507,7 @@ def main():
     # IABCW2 (unfreeze all, new dense, val_split: 0.1, batch=32)
     # AW11,12 (freeze 1st, new dense, val_split: 0.1, batch=16)
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=10)
-
+    '''
     '''
     # nakarat train begin
     xs, ys = make_ab_db(makam, ['A', 'B'], dir_path, note_dict, oh_manager, set_size)
@@ -526,16 +526,16 @@ def main():
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=10)
     # nakarat train end
     '''
-    '''
+
     cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
     measure_cnt = 4
     lo = 0.1
     hi = 0.4
     # model = load_model(makam, 'sec_' + sep + '_v' + ver)
     models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
-    models_b = [load_model(makam, 'sec_BW9_v61'), load_model(makam, 'sec_BW10_v62'), load_model(makam, 'decider_v2')]
+    models_b = [load_model(makam, 'sec_BW11_v61'), load_model(makam, 'sec_BW12_v62'), load_model(makam, 'decider_v2')]
 
-    for i in range(1, 2):
+    for i in range(0, 1):
         init = str(i)
         # song_name = 't_' + sep + '_v' + ver + '_' + init
         song_name = 't_DecAB_v6162_' + init
@@ -558,7 +558,6 @@ def main():
         song = np.append(part_a, part_b, axis=1)
         song = np.append(song, part_c, axis=1)
         song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, mcs='4,4')
-    '''
 
 
 if __name__ == '__main__':
