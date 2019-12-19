@@ -393,7 +393,7 @@ def choose_prediction(part, p_a, p_b, decider, oh_manager):
     return p_b
 
 
-def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs=''):
+def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs='4,8,12'):
     lines = consts.mu2_header.copy()
     lines[0] = '9	8	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	0.888888889'
     lines[2] = '51		9	8				Aksak		'
@@ -401,6 +401,7 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs=''):
     lines[7] = lines[7].replace('{song_title}', title)
     m_tot = Fraction(0)
     m_cnt = 0
+    mzs = [int(x) for x in mcs.split(',')]
     for row in song[0]:
         n_d = oh_manager.oh_2_nd(row)
         parts = n_d.split(':')
@@ -427,25 +428,25 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs=''):
         if m_tot >= time_sig:
             m_tot = Fraction(0)
             m_cnt += 1
-            if m_cnt not in [4, 8, 12]:
+            if m_cnt not in mzs:
                 if m_cnt % 2 == 0:
                     lines.append('21									0.0')
                 lines.append('14									0.0')
 
-            if m_cnt == 4:
+            if m_cnt == mzs[0]:
                 lines.append('9								:	0.0')
                 lines.append('9								)	0.0')
                 lines.append('21									0.0')
                 lines.append('14									0.0')
-                lines.append('9							[		7')
-                lines.append('9							(		7')
-            if m_cnt == 8:
+                lines.append('9							[		0.0')
+                lines.append('9							(		0.0')
+            if m_cnt == mzs[1]:
                 lines.append('9								:	0.0')
                 lines.append('9								)	0.0')
                 lines.append('9								]	0.0')
                 lines.append('21									0.0')
                 lines.append('9							(		')
-            if m_cnt == 12:
+            if m_cnt == mzs[2]:
                 lines.append('9								:	0.0')
                 lines.append('9								)	0.0')
                 lines.append('9								$	0.0')
@@ -524,44 +525,47 @@ def main():
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=10)
     # nakarat train end
     '''
+    '''
     # C train begin
     xs, ys = make_ab_db(makam, ['B', 'C'], dir_path, note_dict, oh_manager, set_size)
     # CW1,2 (freeze 1st, new dense, val_split: 0.1, batch=16)
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=10)
     # C train end
     '''
-    cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
+
     measure_cnt = 4
     lo = 0.1
     hi = 0.3
-    # model = load_model(makam, 'sec_' + sep + '_v' + ver)
-    models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'decider_v2')]
-    models_b = [load_model(makam, 'sec_BW11_v61'), load_model(makam, 'sec_BW12_v62'), load_model(makam, 'decider_v2')]
+
+    models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'b_decider_v_ia5')]
+    models_b = [load_model(makam, 'sec_BW11_v61'), load_model(makam, 'sec_BW12_v62'), load_model(makam, 'b_decider_v4')]
+    models_c = [load_model(makam, 'sec_CW1_v61'), load_model(makam, 'sec_CW2_v62'), load_model(makam, 'decider_v2')]
 
     for i in range(0, 1):
         init = str(i)
-        # song_name = 't_' + sep + '_v' + ver + '_' + init
+
         song_name = 't_DecAB_v6162_' + init
         initiator = 'init-hicaz-' + init + '.mu2'
         # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
+        cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
         part_a = compose_v2(makam, time_sig, measure_cnt, initiator, models_a, set_size, lo, hi, cp, note_dict, oh_manager)
         if len(part_a) == 0:
             continue
 
         # hi = 0.6
-        cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['B', 'C'], dir_path, note_dict, oh_manager, set_size)
+        cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['B'], dir_path, note_dict, oh_manager, set_size)
         part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
-        # starters, tot = get_starters_by_part(part_a, set_size, note_dict, oh_manager, models_b, lo, hi, cp)
-        # part_b = compose(makam, time_sig, measure_cnt, starters, models_b[0], set_size, lo, hi, cp, note_dict, oh_manager, by_part=True, totil=tot)
         if len(part_b) == 0:
             continue
 
-        part_c = np.copy(part_a)
+        cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['C'], dir_path, note_dict, oh_manager, set_size)
+        part_c = compose_v2(makam, time_sig, measure_cnt, part_b, models_c, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+        if len(part_c) == 0:
+            continue
 
         song = np.append(part_a, part_b, axis=1)
         song = np.append(song, part_c, axis=1)
-        song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, mcs='4,4')
-    '''
+        song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, mcs='4,8,12')
 
 
 if __name__ == '__main__':

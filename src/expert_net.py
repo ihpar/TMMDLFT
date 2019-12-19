@@ -6,6 +6,7 @@ import numpy as np
 import os
 import json
 import matplotlib.pyplot as plt
+from parts_composer import make_db
 
 from tensorflow.python.keras.layers import Activation, Dense, LSTM, Dropout
 from tensorflow.python.keras.models import Sequential
@@ -77,17 +78,48 @@ def create_training_data(makam, model_a, model_b, oh_manager):
             print(f'd {counter}')
         counter += 1
 
-    x_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'b_xsN')
-    y_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'b_ysN')
-    with open(x_file, 'w') as fx, open(y_file, 'w') as fy:
-        fx.write(json.dumps(x_train))
-        fy.write(json.dumps(y_train))
-    print('Files created, exiting...')
+    return np.array(x_train), np.array(y_train)
+
+
+def create_training_data_by_part(makam, model_a, model_b, oh_manager, note_dict, parts):
+    dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
+    x_train, y_train = [], []
+    counter = 0
+    for part_id in parts:
+        xs, ys = make_db(makam, part_id, dir_path, note_dict, oh_manager, 8, is_whole=True)
+        for x, y in zip(xs, ys):
+            p_a = model_a.predict(np.array([x]))[0]
+            p_b = model_b.predict(np.array([x]))[0]
+            a_max = np.argmax(p_a)
+            b_max = np.argmax(p_b)
+            r_out = np.argmax(y)
+            x_data = [oh_manager.oh_2_zo(n) for n in x]
+            x_mi = x_data.copy()
+            x_mj = x_data.copy()
+
+            x_mi.append(oh_manager.int_2_zo(a_max))
+            x_mi.append(oh_manager.int_2_zo(b_max))
+            y_data_i = distance(r_out, a_max, b_max, oh_manager)
+
+            x_mj.append(oh_manager.int_2_zo(b_max))
+            x_mj.append(oh_manager.int_2_zo(a_max))
+            y_data_j = y_data_i[::-1]
+
+            x_train.append(x_mi)
+            y_train.append(y_data_i)
+
+            x_train.append(x_mj)
+            y_train.append(y_data_j)
+            if counter % 10 == 0:
+                print(f'd {counter}')
+            counter += 1
+
+    return np.array(x_train), np.array(y_train)
 
 
 def load_training_data(makam):
-    x_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'b_xsN')
-    y_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'b_ysN')
+    x_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'ia_xs5')
+    y_file = os.path.join(os.path.abspath('..'), 'data', makam, 'chooser', 'ia_ys5')
     with open(x_file, 'r') as fx, open(y_file, 'r') as fy:
         xs = json.load(fx)
         ys = json.load(fy)
@@ -101,27 +133,33 @@ def load_training_data(makam):
 
 def make_model(in_shape, out_shape):
     model = Sequential()
-    model.add(LSTM(200, return_sequences=True, input_shape=in_shape))
-    model.add(Dropout(0.4))
-    model.add(LSTM(200, return_sequences=False))
-    model.add(Dropout(0.4))
+    model.add(LSTM(100, return_sequences=True, input_shape=in_shape))
+    model.add(Dropout(0.5))
+    model.add(LSTM(100, return_sequences=True))
+    model.add(Dropout(0.5))
+    model.add(LSTM(100, return_sequences=False))
+    model.add(Dropout(0.5))
     model.add(Dense(out_shape))
     model.add(Activation('softmax'))
-    optimizer = RMSprop(lr=0.001)
+    optimizer = RMSprop(lr=0.0005)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
     model.summary()
     return model
 
 
-def train_model(makam, model, model_name, x, y):
+def train_model(makam, model, model_name, x, y, epcs=0):
     es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=2)
-    history = model.fit(x, y, epochs=50, batch_size=16, shuffle=False, validation_split=0.1, callbacks=[es])
+    if epcs == 0:
+        history = model.fit(x, y, epochs=50, batch_size=16, shuffle=False, validation_split=0.1, callbacks=[es])
+    else:
+        history = model.fit(x, y, epochs=epcs, batch_size=16, shuffle=False)
 
     save_model(makam, model_name, model)
 
     plt.plot(history.history['loss'], label='train')
-    plt.plot(history.history['val_loss'], label='test')
+    if epcs == 0:
+        plt.plot(history.history['val_loss'], label='test')
     plt.legend()
     plt.show()
 
@@ -130,14 +168,23 @@ def main():
     start = time.time()
     makam = 'hicaz'
 
+    note_dict = NCDictionary()
     oh_manager = OhManager(makam)
-    model_a = load_model(makam, 'sec_BW11_v61')
-    model_b = load_model(makam, 'sec_BW12_v62')
-    create_training_data(makam, model_a, model_b, oh_manager)
+    model_a = load_model(makam, 'lstm_v60')
+    model_b = load_model(makam, 'lstm_v62')
+
+    x_f, y_f = create_training_data(makam, model_a, model_b, oh_manager)
+    x_shape = x_f.shape
+    x_f = x_f.reshape((x_shape[0], 1, x_shape[1]))
+
+    x_s, y_s = create_training_data_by_part(makam, model_a, model_b, oh_manager, note_dict, ['I', 'A'])
+    x_shape = x_s.shape
+    x_s = x_s.reshape((x_shape[0], 1, x_shape[1]))
 
     # v0: LSTM(100), v1: LSTM(200), v2: LSTM(100)*LSTM(100)
-    v = 'v4'
-    x_train, y_train = load_training_data(makam)
+    v = 'v_ia7'
+    x_train = np.append(x_f, x_s, axis=0)
+    y_train = np.append(y_f, y_s, axis=0)
     print(x_train.shape, y_train.shape)
     model = make_model(x_train.shape[1:], y_train.shape[1])
     train_model(makam, model, 'b_decider_' + v, x_train, y_train)
