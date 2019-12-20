@@ -149,7 +149,7 @@ def make_model(in_shape, out_shape):
 
 
 def train_model(makam, model, model_name, x, y, epcs=0):
-    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=2)
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=3)
     if epcs == 0:
         history = model.fit(x, y, epochs=50, batch_size=16, shuffle=False, validation_split=0.1, callbacks=[es])
     else:
@@ -177,12 +177,12 @@ def main():
     x_shape = x_f.shape
     x_f = x_f.reshape((x_shape[0], 1, x_shape[1]))
 
-    x_s, y_s = create_training_data_by_part(makam, model_a, model_b, oh_manager, note_dict, ['I', 'A'])
+    x_s, y_s = create_training_data_by_part(makam, model_a, model_b, oh_manager, note_dict, ['C'])
     x_shape = x_s.shape
     x_s = x_s.reshape((x_shape[0], 1, x_shape[1]))
 
     # v0: LSTM(100), v1: LSTM(200), v2: LSTM(100)*LSTM(100)
-    v = 'v_ia7'
+    v = 'v_c9'
     x_train = np.append(x_f, x_s, axis=0)
     y_train = np.append(y_f, y_s, axis=0)
     print(x_train.shape, y_train.shape)

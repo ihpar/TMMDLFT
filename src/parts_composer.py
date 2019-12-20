@@ -535,9 +535,9 @@ def main():
 
     measure_cnt = 4
     lo = 0.1
-    hi = 0.3
+    hi = 0.4
 
-    models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'b_decider_v_ia5')]
+    models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'b_decider_v_ia7')]
     models_b = [load_model(makam, 'sec_BW11_v61'), load_model(makam, 'sec_BW12_v62'), load_model(makam, 'b_decider_v4')]
     models_c = [load_model(makam, 'sec_CW1_v61'), load_model(makam, 'sec_CW2_v62'), load_model(makam, 'decider_v2')]
 
