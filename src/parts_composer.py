@@ -522,6 +522,7 @@ def compose_ending(makam, part, time_sig, measure_cnt, note_dict, oh_manager):
 
 
 def make_second_rep(makam, part, time_sig, measure_cnt, note_dict, oh_manager):
+
     return np.array(part[0][-8:])
 
 
