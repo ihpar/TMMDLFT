@@ -393,15 +393,24 @@ def choose_prediction(part, p_a, p_b, decider, oh_manager):
     return p_b
 
 
-def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs='4,8,12'):
+def get_mu2_str(note, nom, denom):
+    if note == 'Rest':
+        return '9		{num}	{denom}	100					0.0'.replace('{num}', nom).replace('{denom}', denom)
+    else:
+        return '9	{nn}	{num}	{denom}	95	96	64	 		0.0'.replace('{nn}', note).replace('{num}', nom).replace('{denom}', denom)
+
+
+def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_rep):
     lines = consts.mu2_header.copy()
-    lines[0] = '9	8	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	0.888888889'
+    lines[0] = '9	8	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	0.0'
     lines[2] = '51		9	8				Aksak		'
     lines[1] = lines[1].replace('{makam}', makam)
     lines[7] = lines[7].replace('{song_title}', title)
     m_tot = Fraction(0)
     m_cnt = 0
     mzs = [int(x) for x in mcs.split(',')]
+    has_second_rep = second_rep.size > 0
+    pb_len = mzs[1] - mzs[0]
     for row in song[0]:
         n_d = oh_manager.oh_2_nd(row)
         parts = n_d.split(':')
@@ -413,16 +422,7 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs='4,8,12'
         note = note.capitalize()
 
         dur = note_dict.get_dur_by_num(dur).split('/')
-
-        if note == 'Rest':
-            lines.append('9		{num}	{denom}	100					0.0'
-                         .replace('{num}', dur[0])
-                         .replace('{denom}', dur[1]))
-        else:
-            lines.append('9	{nn}	{num}	{denom}	95	96	64	 		0.0'
-                         .replace('{nn}', note)
-                         .replace('{num}', dur[0])
-                         .replace('{denom}', dur[1]))
+        lines.append(get_mu2_str(note, dur[0], dur[1]))
 
         m_tot += Fraction(int(dur[0]), int(dur[1]))
         if m_tot >= time_sig:
@@ -440,9 +440,28 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs='4,8,12'
                 lines.append('14									0.0')
                 lines.append('9							[		0.0')
                 lines.append('9							(		0.0')
-            if m_cnt == mzs[1]:
-                lines.append('9								:	0.0')
+            if has_second_rep and m_cnt == mzs[1] - 1:
+                # first rep
                 lines.append('9								)	0.0')
+                lines.append('9							(1		0.0')
+            if has_second_rep and m_cnt == mzs[1]:
+                # 2nd rep
+                lines.append('9								:	0.0')
+                lines.append('9								1)	0.0')
+                lines.append('9							(2		0.0')
+                # add 2nd rep here
+                for s_r in second_rep:
+                    n_d = oh_manager.oh_2_nd(s_r)
+                    parts = n_d.split(':')
+                    note = note_dict.get_note_by_num(int(parts[0])).capitalize()
+                    dur = note_dict.get_dur_by_num(int(parts[1])).split('/')
+                    lines.append(get_mu2_str(note, dur[0], dur[1]))
+            if m_cnt == mzs[1]:
+                if has_second_rep:
+                    lines.append('9								2)	0.0')
+                else:
+                    lines.append('9								:	0.0')
+                    lines.append('9								)	0.0')
                 lines.append('9								]	0.0')
                 lines.append('21									0.0')
                 lines.append('9							(		')
@@ -478,6 +497,32 @@ def make_ab_db(makam, part_ids, dir_path, note_dict, oh_manager, set_size):
         x_lst.extend(xs)
         y_lst.extend(ys)
     return np.array(x_lst), np.array(y_lst)
+
+
+def compose_ending(makam, part, time_sig, measure_cnt, note_dict, oh_manager):
+    second_rep = np.array([])
+    perfect_end = False
+    perfect_note = 'La4'
+    if makam == 'hicaz':
+        perfect_note = 'La4'
+    for row in reversed(part[0]):
+        n_d = oh_manager.oh_2_nd(row)
+        parts = n_d.split(':')
+        note = note_dict.get_note_by_num(int(parts[0])).capitalize()
+        if note == 'Rest':
+            continue
+        if note == perfect_note:
+            perfect_end = True
+        break
+
+    if not perfect_end:
+        second_rep = make_second_rep(makam, part, time_sig, measure_cnt, note_dict, oh_manager)
+
+    return second_rep
+
+
+def make_second_rep(makam, part, time_sig, measure_cnt, note_dict, oh_manager):
+    return np.array(part[0][-8:])
 
 
 def main():
@@ -535,11 +580,11 @@ def main():
 
     measure_cnt = 4
     lo = 0.1
-    hi = 0.4
+    hi = 0.6
 
     models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'b_decider_v_ia7')]
-    models_b = [load_model(makam, 'sec_BW11_v61'), load_model(makam, 'sec_BW12_v62'), load_model(makam, 'b_decider_v4')]
-    models_c = [load_model(makam, 'sec_CW1_v61'), load_model(makam, 'sec_CW2_v62'), load_model(makam, 'decider_v2')]
+    models_b = [load_model(makam, 'sec_BW11_v61'), load_model(makam, 'sec_BW12_v62'), load_model(makam, 'b_decider_v_b8')]
+    models_c = [load_model(makam, 'sec_CW1_v61'), load_model(makam, 'sec_CW2_v62'), load_model(makam, 'b_decider_v_c9')]
 
     for i in range(0, 1):
         init = str(i)
@@ -552,9 +597,9 @@ def main():
         if len(part_a) == 0:
             continue
 
-        # hi = 0.6
         cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['B'], dir_path, note_dict, oh_manager, set_size)
         part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+        second_rep = compose_ending(makam, part_b, time_sig, measure_cnt, note_dict, oh_manager)
         if len(part_b) == 0:
             continue
 
@@ -565,7 +610,7 @@ def main():
 
         song = np.append(part_a, part_b, axis=1)
         song = np.append(song, part_c, axis=1)
-        song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, mcs='4,8,12')
+        song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,12', second_rep)
 
 
 if __name__ == '__main__':
