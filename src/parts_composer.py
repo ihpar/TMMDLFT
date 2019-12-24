@@ -522,6 +522,36 @@ def compose_ending(makam, part, time_sig, measure_cnt, note_dict, oh_manager):
 
 
 def make_second_rep(makam, part, time_sig, measure_cnt, note_dict, oh_manager):
+    tot = Fraction(0)
+    m_no = 0
+    measures = []
+    for i in range(measure_cnt):
+        measures[i] = []
+
+    for r in part[0]:
+        n_d = oh_manager.oh_2_nd(r)
+        parts = n_d.split(':')
+        dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
+        tot += dur
+        measures[m_no].append(n_d)
+        if tot == time_sig:
+            tot = Fraction(0)
+            m_no += 1
+
+    perfect_note = 'La4'
+    if makam == 'hicaz':
+        perfect_note = 'La4'
+
+    last_measure = measures[-1]
+    per_note_idx = -1
+    for i, nd in enumerate(last_measure):
+        parts = nd.split(':')
+        note_name = note_dict.get_note_by_num(int(parts[0])).capitalize()
+        if note_name == perfect_note:
+            per_note_idx = i
+
+    if per_note_idx > -1:
+        pass
 
     return np.array(part[0][-8:])
 
@@ -581,7 +611,7 @@ def main():
 
     measure_cnt = 4
     lo = 0.1
-    hi = 0.6
+    hi = 0.5
 
     models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'b_decider_v_ia7')]
     models_b = [load_model(makam, 'sec_BW11_v61'), load_model(makam, 'sec_BW12_v62'), load_model(makam, 'b_decider_v_b8')]
