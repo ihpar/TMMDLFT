@@ -14,7 +14,10 @@ from tensorflow.python.keras.callbacks import EarlyStopping
 def make_ending_data():
     xs, ys = [], []
     for hse in hicaz_song_endings:
-        pass
+        prevs = hse['prevs']
+        end_f = hse['endings'][0]
+        end_s = hse['endings'][1]
+        fin = hse['fin']
     return xs, ys
 
 
@@ -44,8 +47,8 @@ def main():
     makam = 'hicaz'
     ver = 'v0'
     xs, ys = make_ending_data()
-    model_name = 'nakarat_ender_' + ver
-    train_nakarat_ending_model(makam, model_name, xs, ys)
+    # model_name = 'nakarat_ender_' + ver
+    # train_nakarat_ending_model(makam, model_name, xs, ys)
 
 
 if __name__ == '__main__':
