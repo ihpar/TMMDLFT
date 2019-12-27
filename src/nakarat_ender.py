@@ -85,6 +85,44 @@ def train_nakarat_ending_model(makam, base_model, model_name, xs, ys, eps=0):
     plt.show()
 
 
+def make_second_rep(makam, part, time_sig, measure_cnt, note_dict, oh_manager):
+    tot = Fraction(0)
+    m_no = 0
+    measures = []
+    for i in range(measure_cnt):
+        measures[i] = []
+
+    for r in part[0]:
+        n_d = oh_manager.oh_2_nd(r)
+        parts = n_d.split(':')
+        dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
+        tot += dur
+        measures[m_no].append(n_d)
+        if tot == time_sig:
+            tot = Fraction(0)
+            m_no += 1
+
+    for m_no in reversed(range(measure_cnt - 2)):
+        pass
+
+    perfect_note = 'La4'
+    if makam == 'hicaz':
+        perfect_note = 'La4'
+
+    last_measure = measures[-1]
+    per_note_idx = -1
+    for i, nd in enumerate(last_measure):
+        parts = nd.split(':')
+        note_name = note_dict.get_note_by_num(int(parts[0])).capitalize()
+        if note_name == perfect_note:
+            per_note_idx = i
+
+    if per_note_idx > -1:
+        pass
+
+    return np.array(part[0][-8:])
+
+
 def main():
     makam = 'hicaz'
     ver = 'v0'
