@@ -85,12 +85,12 @@ def train_nakarat_ending_model(makam, base_model, model_name, xs, ys, eps=0):
     plt.show()
 
 
-def make_second_rep(makam, part, time_sig, measure_cnt, note_dict, oh_manager):
+def make_second_rep(makam, nakarat_ender_model, part, time_sig, measure_cnt, note_dict, oh_manager):
     tot = Fraction(0)
     m_no = 0
     measures = []
     for i in range(measure_cnt):
-        measures[i] = []
+        measures.append([])
 
     for r in part[0]:
         n_d = oh_manager.oh_2_nd(r)
@@ -102,23 +102,48 @@ def make_second_rep(makam, part, time_sig, measure_cnt, note_dict, oh_manager):
             tot = Fraction(0)
             m_no += 1
 
-    for m_no in reversed(range(measure_cnt - 2)):
-        pass
+    last_notes = []
+    n_cnt = 0
+    broken = False
+    for m_no in reversed(range(measure_cnt - 1)):
+        curr_measure = measures[m_no]
+        for n in reversed(curr_measure):
+            n_cnt += 1
+            last_notes.append(n)
+            if n_cnt == 8:
+                broken = True
+                break
+        if broken:
+            break
 
-    perfect_note = 'La4'
-    if makam == 'hicaz':
-        perfect_note = 'La4'
+    last_notes.reverse()
+    x = np.array([[oh_manager.nd_2_oh(n) for n in last_notes]])
+    tot = Fraction(0)
+    xpy = x.shape[1]
+    while tot < time_sig:
+        part = x[:, -xpy:, :]
+        y = nakarat_ender_model.predict(part)
+        chosen = np.argmax(y[0])
+        n_d = oh_manager.int_2_nd(chosen)
+        parts = n_d.split(':')
+        note_num = int(parts[0])
+        dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
+        remaining = time_sig - tot
+        if dur > remaining:
+            dur = remaining
+        tot += dur
+        dur_num = note_dict.get_num_by_dur(str(dur))
+        n_c_d = str(note_num) + ':' + str(dur_num)
+        try:
+            n_d_num = oh_manager.nd_2_int(n_c_d)
+            p_inner = np.zeros(part.shape[2])
+            p_inner[n_d_num] = 1.0
 
-    last_measure = measures[-1]
-    per_note_idx = -1
-    for i, nd in enumerate(last_measure):
-        parts = nd.split(':')
-        note_name = note_dict.get_note_by_num(int(parts[0])).capitalize()
-        if note_name == perfect_note:
-            per_note_idx = i
-
-    if per_note_idx > -1:
-        pass
+            x = np.append(x, np.array([[p_inner]]), axis=1)
+        except KeyError as e:
+            print(n_d, parts[1], dur, note_num)
+            print(f'Key Error: {str(e)}')
+            raise Exception('Nakarat ending err')
 
     return np.array(part[0][-8:])
 
