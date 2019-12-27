@@ -115,7 +115,7 @@ def make_second_rep(makam, nakarat_ender_model, part, time_sig, measure_cnt, not
                 break
         if broken:
             break
-
+    # check todo
     last_notes.reverse()
     x = np.array([[oh_manager.nd_2_oh(n) for n in last_notes]])
     tot = Fraction(0)
