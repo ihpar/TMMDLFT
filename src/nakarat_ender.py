@@ -120,6 +120,7 @@ def make_second_rep(makam, nakarat_ender_model, part, time_sig, measure_cnt, not
     x = np.array([[oh_manager.nd_2_oh(n) for n in last_notes]])
     tot = Fraction(0)
     xpy = x.shape[1]
+    predictions = []
     while tot < time_sig:
         part = x[:, -xpy:, :]
         y = nakarat_ender_model.predict(part)
@@ -140,12 +141,13 @@ def make_second_rep(makam, nakarat_ender_model, part, time_sig, measure_cnt, not
             p_inner[n_d_num] = 1.0
 
             x = np.append(x, np.array([[p_inner]]), axis=1)
+            predictions.append(p_inner)
         except KeyError as e:
             print(n_d, parts[1], dur, note_num)
             print(f'Key Error: {str(e)}')
             raise Exception('Nakarat ending err')
 
-    return np.array(part[0][-8:])
+    return predictions
 
 
 def main():
