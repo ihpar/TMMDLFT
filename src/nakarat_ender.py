@@ -29,7 +29,7 @@ def parse_notes(notes, note_dict, oh_manager):
     return np.array(res)
 
 
-def make_ending_data(makam, note_dict, oh_manager):
+def make_ending_data(makam, note_dict, oh_manager, set_size):
     xs, ys = [], []
     for hse in hicaz_song_endings:
         prevs = hse['prevs']
@@ -40,18 +40,36 @@ def make_ending_data(makam, note_dict, oh_manager):
         end_f = parse_notes(end_f, note_dict, oh_manager)
         prevs = np.concatenate((prevs, end_f))
         seq_len = prevs.shape[0]
-        for i in range(seq_len - 8):
-            part = prevs[i:i + 8]
-    return xs, ys
+        for i in range(seq_len - set_size):
+            x = prevs[i:i + set_size]
+            y = prevs[i + set_size]
+            xs.append(x)
+            ys.append(y)
+    return np.array(xs), np.array(ys)
 
 
-def make_model():
+def make_model(makam, base_model, out_shape):
+    base_model = load_model(makam, base_model, False)
     model = Sequential()
+    for i, layer in enumerate(base_model.layers):
+        if i == 4:
+            break
+        if i < 2:
+            layer.trainable = False
+        model.add(layer)
+
+    model.add(Dense(out_shape))
+    model.add(Activation('softmax'))
+
+    optimizer = RMSprop(lr=0.001)
+    model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+    model.summary()
     return model
 
 
-def train_nakarat_ending_model(makam, model_name, xs, ys, eps=0):
-    model = make_model()
+def train_nakarat_ending_model(makam, base_model, model_name, xs, ys, eps=0):
+    out_shape = ys.shape[1]
+    model = make_model(makam, base_model, out_shape)
     es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=3)
 
     if eps == 0:
@@ -70,11 +88,14 @@ def train_nakarat_ending_model(makam, model_name, xs, ys, eps=0):
 def main():
     makam = 'hicaz'
     ver = 'v0'
+    model_name = 'nakarat_end_' + ver
+    base_model = 'sec_BW11_v61'
+    set_size = 8
     note_dict = NCDictionary()
     oh_manager = OhManager(makam)
-    xs, ys = make_ending_data(makam, note_dict, oh_manager)
-    # model_name = 'nakarat_ender_' + ver
-    # train_nakarat_ending_model(makam, model_name, xs, ys)
+
+    xs, ys = make_ending_data(makam, note_dict, oh_manager, set_size)
+    train_nakarat_ending_model(makam, base_model, model_name, xs, ys)
 
 
 if __name__ == '__main__':
