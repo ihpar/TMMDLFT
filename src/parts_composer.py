@@ -446,6 +446,7 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_
                 lines.append('9								)	0.0')
                 lines.append('9							(1		0.0')
             if has_second_rep and m_cnt == mzs[1]:
+                print('Has second rep')
                 # 2nd rep
                 lines.append('9								:	0.0')
                 lines.append('9								1)	0.0')
@@ -582,9 +583,9 @@ def main():
     models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'b_decider_v_ia7')]
     models_b = [load_model(makam, 'sec_BW11_v61'), load_model(makam, 'sec_BW12_v62'), load_model(makam, 'b_decider_v_b8')]
     models_c = [load_model(makam, 'sec_CW1_v61'), load_model(makam, 'sec_CW2_v62'), load_model(makam, 'b_decider_v_c9')]
-    nakarat_ender_model = load_model(makam, 'nakarat_end_v0')
+    nakarat_ender_model = load_model(makam, 'nakarat_end_v1')
 
-    for i in range(0, 1):
+    for i in range(6, 7):
         init = str(i)
 
         song_name = 't_DecAB_v6162_' + init

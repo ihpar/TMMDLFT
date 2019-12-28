@@ -1,19 +1,15 @@
-from nakarat_endings import hicaz_song_endings
+# from nakarat_endings import hicaz_song_endings
+from my_endings import my_hicaz_song_endings
+
 from tensorflow.python.keras.layers import Activation, Dense
 from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.optimizers import RMSprop
 from tensorflow.python.keras.callbacks import EarlyStopping
 
-import consts
 from mu2_reader import *
 from model_ops import load_model, save_model
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-import io
-import random
-import math
-from candidate_picker import CandidatePicker
 
 
 def parse_notes(notes, note_dict, oh_manager):
@@ -31,14 +27,14 @@ def parse_notes(notes, note_dict, oh_manager):
 
 def make_ending_data(makam, note_dict, oh_manager, set_size):
     xs, ys = [], []
-    for hse in hicaz_song_endings:
+    for hse in my_hicaz_song_endings:
         prevs = hse['prevs']
-        end_f = hse['endings'][0]
+        # end_f = hse['endings'][0]
         end_s = hse['endings'][1]
-        fin = hse['fin']
+        # fin = hse['fin']
         prevs = parse_notes(prevs, note_dict, oh_manager)
-        end_f = parse_notes(end_f, note_dict, oh_manager)
-        prevs = np.concatenate((prevs, end_f))
+        end_s = parse_notes(end_s, note_dict, oh_manager)
+        prevs = np.concatenate((prevs, end_s))
         seq_len = prevs.shape[0]
         for i in range(seq_len - set_size):
             x = prevs[i:i + set_size]
@@ -115,7 +111,7 @@ def make_second_rep(makam, nakarat_ender_model, part, time_sig, measure_cnt, not
                 break
         if broken:
             break
-    # check todo
+
     last_notes.reverse()
     x = np.array([[oh_manager.nd_2_oh(n) for n in last_notes]])
     tot = Fraction(0)
@@ -152,7 +148,7 @@ def make_second_rep(makam, nakarat_ender_model, part, time_sig, measure_cnt, not
 
 def main():
     makam = 'hicaz'
-    ver = 'v0'
+    ver = 'v1'
     model_name = 'nakarat_end_' + ver
     base_model = 'sec_BW11_v61'
     set_size = 8
