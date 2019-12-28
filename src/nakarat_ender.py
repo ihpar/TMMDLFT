@@ -147,7 +147,7 @@ def make_second_rep(makam, nakarat_ender_model, part, time_sig, measure_cnt, not
             print(f'Key Error: {str(e)}')
             raise Exception('Nakarat ending err')
 
-    return predictions
+    return np.array(predictions)
 
 
 def main():
