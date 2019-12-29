@@ -379,7 +379,7 @@ def choose_prediction(part, p_a, p_b, decider, oh_manager):
     inp = np.array([inp])
     inp = inp.reshape((inp.shape[0], 1, inp.shape[1]))
     pred = decider.predict(inp)[0]
-    if abs(pred[0] - pred[1]) < 0.1:
+    if abs(pred[0] - pred[1]) < 0.2:
         chosen = random.choice([0, 1])
         if chosen == 0:
             cnt_pa += 1
@@ -430,14 +430,14 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_
             m_tot = Fraction(0)
             m_cnt += 1
             if m_cnt not in mzs:
-                if m_cnt % 2 == 0:
-                    lines.append('21									0.0')
+                # if m_cnt % 2 == 0:
+                #     lines.append('21									0.0')
                 lines.append('14									0.0')
 
             if m_cnt == mzs[0]:
                 lines.append('9								:	0.0')
                 lines.append('9								)	0.0')
-                lines.append('21									0.0')
+                # lines.append('21									0.0')
                 lines.append('14									0.0')
                 lines.append('9							[		0.0')
                 lines.append('9							(		0.0')
@@ -465,7 +465,7 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_
                     lines.append('9								:	0.0')
                     lines.append('9								)	0.0')
                 lines.append('9								]	0.0')
-                lines.append('21									0.0')
+                # lines.append('21									0.0')
                 lines.append('9							(		')
             if m_cnt == mzs[2]:
                 lines.append('9								:	0.0')
@@ -585,10 +585,10 @@ def main():
     models_c = [load_model(makam, 'sec_CW1_v61'), load_model(makam, 'sec_CW2_v62'), load_model(makam, 'b_decider_v_c9')]
     nakarat_ender_model = load_model(makam, 'nakarat_end_v1')
 
-    for i in range(6, 7):
+    for i in range(0, 1):
         init = str(i)
 
-        song_name = 't_DecAB_v6162_' + init
+        song_name = 'z_F_v6162_' + init
         initiator = 'init-hicaz-' + init + '.mu2'
         # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
         cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
