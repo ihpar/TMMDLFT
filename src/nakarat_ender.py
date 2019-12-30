@@ -121,6 +121,7 @@ def make_second_rep(makam, nakarat_ender_model, part, time_sig, measure_cnt, not
         part = x[:, -xpy:, :]
         y = nakarat_ender_model.predict(part)
         chosen = np.argmax(y[0])
+        print(y[0][chosen])
         n_d = oh_manager.int_2_nd(chosen)
         parts = n_d.split(':')
         note_num = int(parts[0])
@@ -148,7 +149,7 @@ def make_second_rep(makam, nakarat_ender_model, part, time_sig, measure_cnt, not
 
 def main():
     makam = 'hicaz'
-    ver = 'v1'
+    ver = 'v2'
     model_name = 'nakarat_end_' + ver
     base_model = 'sec_BW11_v61'
     set_size = 8
@@ -156,7 +157,7 @@ def main():
     oh_manager = OhManager(makam)
 
     xs, ys = make_ending_data(makam, note_dict, oh_manager, set_size)
-    train_nakarat_ending_model(makam, base_model, model_name, xs, ys)
+    train_nakarat_ending_model(makam, base_model, model_name, xs, ys, eps=15)
 
 
 if __name__ == '__main__':

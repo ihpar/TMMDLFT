@@ -501,7 +501,7 @@ def make_ab_db(makam, part_ids, dir_path, note_dict, oh_manager, set_size):
     return np.array(x_lst), np.array(y_lst)
 
 
-def compose_ending(makam, nakarat_ender_model, part, time_sig, measure_cnt, note_dict, oh_manager):
+def compose_ending(makam, nakarat_ender_model, part, time_sig, measure_cnt, note_dict, oh_manager, lo, hi):
     second_rep = np.array([])
     perfect_end = False
     perfect_note = 'La4'
@@ -578,12 +578,12 @@ def main():
 
     measure_cnt = 4
     lo = 0.1
-    hi = 0.5
+    hi = 0.4
 
     models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'b_decider_v_ia7')]
     models_b = [load_model(makam, 'sec_BW11_v61'), load_model(makam, 'sec_BW12_v62'), load_model(makam, 'b_decider_v_b8')]
     models_c = [load_model(makam, 'sec_CW1_v61'), load_model(makam, 'sec_CW2_v62'), load_model(makam, 'b_decider_v_c9')]
-    nakarat_ender_model = load_model(makam, 'nakarat_end_v1')
+    nakarat_ender_model = load_model(makam, 'nakarat_end_v2')
 
     for i in range(0, 1):
         init = str(i)
@@ -598,7 +598,7 @@ def main():
 
         cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['B'], dir_path, note_dict, oh_manager, set_size)
         part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
-        second_rep = compose_ending(makam, nakarat_ender_model, part_b, time_sig, measure_cnt, note_dict, oh_manager)
+        second_rep = compose_ending(makam, nakarat_ender_model, part_b, time_sig, measure_cnt, note_dict, oh_manager, lo, hi)
         if len(part_b) == 0:
             continue
 
