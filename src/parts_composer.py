@@ -585,7 +585,7 @@ def main():
     models_c = [load_model(makam, 'sec_CW1_v61'), load_model(makam, 'sec_CW2_v62'), load_model(makam, 'b_decider_v_c9')]
     nakarat_ender_model = load_model(makam, 'nakarat_end_v2')
 
-    for i in range(9, 10):
+    for i in range(0, 1):
         init = str(i)
 
         song_name = 'Hicaz_Aksak_' + init
