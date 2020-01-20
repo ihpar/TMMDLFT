@@ -81,7 +81,8 @@ def train_nakarat_ending_model(makam, base_model, model_name, xs, ys, eps=0):
     plt.show()
 
 
-def make_second_rep(makam, nakarat_ender_model, part, time_sig, measure_cnt, note_dict, oh_manager):
+def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_manager, lo, hi):
+    nakarat_ender_model = load_model(makam, enders[0])
     tot = Fraction(0)
     m_no = 0
     measures = []
