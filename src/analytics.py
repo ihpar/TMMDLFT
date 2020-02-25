@@ -38,26 +38,35 @@ def get_notes(files, note_dict, oh_manager):
                     dur = note_dict.get_num_by_dur(dur)
                     if not dur:
                         dur = note_dict.get_num_by_dur(dur_alt)
-                    res.append([note_name, note_len])
+                    res.append([note_num, note_name, note_len])
                 i += 1
 
     return res
 
 
-def plot_weights(files, note_dict, oh_manager):
-    notes = get_notes(files, note_dict, oh_manager)
-    od = defaultdict(int)
-    for note in notes:
-        od[note[0]] += note[1]
+def plot_weights(corpus_files, composer_files, note_dict, oh_manager):
+    corpus_notes = get_notes(corpus_files, note_dict, oh_manager)
+    corpus_od = defaultdict(int)
+    for note in corpus_notes:
+        corpus_od[note[1]] += note[2]
+    key_max = max(corpus_od.keys(), key=(lambda ki: corpus_od[ki]))
+    corpus_max = corpus_od[key_max]
+
+    composer_notes = get_notes(composer_files, note_dict, oh_manager)
+    composer_od = defaultdict(int)
+    for note in composer_notes:
+        composer_od[note[1]] += note[2]
+    key_max = max(composer_od.keys(), key=(lambda ki: composer_od[ki]))
+    composer_max = composer_od[key_max]
 
     xs = []
     ys = []
 
-    for k, v in sorted(od.items()):
+    for k, v in sorted(corpus_od.items()):
         if v < 100:
             continue
         xs.append(k)
-        ys.append(float(v))
+        ys.append(float(v) / corpus_max)
 
     print(xs)
 
@@ -80,10 +89,14 @@ def main():
     oh_manager = OhManager(makam)
 
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
-    files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
-             if os.path.isfile(os.path.join(dir_path, f)) and (f.startswith('hicaz--') or f.startswith('bes-hicaz-'))]
+    corpus_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
+                    if os.path.isfile(os.path.join(dir_path, f)) and (f.startswith('hicaz--') or f.startswith('bes-hicaz-'))]
 
-    plot_weights(files, note_dict, oh_manager)
+    dir_path = os.path.join(os.path.abspath('..'), 'songs', 'hicaz-sarkilar')
+    composer_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
+                      if os.path.isfile(os.path.join(dir_path, f))]
+
+    plot_weights(corpus_files, composer_files, note_dict, oh_manager)
 
 
 if __name__ == '__main__':
