@@ -2,16 +2,13 @@ import os
 import codecs
 from fractions import Fraction
 from nc_dictionary import NCDictionary
-from oh_manager import OhManager
+# from oh_manager import OhManager
 from collections import defaultdict
-
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.ticker import MaxNLocator
+import hicaz_parts
 
 
-def get_notes(files, note_dict, oh_manager):
+def get_notes(files, note_dict):
     nom_index = 2
     den_index = 3
     res = []
@@ -44,8 +41,8 @@ def get_notes(files, note_dict, oh_manager):
     return res
 
 
-def plot_weights(corpus_files, composer_files, note_dict, oh_manager):
-    corpus_notes, composer_notes = get_notes(corpus_files, note_dict, oh_manager), get_notes(composer_files, note_dict, oh_manager)
+def plot_weights(file_list_a, file_list_b, note_dict, chart_title, legend_a, legend_b, out_file=''):
+    corpus_notes, composer_notes = get_notes(file_list_a, note_dict), get_notes(file_list_b, note_dict)
     corpus_od = defaultdict(int)
     for note in corpus_notes:
         corpus_od[note[0]] += note[1]
@@ -108,23 +105,41 @@ def plot_weights(corpus_files, composer_files, note_dict, oh_manager):
     plt.rcParams.update({'font.size': 12})
     fig, ax = plt.subplots()
 
-    ax.set_title('Nota Ağırlıkları')
-    ax.plot(note_names, cor_ys, label='SymbTr')
-    ax.plot(note_names, comp_ys, label='Oto Besteci')
+    ax.set_title(chart_title)
+    ax.plot(note_names, cor_ys, label=legend_a)
+    ax.plot(note_names, comp_ys, label=legend_b)
 
     plt.grid()
     plt.xticks(rotation=90)
     plt.legend(loc="upper right")
     plt.tight_layout()
-    plt.savefig('agirlik_genel.png')
+    if out_file:
+        plt.savefig(out_file)
     plt.show()
+
+
+def plot_freqs(seq_len, file_list_a, file_list_b, note_dict, chart_title, legend_a, legend_b, out_file=''):
+    notes_a, notes_b = get_notes(file_list_a, note_dict), get_notes(file_list_b, note_dict)
+    a_dict, b_dict = defaultdict(int), defaultdict(int)
+
+    for i in range(len(notes_a) - seq_len):
+        sect = notes_a[i:i + seq_len]
+        rep = [str(x[0]) for x in sect]
+        rep = '-'.join(rep)
+        a_dict[rep] += 1
+
+    max_value = max(a_dict.values())
+    print(max_value)
+    for w in sorted(a_dict, key=a_dict.get, reverse=True):
+        print(w, a_dict[w])
 
 
 def main():
     makam = 'hicaz'
     note_dict = NCDictionary()
-    oh_manager = OhManager(makam)
+    # oh_manager = OhManager(makam)
 
+    '''
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
     corpus_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
                     if os.path.isfile(os.path.join(dir_path, f)) and (f.startswith('hicaz--') or f.startswith('bes-hicaz-'))]
@@ -133,7 +148,24 @@ def main():
     composer_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
                       if os.path.isfile(os.path.join(dir_path, f))]
 
-    plot_weights(corpus_files, composer_files, note_dict, oh_manager)
+    # plot_weights(corpus_files, composer_files, note_dict, 'Nota Ağırlıkları', 'SymbTr', 'Oto Besteci', out_file='agirlik_genel.png')
+
+    corpus_files = []
+    dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
+    for song in hicaz_parts.hicaz_songs:
+        corpus_files.append(os.path.join(dir_path, song['file']))
+
+    # plot_weights(corpus_files, composer_files, note_dict, 'Aksak Şarkı Nota Ağırlıkları', 'SymbTr', 'Oto Besteci', out_file='agirlik_sarki.png')
+    '''
+    dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
+    corpus_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
+                    if os.path.isfile(os.path.join(dir_path, f)) and (f.startswith('hicaz--') or f.startswith('bes-hicaz-'))]
+
+    dir_path = os.path.join(os.path.abspath('..'), 'songs', 'hicaz-sarkilar')
+    composer_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
+                      if os.path.isfile(os.path.join(dir_path, f))]
+
+    plot_freqs(4, corpus_files, composer_files, note_dict, 'Dörtlü Dizi Frekansları', 'SymbTr', 'Oto Besteci', out_file='freq_genel.png')
 
 
 if __name__ == '__main__':
