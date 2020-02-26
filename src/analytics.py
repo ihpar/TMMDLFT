@@ -38,48 +38,85 @@ def get_notes(files, note_dict, oh_manager):
                     dur = note_dict.get_num_by_dur(dur)
                     if not dur:
                         dur = note_dict.get_num_by_dur(dur_alt)
-                    res.append([note_num, note_name, note_len])
+                    res.append([note_num, note_len])
                 i += 1
 
     return res
 
 
 def plot_weights(corpus_files, composer_files, note_dict, oh_manager):
-    corpus_notes = get_notes(corpus_files, note_dict, oh_manager)
+    corpus_notes, composer_notes = get_notes(corpus_files, note_dict, oh_manager), get_notes(composer_files, note_dict, oh_manager)
     corpus_od = defaultdict(int)
     for note in corpus_notes:
-        corpus_od[note[1]] += note[2]
+        corpus_od[note[0]] += note[1]
     key_max = max(corpus_od.keys(), key=(lambda ki: corpus_od[ki]))
     corpus_max = corpus_od[key_max]
 
-    composer_notes = get_notes(composer_files, note_dict, oh_manager)
     composer_od = defaultdict(int)
     for note in composer_notes:
-        composer_od[note[1]] += note[2]
+        composer_od[note[0]] += note[1]
     key_max = max(composer_od.keys(), key=(lambda ki: composer_od[ki]))
     composer_max = composer_od[key_max]
 
-    xs = []
-    ys = []
+    corpus_xs, composer_xs = [], []
+    corpus_ys, composer_ys = [], []
+    cor_dict, com_dict = {}, {}
+
+    th = 0.005
 
     for k, v in sorted(corpus_od.items()):
-        if v < 100:
+        normalized = float(v) / corpus_max
+        if normalized < th:
             continue
-        xs.append(k)
-        ys.append(float(v) / corpus_max)
+        corpus_xs.append(k)
+        corpus_ys.append(normalized)
+        cor_dict[k] = normalized
 
-    print(xs)
+    for k, v in sorted(composer_od.items()):
+        normalized = float(v) / composer_max
+        if normalized < th:
+            continue
+        composer_xs.append(k)
+        composer_ys.append(normalized)
+        com_dict[k] = normalized
+
+    uni = list(set().union(corpus_xs, composer_xs))
+    uni.sort()
+
+    cor_ys, comp_ys = [], []
+    note_names = []
+
+    for el in uni:
+        if el in cor_dict:
+            cor_ys.append(cor_dict[el])
+        else:
+            cor_ys.append(0)
+
+        if el in com_dict:
+            comp_ys.append(com_dict[el])
+        else:
+            comp_ys.append(0)
+
+        note_name = note_dict.get_note_by_num(el)
+        if note_name == 'rest':
+            note_name = 'sus'
+        note_names.append(note_name)
+
+    print(note_names)
 
     plt.rc('font', family='Times New Roman')
     plt.rcParams.update({'font.size': 12})
     fig, ax = plt.subplots()
 
-    ax.set_title('Hicaz Makamı Genel Nota Ağırlıkları')
-    ax.plot(xs, ys)
-    plt.xticks(rotation=90)
+    ax.set_title('Nota Ağırlıkları')
+    ax.plot(note_names, cor_ys, label='SymbTr')
+    ax.plot(note_names, comp_ys, label='Oto Besteci')
 
+    plt.grid()
+    plt.xticks(rotation=90)
+    plt.legend(loc="upper right")
     plt.tight_layout()
-    # plt.savefig('coding_error.png')
+    plt.savefig('agirlik_genel.png')
     plt.show()
 
 
