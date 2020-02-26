@@ -118,7 +118,7 @@ def plot_weights(file_list_a, file_list_b, note_dict, chart_title, legend_a, leg
     plt.show()
 
 
-def plot_freqs(seq_len, file_list_a, file_list_b, note_dict, chart_title, legend_a, legend_b, out_file=''):
+def plot_freqs(seq_len, top, file_list_a, file_list_b, note_dict, chart_title, legend_a, legend_b, out_file=''):
     notes_a, notes_b = get_notes(file_list_a, note_dict), get_notes(file_list_b, note_dict)
     a_dict, b_dict = defaultdict(int), defaultdict(int)
 
@@ -128,10 +128,34 @@ def plot_freqs(seq_len, file_list_a, file_list_b, note_dict, chart_title, legend
         rep = '-'.join(rep)
         a_dict[rep] += 1
 
-    max_value = max(a_dict.values())
-    print(max_value)
+    for i in range(len(notes_b) - seq_len):
+        sect = notes_b[i:i + seq_len]
+        rep = [str(x[0]) for x in sect]
+        rep = '-'.join(rep)
+        b_dict[rep] += 1
+
+    a_max_value, b_max_value = max(a_dict.values()), max(b_dict.values())
+    print(a_max_value)
+    i = 0
+    a_dict_cut, b_dict_cut = {}, {}
     for w in sorted(a_dict, key=a_dict.get, reverse=True):
         print(w, a_dict[w])
+        a_dict_cut[w] = a_dict[w]
+        i += 1
+        if i == top:
+            break
+
+    print(b_max_value)
+    i = 0
+    for w in sorted(b_dict, key=b_dict.get, reverse=True):
+        print(w, b_dict[w])
+        b_dict_cut[w] = b_dict[w]
+        i += 1
+        if i == top:
+            break
+
+    uni = list(set().union(a_dict_cut.keys(), b_dict_cut.keys()))
+    print(uni)
 
 
 def main():
@@ -165,7 +189,7 @@ def main():
     composer_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
                       if os.path.isfile(os.path.join(dir_path, f))]
 
-    plot_freqs(4, corpus_files, composer_files, note_dict, 'Dörtlü Dizi Frekansları', 'SymbTr', 'Oto Besteci', out_file='freq_genel.png')
+    plot_freqs(4, 10, corpus_files, composer_files, note_dict, 'Dörtlü Dizi Frekansları', 'SymbTr', 'Oto Besteci', out_file='freq_genel.png')
 
 
 if __name__ == '__main__':
