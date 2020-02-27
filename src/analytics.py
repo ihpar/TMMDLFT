@@ -135,27 +135,58 @@ def plot_freqs(seq_len, top, file_list_a, file_list_b, note_dict, chart_title, l
         b_dict[rep] += 1
 
     a_max_value, b_max_value = max(a_dict.values()), max(b_dict.values())
-    print(a_max_value)
     i = 0
     a_dict_cut, b_dict_cut = {}, {}
     for w in sorted(a_dict, key=a_dict.get, reverse=True):
-        print(w, a_dict[w])
         a_dict_cut[w] = a_dict[w]
         i += 1
         if i == top:
             break
 
-    print(b_max_value)
     i = 0
     for w in sorted(b_dict, key=b_dict.get, reverse=True):
-        print(w, b_dict[w])
         b_dict_cut[w] = b_dict[w]
         i += 1
         if i == top:
             break
 
     uni = list(set().union(a_dict_cut.keys(), b_dict_cut.keys()))
-    print(uni)
+    a_lst, b_lst, note_names = [], [], []
+
+    for el in uni:
+        if el in a_dict:
+            a_lst.append(a_dict[el] / a_max_value)
+        else:
+            a_lst.append(0)
+
+        if el in b_dict:
+            b_lst.append(b_dict[el] / b_max_value)
+        else:
+            b_lst.append(0)
+
+        parts = el.split('-')
+        notes = []
+        for part in parts:
+            note_name = note_dict.get_note_by_num(int(part))
+            notes.append(note_name)
+
+        note_names.append('-'.join(notes))
+
+    plt.rc('font', family='Times New Roman')
+    plt.rcParams.update({'font.size': 12})
+    fig, ax = plt.subplots()
+
+    ax.set_title(chart_title)
+    ax.plot(note_names, a_lst, label=legend_a)
+    ax.plot(note_names, b_lst, label=legend_b)
+
+    plt.grid()
+    plt.xticks(rotation=90)
+    plt.legend(loc="upper right")
+    plt.tight_layout()
+    if out_file:
+        plt.savefig(out_file)
+    plt.show()
 
 
 def main():
@@ -181,15 +212,23 @@ def main():
 
     # plot_weights(corpus_files, composer_files, note_dict, 'Aksak Şarkı Nota Ağırlıkları', 'SymbTr', 'Oto Besteci', out_file='agirlik_sarki.png')
     '''
+
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
     corpus_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
                     if os.path.isfile(os.path.join(dir_path, f)) and (f.startswith('hicaz--') or f.startswith('bes-hicaz-'))]
 
+    '''
+    corpus_files = []
+    dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
+    for song in hicaz_parts.hicaz_songs:
+        corpus_files.append(os.path.join(dir_path, song['file']))
+    '''
     dir_path = os.path.join(os.path.abspath('..'), 'songs', 'hicaz-sarkilar')
     composer_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
                       if os.path.isfile(os.path.join(dir_path, f))]
 
-    plot_freqs(4, 10, corpus_files, composer_files, note_dict, 'Dörtlü Dizi Frekansları', 'SymbTr', 'Oto Besteci', out_file='freq_genel.png')
+    plot_freqs(5, 10, corpus_files, composer_files, note_dict, 'Beşli Dizi Frekansları', 'SymbTr', 'Oto Besteci', out_file='freq_genel_5.png')
+    # plot_freqs(5, 10, corpus_files, composer_files, note_dict, 'Aksak Şarkı Beşli Dizi Frekansları', 'SymbTr', 'Oto Besteci', out_file='freq_aksak_5.png')
 
 
 if __name__ == '__main__':
