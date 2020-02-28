@@ -132,8 +132,11 @@ def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_ma
         chosen_b = np.argmax(y_b[0])
         print('chosen_b', y_b[0][chosen_b])
 
-        # n_d = oh_manager.int_2_nd(random.choice([chosen_a, chosen_b]))
-        n_d = oh_manager.int_2_nd(chosen_a)
+        chosen = chosen_a
+        if y_b[0][chosen_b] > y_a[0][chosen_a]:
+            chosen = chosen_b
+
+        n_d = oh_manager.int_2_nd(chosen)
         parts = n_d.split(':')
         note_num = int(parts[0])
         dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
