@@ -588,7 +588,7 @@ def main():
     for i in range(0, 1):
         init = str(i)
 
-        song_name = 'Hicaz_Aksak_' + init
+        song_name = 'Hicaz_Aksak_Tester_' + init
         initiator = 'init-hicaz-' + init + '.mu2'
         # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
         cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)

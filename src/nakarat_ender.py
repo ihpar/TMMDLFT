@@ -1,4 +1,5 @@
 # from nakarat_endings import hicaz_song_endings
+from ending_picker import EndingPicker
 from my_endings import my_hicaz_song_endings
 
 from tensorflow.python.keras.layers import Activation, Dense
@@ -10,6 +11,8 @@ from mu2_reader import *
 from model_ops import load_model, save_model
 import numpy as np
 import matplotlib.pyplot as plt
+import hicaz_parts
+import random
 
 
 def parse_notes(notes, note_dict, oh_manager):
@@ -82,7 +85,8 @@ def train_nakarat_ending_model(makam, base_model, model_name, xs, ys, eps=0):
 
 
 def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_manager, lo, hi):
-    nakarat_ender_model = load_model(makam, enders[0])
+    # ending_picker = EndingPicker(makam, hicaz_parts.hicaz_songs, 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2', note_dict, oh_manager, 4)
+    nakarat_ender_model_a, nakarat_ender_model_b = load_model(makam, enders[0]), load_model(makam, enders[1])
     tot = Fraction(0)
     m_no = 0
     measures = []
@@ -120,10 +124,16 @@ def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_ma
     predictions = []
     while tot < time_sig:
         part = x[:, -xpy:, :]
-        y = nakarat_ender_model.predict(part)
-        chosen = np.argmax(y[0])
-        print(y[0][chosen])
-        n_d = oh_manager.int_2_nd(chosen)
+        y_a = nakarat_ender_model_a.predict(part)
+        chosen_a = np.argmax(y_a[0])
+        print('chosen_a', y_a[0][chosen_a])
+
+        y_b = nakarat_ender_model_b.predict(part)
+        chosen_b = np.argmax(y_b[0])
+        print('chosen_b', y_b[0][chosen_b])
+
+        # n_d = oh_manager.int_2_nd(random.choice([chosen_a, chosen_b]))
+        n_d = oh_manager.int_2_nd(chosen_a)
         parts = n_d.split(':')
         note_num = int(parts[0])
         dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
