@@ -84,7 +84,34 @@ def train_nakarat_ending_model(makam, base_model, model_name, xs, ys, eps=0):
     plt.show()
 
 
-def make_ending_predictions(last_notes, nakarat_ender_model_a, nakarat_ender_model_b, time_sig, oh_manager, note_dict):
+def pick_chosen(pred_a, pred_b, threshold):
+    candidates = []
+    chosen_a = np.argmax(pred_a)
+    candidates.append(chosen_a)
+    pred_a[chosen_a] = 0
+
+    chosen_b = np.argmax(pred_b)
+    candidates.append(chosen_b)
+    pred_b[chosen_b] = 0
+    can_continue = True
+    while can_continue:
+        can_continue = False
+        chosen_a = np.argmax(pred_a)
+        if pred_a[chosen_a] > threshold:
+            candidates.append(chosen_a)
+            pred_a[chosen_a] = 0
+            can_continue = True
+
+        chosen_b = np.argmax(pred_b)
+        if pred_b[chosen_b] > threshold:
+            candidates.append(chosen_b)
+            pred_b[chosen_b] = 0
+            can_continue = True
+
+    return random.choice(candidates)
+
+
+def make_ending_predictions(last_notes, nakarat_ender_model_a, nakarat_ender_model_b, time_sig, oh_manager, note_dict, threshold):
     print('making ending predictions')
     tot = Fraction(0)
     xpy = last_notes.shape[1]
@@ -92,16 +119,19 @@ def make_ending_predictions(last_notes, nakarat_ender_model_a, nakarat_ender_mod
     while tot < time_sig:
         part = last_notes[:, -xpy:, :]
         y_a = nakarat_ender_model_a.predict(part)
+        y_b = nakarat_ender_model_b.predict(part)
+        '''
         chosen_a = np.argmax(y_a[0])
         print('chosen_a', y_a[0][chosen_a])
 
-        y_b = nakarat_ender_model_b.predict(part)
         chosen_b = np.argmax(y_b[0])
         print('chosen_b', y_b[0][chosen_b])
 
         chosen = chosen_a
         if y_b[0][chosen_b] > y_a[0][chosen_a]:
             chosen = chosen_b
+        '''
+        chosen = pick_chosen(y_a[0], y_b[0], threshold)
 
         n_d = oh_manager.int_2_nd(chosen)
         parts = n_d.split(':')
@@ -128,11 +158,16 @@ def make_ending_predictions(last_notes, nakarat_ender_model_a, nakarat_ender_mod
     return np.array(predictions)
 
 
-def get_remaining(remainder, oh_manager):
+def get_remaining(remainder, oh_manager, note_dict):
+    res = []
     num = remainder.numerator
     den = remainder.denominator
-    
-    return []
+    if num == 1 or (num % 2) == 0:
+        note_num = note_dict.get_note_by_name('rest')
+        note_dur = note_dict.get_num_by_dur(str(Fraction(num, den)))
+        oh = oh_manager.nd_2_oh(str(note_num) + ':' + str(note_dur))
+        res.append(oh)
+    return res
 
 
 def end_if_can(predictions, makam, oh_manager, note_dict, time_sig):
@@ -153,8 +188,10 @@ def end_if_can(predictions, makam, oh_manager, note_dict, time_sig):
         i += 1
 
     if not can_end:
+        print('cannot end yet')
         return can_end, predictions
 
+    print('can end')
     new_ending = []
     tot = Fraction(0)
     for j, row in enumerate(predictions):
@@ -167,10 +204,12 @@ def end_if_can(predictions, makam, oh_manager, note_dict, time_sig):
             new_ending.append(row)
         else:
             break
+
     remainder = time_sig - tot
-    remaining_parts = get_remaining(remainder, oh_manager)
-    for row in remaining_parts:
-        new_ending.append(row)
+    if remainder > 0:
+        remaining_parts = get_remaining(remainder, oh_manager, note_dict)
+        for row in remaining_parts:
+            new_ending.append(row)
 
     return can_end, np.array(new_ending)
 
@@ -213,8 +252,11 @@ def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_ma
     song_can_end = False
     predictions = []
     while not song_can_end:
-        predictions = make_ending_predictions(x, nakarat_ender_model_a, nakarat_ender_model_b, time_sig, oh_manager, note_dict)
+        predictions = make_ending_predictions(x, nakarat_ender_model_a, nakarat_ender_model_b, time_sig, oh_manager, note_dict, hi)
         song_can_end, predictions = end_if_can(predictions, makam, oh_manager, note_dict, time_sig)
+        hi = hi - 0.1
+        if hi <= lo:
+            break
     return predictions
 
 
