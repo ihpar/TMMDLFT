@@ -214,6 +214,15 @@ def end_if_can(predictions, makam, oh_manager, note_dict, time_sig):
     return can_end, np.array(new_ending)
 
 
+def fixed_ending(fixed_note_lst, fixed_dur_list, oh_manager, note_dict):
+    res = []
+    for note, dur in zip(fixed_note_lst, fixed_dur_list):
+        note_num = note_dict.get_note_by_name(note)
+        dur_num = note_dict.get_num_by_dur(dur)
+        res.append(oh_manager.nd_2_oh(str(note_num) + ':' + str(dur_num)))
+    return np.array(res)
+
+
 def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_manager, lo, hi):
     # ending_picker = EndingPicker(makam, hicaz_parts.hicaz_songs, 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2', note_dict, oh_manager, 4)
     nakarat_ender_model_a, nakarat_ender_model_b = load_model(makam, enders[0]), load_model(makam, enders[1])
@@ -249,14 +258,24 @@ def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_ma
 
     last_notes.reverse()
     x = np.array([[oh_manager.nd_2_oh(n) for n in last_notes]])
-    song_can_end = False
+    song_can_end, correctly_ended = False, False
     predictions = []
     while not song_can_end:
         predictions = make_ending_predictions(x, nakarat_ender_model_a, nakarat_ender_model_b, time_sig, oh_manager, note_dict, hi)
         song_can_end, predictions = end_if_can(predictions, makam, oh_manager, note_dict, time_sig)
+        if song_can_end:
+            correctly_ended = True
         hi = hi - 0.1
         if hi <= lo:
             break
+    if not correctly_ended:
+        print('FIXED ENDING')
+        fixed_note_lst = ['la4', 'la4', 'la4', 'la4', 'rest''rest']
+        fixed_dur_list = ['1/4', '1/8', '1/8', '1/4', '1/4', '1/8']
+        if makam == 'hicaz':
+            fixed_note_lst = ['la4', 'la4', 'la4', 'la4', 'rest''rest']
+            fixed_dur_list = ['1/4', '1/8', '1/8', '1/4', '1/4', '1/8']
+        predictions = fixed_ending(fixed_note_lst, fixed_dur_list, oh_manager, note_dict)
     return predictions
 
 
