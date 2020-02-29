@@ -84,6 +84,97 @@ def train_nakarat_ending_model(makam, base_model, model_name, xs, ys, eps=0):
     plt.show()
 
 
+def make_ending_predictions(last_notes, nakarat_ender_model_a, nakarat_ender_model_b, time_sig, oh_manager, note_dict):
+    print('making ending predictions')
+    tot = Fraction(0)
+    xpy = last_notes.shape[1]
+    predictions = []
+    while tot < time_sig:
+        part = last_notes[:, -xpy:, :]
+        y_a = nakarat_ender_model_a.predict(part)
+        chosen_a = np.argmax(y_a[0])
+        print('chosen_a', y_a[0][chosen_a])
+
+        y_b = nakarat_ender_model_b.predict(part)
+        chosen_b = np.argmax(y_b[0])
+        print('chosen_b', y_b[0][chosen_b])
+
+        chosen = chosen_a
+        if y_b[0][chosen_b] > y_a[0][chosen_a]:
+            chosen = chosen_b
+
+        n_d = oh_manager.int_2_nd(chosen)
+        parts = n_d.split(':')
+        note_num = int(parts[0])
+        dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
+        remaining = time_sig - tot
+        if dur > remaining:
+            dur = remaining
+        tot += dur
+        dur_num = note_dict.get_num_by_dur(str(dur))
+        n_c_d = str(note_num) + ':' + str(dur_num)
+        try:
+            n_d_num = oh_manager.nd_2_int(n_c_d)
+            p_inner = np.zeros(part.shape[2])
+            p_inner[n_d_num] = 1.0
+
+            last_notes = np.append(last_notes, np.array([[p_inner]]), axis=1)
+            predictions.append(p_inner)
+        except KeyError as e:
+            print(n_d, parts[1], dur, note_num)
+            print(f'Key Error: {str(e)}')
+            raise Exception('Nakarat ending err')
+
+    return np.array(predictions)
+
+
+def get_remaining(remainder, oh_manager):
+    num = remainder.numerator
+    den = remainder.denominator
+    
+    return []
+
+
+def end_if_can(predictions, makam, oh_manager, note_dict, time_sig):
+    print('checking if can end')
+    perfect_note = 'La4'
+    if makam == 'hicaz':
+        perfect_note = 'La4'
+
+    can_end = False
+    i = 0
+    for row in reversed(predictions):
+        n_d = oh_manager.oh_2_nd(row)
+        parts = n_d.split(':')
+        note = note_dict.get_note_by_num(int(parts[0])).capitalize()
+        if note == perfect_note:
+            can_end = True
+            break
+        i += 1
+
+    if not can_end:
+        return can_end, predictions
+
+    new_ending = []
+    tot = Fraction(0)
+    for j, row in enumerate(predictions):
+        if j < (len(predictions) - i):
+            n_d = oh_manager.oh_2_nd(row)
+            parts = n_d.split(':')
+            dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
+            tot += dur
+
+            new_ending.append(row)
+        else:
+            break
+    remainder = time_sig - tot
+    remaining_parts = get_remaining(remainder, oh_manager)
+    for row in remaining_parts:
+        new_ending.append(row)
+
+    return can_end, np.array(new_ending)
+
+
 def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_manager, lo, hi):
     # ending_picker = EndingPicker(makam, hicaz_parts.hicaz_songs, 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2', note_dict, oh_manager, 4)
     nakarat_ender_model_a, nakarat_ender_model_b = load_model(makam, enders[0]), load_model(makam, enders[1])
@@ -119,46 +210,12 @@ def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_ma
 
     last_notes.reverse()
     x = np.array([[oh_manager.nd_2_oh(n) for n in last_notes]])
-    tot = Fraction(0)
-    xpy = x.shape[1]
+    song_can_end = False
     predictions = []
-    while tot < time_sig:
-        part = x[:, -xpy:, :]
-        y_a = nakarat_ender_model_a.predict(part)
-        chosen_a = np.argmax(y_a[0])
-        print('chosen_a', y_a[0][chosen_a])
-
-        y_b = nakarat_ender_model_b.predict(part)
-        chosen_b = np.argmax(y_b[0])
-        print('chosen_b', y_b[0][chosen_b])
-
-        chosen = chosen_a
-        if y_b[0][chosen_b] > y_a[0][chosen_a]:
-            chosen = chosen_b
-
-        n_d = oh_manager.int_2_nd(chosen)
-        parts = n_d.split(':')
-        note_num = int(parts[0])
-        dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
-        remaining = time_sig - tot
-        if dur > remaining:
-            dur = remaining
-        tot += dur
-        dur_num = note_dict.get_num_by_dur(str(dur))
-        n_c_d = str(note_num) + ':' + str(dur_num)
-        try:
-            n_d_num = oh_manager.nd_2_int(n_c_d)
-            p_inner = np.zeros(part.shape[2])
-            p_inner[n_d_num] = 1.0
-
-            x = np.append(x, np.array([[p_inner]]), axis=1)
-            predictions.append(p_inner)
-        except KeyError as e:
-            print(n_d, parts[1], dur, note_num)
-            print(f'Key Error: {str(e)}')
-            raise Exception('Nakarat ending err')
-
-    return np.array(predictions)
+    while not song_can_end:
+        predictions = make_ending_predictions(x, nakarat_ender_model_a, nakarat_ender_model_b, time_sig, oh_manager, note_dict)
+        song_can_end, predictions = end_if_can(predictions, makam, oh_manager, note_dict, time_sig)
+    return predictions
 
 
 def main():
