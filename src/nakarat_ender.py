@@ -162,11 +162,32 @@ def get_remaining(remainder, oh_manager, note_dict):
     res = []
     num = remainder.numerator
     den = remainder.denominator
+    note_num = note_dict.get_note_by_name('rest')
+
     if num == 1 or (num % 2) == 0:
-        note_num = note_dict.get_note_by_name('rest')
         note_dur = note_dict.get_num_by_dur(str(Fraction(num, den)))
         oh = oh_manager.nd_2_oh(str(note_num) + ':' + str(note_dur))
         res.append(oh)
+    else:
+        one_fr = Fraction(1, den)
+        rem_fr = Fraction(num - 1, den)
+
+        note_dur = note_dict.get_num_by_dur(str(one_fr))
+        oh = oh_manager.nd_2_oh(str(note_num) + ':' + str(note_dur))
+        res.append(oh)
+        while (rem_fr.numerator != 1) and (rem_fr.numerator % 2 != 0):
+            num = rem_fr.numerator
+            den = rem_fr.denominator
+            one_fr = Fraction(1, den)
+            note_dur = note_dict.get_num_by_dur(str(one_fr))
+            oh = oh_manager.nd_2_oh(str(note_num) + ':' + str(note_dur))
+            res.append(oh)
+            rem_fr = Fraction(num - 1, den)
+
+        note_dur = note_dict.get_num_by_dur(str(rem_fr))
+        oh = oh_manager.nd_2_oh(str(note_num) + ':' + str(note_dur))
+        res.append(oh)
+
     return res
 
 
@@ -261,19 +282,22 @@ def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_ma
     song_can_end, correctly_ended = False, False
     predictions = []
     while not song_can_end:
-        predictions = make_ending_predictions(x, nakarat_ender_model_a, nakarat_ender_model_b, time_sig, oh_manager, note_dict, hi)
-        song_can_end, predictions = end_if_can(predictions, makam, oh_manager, note_dict, time_sig)
-        if song_can_end:
-            correctly_ended = True
+        try:
+            predictions = make_ending_predictions(x, nakarat_ender_model_a, nakarat_ender_model_b, time_sig, oh_manager, note_dict, hi)
+            song_can_end, predictions = end_if_can(predictions, makam, oh_manager, note_dict, time_sig)
+            if song_can_end:
+                correctly_ended = True
+        except:
+            print('An exc')
         hi = hi - 0.1
         if hi <= lo:
             break
     if not correctly_ended:
         print('FIXED ENDING')
-        fixed_note_lst = ['la4', 'la4', 'la4', 'la4', 'rest''rest']
+        fixed_note_lst = ['la4', 'la4', 'la4', 'la4', 'rest', 'rest']
         fixed_dur_list = ['1/4', '1/8', '1/8', '1/4', '1/4', '1/8']
         if makam == 'hicaz':
-            fixed_note_lst = ['la4', 'la4', 'la4', 'la4', 'rest''rest']
+            fixed_note_lst = ['la4', 'la4', 'la4', 'la4', 'rest', 'rest']
             fixed_dur_list = ['1/4', '1/8', '1/8', '1/4', '1/4', '1/8']
         predictions = fixed_ending(fixed_note_lst, fixed_dur_list, oh_manager, note_dict)
     return predictions
