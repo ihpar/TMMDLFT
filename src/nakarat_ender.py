@@ -120,17 +120,6 @@ def make_ending_predictions(last_notes, nakarat_ender_model_a, nakarat_ender_mod
         part = last_notes[:, -xpy:, :]
         y_a = nakarat_ender_model_a.predict(part)
         y_b = nakarat_ender_model_b.predict(part)
-        '''
-        chosen_a = np.argmax(y_a[0])
-        print('chosen_a', y_a[0][chosen_a])
-
-        chosen_b = np.argmax(y_b[0])
-        print('chosen_b', y_b[0][chosen_b])
-
-        chosen = chosen_a
-        if y_b[0][chosen_b] > y_a[0][chosen_a]:
-            chosen = chosen_b
-        '''
         chosen = pick_chosen(y_a[0], y_b[0], threshold)
 
         n_d = oh_manager.int_2_nd(chosen)
@@ -169,6 +158,7 @@ def get_remaining(remainder, oh_manager, note_dict):
         oh = oh_manager.nd_2_oh(str(note_num) + ':' + str(note_dur))
         res.append(oh)
     else:
+        print('Fixing remaining rests')
         one_fr = Fraction(1, den)
         rem_fr = Fraction(num - 1, den)
 
