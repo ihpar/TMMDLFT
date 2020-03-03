@@ -156,10 +156,14 @@ def build_nd_tuple_corpus(makam, dir_path, dirs):
         parts = c.split(':')
         s_able.append([int(x) for x in parts])
 
-    for el in sorted(s_able):
-        note_name = nt.get_note_name_by_num(el[0])
-        dur_name = dt.get_dur_name_by_num(el[1])
-        print(el, note_name, dur_name)
+    with open(makam + '--ndsc.txt', 'w') as f:
+        for el in sorted(s_able):
+            el_str = ':'.join([str(x) for x in el])
+            f.write(el_str + '\n')
+
+
+def create_training_data(makam):
+    pass
 
 
 def main():
@@ -170,7 +174,10 @@ def main():
     # extract_all_notes_and_durations(makam, dir_path, dirs)
 
     # build unique sorted note-dur tuple corpus
-    build_nd_tuple_corpus(makam, dir_path, dirs)
+    # build_nd_tuple_corpus(makam, dir_path, dirs)
+
+    # turn whole SymbTr into training data
+    create_training_data(makam)
 
 
 if __name__ == '__main__':
