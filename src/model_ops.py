@@ -189,6 +189,7 @@ def build_whole_model(x_shape, y_shape):
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     '''
 
+    '''
     # v 70
     model = Sequential()
     model.add(LSTM(600, return_sequences=True, input_shape=x_shape))
@@ -199,6 +200,17 @@ def build_whole_model(x_shape, y_shape):
     # model.add(Activation('softmax'))
     optimizer = SGD(lr=0.0001)
     model.compile(loss='mean_squared_error', optimizer=optimizer, metrics=['accuracy'])
+    '''
+    # v 101
+    model = Sequential()
+    model.add(LSTM(600, return_sequences=True, input_shape=x_shape))
+    model.add(Dropout(0.5))
+    model.add(LSTM(600, return_sequences=False))
+    model.add(Dropout(0.5))
+    model.add(Dense(y_shape))
+    model.add(Activation('softmax'))
+    optimizer = RMSprop(lr=0.001)
+    model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
     model.summary()
     return model

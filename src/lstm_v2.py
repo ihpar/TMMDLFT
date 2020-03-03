@@ -306,7 +306,8 @@ def main():
     # set_size = 6  # v 46, 47, 48
     set_size = 8  # v 41, 50, 51, 60, 61, 62, 63, 70, 101
     # exclude = [4, 14, 21, 32, 36, 55, 66, 88, 91, 94, 101, 109, 130]
-    exclude = [4, 14, 32, 55, 66, 88, 91, 94, 109, 130]  # v 50, 51, 60, 61, 62, 63, 70
+    # exclude = [4, 14, 32, 55, 66, 88, 91, 94, 109, 130]  # v 50, 51, 60, 61, 62, 63, 70
+    exclude = [3, 56, 71, 107, 120]  # v 101
     # main_epochs = 64  # v 44, 45, 46
     # main_epochs = 96  # v 47
     # main_epochs = 128  # v 48, 49
@@ -319,7 +320,7 @@ def main():
     # main_epochs = 100  # v 63
     whole_train(makam, ver, model_name, exclude, set_size, epochs)  # v 50, 60, 61, 70, 71, 101
     # trainer(makam, ver, model_name, exclude, set_size, main_epochs)  # v 62, 63
-    plot_loss(makam, model_name)
+    # plot_loss(makam, model_name)
 
     '''
     # pc = ProbabilityCalculator(makam, set_size)
