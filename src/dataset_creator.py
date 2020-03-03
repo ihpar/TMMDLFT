@@ -2,6 +2,7 @@ import os
 import codecs
 from fractions import Fraction
 import pandas as pd
+from note_dictionary import NoteDictionary
 
 
 def extract_mu2(f):
@@ -79,8 +80,39 @@ def extract_all_notes_and_durations(makam, dir_path, dirs):
         for d in ds:
             durs.add(d)
 
-    print(notes)
-    print(durs)
+    note_dict = NoteDictionary()
+    notes_dict = {}
+    for note in notes:
+        dict_note = note_dict.get_num_by_name(note)
+        if not dict_note[3]:
+            raise Exception('Irregular note')
+
+        note_num = dict_note[0] * dict_note[1] * dict_note[2]
+        if note_num not in notes_dict:
+            notes_dict[note_num] = []
+        notes_dict[note_num].append(note)
+
+    for k, v in sorted(notes_dict.items()):
+        print(k, v)
+
+    durs_dict = {}
+    for dur in durs:
+        dur_fr = Fraction(dur)
+        str_rep = str(dur_fr)
+        if Fraction(str_rep) not in durs_dict:
+            durs_dict[Fraction(str_rep)] = []
+        durs_dict[Fraction(str_rep)].append(dur)
+
+    for k, v in sorted(durs_dict.items()):
+        print(k, v)
+
+    with open(makam + '_sorted_note_corpus.txt', 'w') as f:
+        for k, v in sorted(notes_dict.items()):
+            f.write(','.join(v) + '\n')
+
+    with open(makam + '_sorted_dur_corpus.txt', 'w') as f:
+        for k, v in sorted(durs_dict.items()):
+            f.write(','.join(v) + '\n')
 
 
 def main():
