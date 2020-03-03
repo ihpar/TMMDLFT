@@ -3,6 +3,8 @@ import codecs
 from fractions import Fraction
 import pandas as pd
 from note_dictionary import NoteDictionary
+from note_translator import NoteTranslator
+from dur_translator import DurTranslator
 
 
 def extract_mu2(f):
@@ -60,6 +62,10 @@ def extract_txt(f):
 
 
 def extract_all_notes_and_durations(makam, dir_path, dirs):
+    """
+    Reads all songs from given makam in mu2 and txt formats and creates sorted
+    note name and dur files
+    """
     mu2_dir = os.path.join(dir_path, dirs[0])
     txt_dir = os.path.join(dir_path, dirs[1])
     mu2_files = [os.path.join(mu2_dir, f) for f in os.listdir(mu2_dir) if os.path.isfile(os.path.join(mu2_dir, f)) and f.startswith(makam + '--')]
@@ -115,11 +121,56 @@ def extract_all_notes_and_durations(makam, dir_path, dirs):
             f.write(','.join(v) + '\n')
 
 
+def build_nd_tuple_corpus(makam, dir_path, dirs):
+    """
+    Reads all songs in mu2 and txt format for given makam and
+    creates sorted note-duration file
+    """
+    nt = NoteTranslator(makam)
+    dt = DurTranslator(makam)
+
+    mu2_dir = os.path.join(dir_path, dirs[0])
+    txt_dir = os.path.join(dir_path, dirs[1])
+    mu2_files = [os.path.join(mu2_dir, f) for f in os.listdir(mu2_dir) if os.path.isfile(os.path.join(mu2_dir, f)) and f.startswith(makam + '--')]
+    txt_files = [os.path.join(txt_dir, f) for f in os.listdir(txt_dir) if os.path.isfile(os.path.join(txt_dir, f)) and f.startswith(makam + '--')]
+
+    nd = set([])
+    for f in mu2_files:
+        ns, ds = extract_mu2(f)
+        for n, d in zip(ns, ds):
+            note_num = nt.get_note_num_by_name(n)
+            dur_num = dt.get_dur_num_by_name(d)
+            combined = str(note_num) + ':' + str(dur_num)
+            nd.add(combined)
+
+    for f in txt_files:
+        ns, ds = extract_txt(f)
+        for n, d in zip(ns, ds):
+            note_num = nt.get_note_num_by_name(n)
+            dur_num = dt.get_dur_num_by_name(d)
+            combined = str(note_num) + ':' + str(dur_num)
+            nd.add(combined)
+
+    s_able = []
+    for c in sorted(nd):
+        parts = c.split(':')
+        s_able.append([int(x) for x in parts])
+
+    for el in sorted(s_able):
+        note_name = nt.get_note_name_by_num(el[0])
+        dur_name = dt.get_dur_name_by_num(el[1])
+        print(el, note_name, dur_name)
+
+
 def main():
     makam = 'nihavent'
     dirs = ['mu2', 'txt']
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master'
-    extract_all_notes_and_durations(makam, dir_path, dirs)
+    # first extract all unique notes and durs and create sorted files
+    # extract_all_notes_and_durations(makam, dir_path, dirs)
+
+    # build unique sorted note-dur tuple corpus
+    build_nd_tuple_corpus(makam, dir_path, dirs)
 
 
 if __name__ == '__main__':
