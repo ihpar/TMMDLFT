@@ -22,7 +22,7 @@ re5b5,do5#4
 re5b4
 re5b3
 re5
-re5#4,mi5b5
+mi5b5,re5#4
 mi5b4
 mi5b3
 mi5b2

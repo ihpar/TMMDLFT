@@ -1,10 +1,11 @@
 import os
 import codecs
 from fractions import Fraction
-import pandas as pd
+import json
 from note_dictionary import NoteDictionary
 from note_translator import NoteTranslator
 from dur_translator import DurTranslator
+from oh_manager import OhManager
 
 
 def extract_mu2(f):
@@ -162,8 +163,44 @@ def build_nd_tuple_corpus(makam, dir_path, dirs):
             f.write(el_str + '\n')
 
 
-def create_training_data(makam):
-    pass
+def create_training_data(makam, dir_path, dirs):
+    nt = NoteTranslator(makam)
+    dt = DurTranslator(makam)
+    oh_manager = OhManager(makam)
+
+    mu2_dir = os.path.join(dir_path, dirs[0])
+    mu2_files = [os.path.join(mu2_dir, f) for f in os.listdir(mu2_dir) if os.path.isfile(os.path.join(mu2_dir, f)) and f.startswith(makam + '--')]
+
+    dir_path = os.path.join(os.path.abspath('..'), 'data', makam, 'oh')
+
+    for i, f in enumerate(mu2_files):
+        ns, ds = extract_mu2(f)
+        oh_list = []
+        for n, d in zip(ns, ds):
+            note_num = nt.get_note_num_by_name(n)
+            dur_num = dt.get_dur_num_by_name(d)
+            nd = str(note_num) + ':' + str(dur_num)
+            oh = oh_manager.nd_2_oh(nd).tolist()
+            oh_list.append(oh)
+
+        with open(os.path.join(dir_path, 's_' + str(i)), 'w') as fc:
+            fc.write(json.dumps(oh_list))
+
+
+def test_training_file(makam, ver, f_name):
+    nt = NoteTranslator(makam)
+    dt = DurTranslator(makam)
+    oh_manager = OhManager(makam)
+
+    f_path = os.path.join(os.path.abspath('..'), 'data', makam, ver, f_name)
+    with open(f_path, 'r') as cf:
+        notes = json.load(cf)
+        for note in notes:
+            nd = oh_manager.oh_2_nd(note)
+            parts = nd.split(':')
+            note_name = nt.get_note_name_by_num(int(parts[0]))
+            note_dur = dt.get_dur_name_by_num(int(parts[1]))
+            print(note_name, note_dur)
 
 
 def main():
@@ -177,7 +214,8 @@ def main():
     # build_nd_tuple_corpus(makam, dir_path, dirs)
 
     # turn whole SymbTr into training data
-    create_training_data(makam)
+    # create_training_data(makam, dir_path, dirs)
+    test_training_file(makam, 'oh', 's_0')
 
 
 if __name__ == '__main__':
