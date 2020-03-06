@@ -95,7 +95,7 @@ def build_model(in_shape, out_shape):
     optimizer = RMSprop(lr=0.0002)
     model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     '''
-    # v. 62
+    # v. 62, 102
     model = Sequential()
     model.add(LSTM(600, return_sequences=True, input_shape=in_shape))
     model.add(Dropout(0.5))
