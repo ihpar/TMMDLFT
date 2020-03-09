@@ -250,8 +250,22 @@ def plot_freqs_aligned(seq_len, top, file_list_a, file_list_b, note_dict, chart_
     plt.show()
 
 
+def dissect_genres_rtm(corpus_files):
+    d_dict = defaultdict(int)
+    for f in corpus_files:
+        parts = f.split('--')
+        tur = parts[1]
+        if tur != 'sarki':
+            continue
+        usul = parts[2]
+        d_dict[usul] += 1
+
+    for k, v in sorted(d_dict.items()):
+        print(k, v)
+
+
 def main():
-    makam = 'hicaz'
+    makam = 'nihavent'
     note_dict = NCDictionary()
     # oh_manager = OhManager(makam)
 
@@ -279,6 +293,7 @@ def main():
                     if os.path.isfile(os.path.join(dir_path, f)) and (f.startswith('hicaz--') or f.startswith('bes-hicaz-'))]
 
     '''
+    '''
     corpus_files = []
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
     for song in hicaz_parts.hicaz_songs:
@@ -291,6 +306,11 @@ def main():
     # plot_freqs(5, 10, corpus_files, composer_files, note_dict, 'Beşli Dizi Frekansları', 'SymbTr', 'Oto Besteci', out_file='freq_genel_5.png')
     # plot_freqs(5, 10, corpus_files, composer_files, note_dict, 'Aksak Şarkı Beşli Dizi Frekansları', 'SymbTr', 'Oto Besteci', out_file='freq_aksak_5.png')
     plot_freqs_aligned(6, 15, corpus_files, composer_files, note_dict, 'Altılı Dizi Frekansları Aksak Şarkı', 'SymbTr', 'Oto Besteci', out_file='freq_aksak_6.png')
+    '''
+    dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
+    corpus_files = [f for f in os.listdir(dir_path)
+                    if os.path.isfile(os.path.join(dir_path, f)) and (f.startswith(makam + '--'))]
+    dissect_genres_rtm(corpus_files)
 
 
 if __name__ == '__main__':
