@@ -257,6 +257,7 @@ def dissect_genres_rtm(corpus_files):
         tur = parts[1]
         if tur != 'sarki':
             continue
+
         usul = parts[2]
         d_dict[usul] += 1
 
