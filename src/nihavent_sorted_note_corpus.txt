@@ -12,7 +12,7 @@ fa4#4
 sol4
 sol4#4,la4b5
 la4
-la4#4,si4b5
+si4b5,la4#4
 si4b4
 si4b2
 si4b1
@@ -36,7 +36,7 @@ sol5
 sol5#4,la5b5
 la5b4
 la5
-la5#4,si5b5
+si5b5,la5#4
 la5#5
 si5b2
 si5b1

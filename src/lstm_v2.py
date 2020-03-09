@@ -1,4 +1,6 @@
 import data_loader as dl
+import dur_translator
+import note_translator
 from flt_manager import FltManager
 from model_ops import *
 import numpy as np
@@ -263,21 +265,30 @@ def make_mus2_flt(flt_mgr, song, makam, song_title, initiator):
 
 def make_mus2_oh(song, makam, song_title, initiator):
     note_dict = NCDictionary()
+
+    nt = note_translator.NoteTranslator(makam)
+    dt = dur_translator.DurTranslator(makam)
+
     oh_manager = OhManager(makam)
     lines = consts.mu2_header
     lines[1] = lines[1].replace('{makam}', makam)
+    if makam == 'nihavent':
+        lines[1] = '50							Nihâvent	B4b5/E5b5	'
     lines[7] = lines[7].replace('{song_title}', song_title)
     for row in song[0]:
         n_d = oh_manager.oh_2_nd(row)
         parts = n_d.split(':')
         note = int(parts[0])
         dur = int(parts[1])
-        note = note_dict.get_note_by_num(note)
-        if not note:
-            raise Exception('Note N/A')
+        if makam == 'nihavent':
+            note = nt.get_note_name_by_num(note)
+            dur = dt.get_dur_name_by_num(dur).split('/')
+        else:
+            note = note_dict.get_note_by_num(note)
+            dur = note_dict.get_dur_by_num(dur).split('/')
+            if not note:
+                raise Exception('Note N/A')
         note = note.capitalize()
-
-        dur = note_dict.get_dur_by_num(dur).split('/')
 
         if note == 'Rest':
             lines.append('9		{num}	{denom}	95	96	64	.		0.5'
@@ -323,12 +334,11 @@ def main():
     main_epochs = 50  # v 62, 102
     # main_epochs = 100  # v 63
     # whole_train(makam, ver, model_name, exclude, set_size, epochs)  # v 50, 60, 61, 70, 71, 101
-    trainer(makam, ver, model_name, exclude, set_size, main_epochs)  # v 62, 63, 102
-    plot_loss(makam, model_name)
+    # trainer(makam, ver, model_name, exclude, set_size, main_epochs)  # v 62, 63, 102
+    # plot_loss(makam, model_name)  # v 102
 
-    '''
     # pc = ProbabilityCalculator(makam, set_size)
-    initiator = str(exclude[2])
+    initiator = str(exclude[1])
     model = load_model(makam, model_name)
     x_test, y_test = dl.load_data(makam, ver, initiator, set_size)
     scores = model.evaluate(x_test, y_test, verbose=0)
@@ -347,7 +357,6 @@ def main():
     # make_mus2_flt(flt_mgr, song, makam, model_name, initiator)   # ver flt 70, 71
     make_mus2_oh(song, makam, model_name, initiator)  # ver oh
     # chose_cnt = 55 (v60.55), 29 (v61.55), 17 (v62.55), 2 (v63.55)
-    '''
 
 
 if __name__ == '__main__':
