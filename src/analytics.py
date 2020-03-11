@@ -251,6 +251,19 @@ def plot_freqs_aligned(seq_len, top, file_list_a, file_list_b, note_dict, chart_
 
 
 def dissect_genres_rtm(corpus_files):
+    accepted = ['duyek', 'nimsofyan', 'sofyan']
+    res = []
+    for f in corpus_files:
+        parts = f.split('--')
+        if parts[2] not in accepted:
+            continue
+        res.append(' '.join([p for p in parts[2:]]))
+
+    for r in sorted(res):
+        print(r)
+
+    return
+
     d_dict = defaultdict(int)
     for f in corpus_files:
         parts = f.split('--')
