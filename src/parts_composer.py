@@ -4,6 +4,7 @@ from tensorflow.python.keras.optimizers import RMSprop
 from tensorflow.python.keras.callbacks import EarlyStopping
 
 import consts
+import nihavent_parts
 from mu2_reader import *
 from model_ops import load_model, save_model
 import numpy as np
@@ -33,12 +34,20 @@ def get_flattened_parts(makam, part_id, dir_path, note_dict, oh_manager):
 def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size, is_whole=False):
     songs = []
 
-    for curr_song in hicaz_parts.hicaz_songs:
-        song = curr_song['file']
-        part_map = curr_song['parts_map']
-        song_final = curr_song['sf']
-        song = decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager)
-        songs.append(song)
+    if makam == 'hicaz':
+        for curr_song in hicaz_parts.hicaz_songs:
+            song = curr_song['file']
+            part_map = curr_song['parts_map']
+            song_final = curr_song['sf']
+            song = decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager)
+            songs.append(song)
+    elif makam == 'nihavent':
+        for curr_song in nihavent_parts.nihavent_songs:
+            song = curr_song['file']
+            part_map = curr_song['parts_map']
+            song_final = curr_song['sf']
+            song = decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager)
+            songs.append(song)
 
     x_lst, y_lst = [], []
     for song in songs:
@@ -524,15 +533,18 @@ def compose_ending(makam, enders, part, time_sig, measure_cnt, note_dict, oh_man
 
 
 def main():
-    makam = 'hicaz'
+    # makam = 'hicaz'
+    makam = 'nihavent'
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
+    dir_path = 'E:\\Akademik\\Tik5\\nihavent_sarkilar\\nihavent-ekler'
     note_dict = NCDictionary()
     oh_manager = OhManager(makam)
     set_size = 8
-    time_sig = Fraction(9, 8)
+    # time_sig = Fraction(9, 8)
+    time_sig = Fraction(8, 8)
     ver = '62'
     sep = 'CW2'
-    '''
+
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
     xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
@@ -548,8 +560,8 @@ def main():
     # IABCW1 (freeze 1st, new dense, val_split: 0.1),
     # IABCW2 (unfreeze all, new dense, val_split: 0.1, batch=32)
     # AW11,12 (freeze 1st, new dense, val_split: 0.1, batch=16)
-    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=10)
-    '''
+    ### train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=10)
+
     '''
     # nakarat train begin
     xs, ys = make_ab_db(makam, ['A', 'B'], dir_path, note_dict, oh_manager, set_size)
@@ -576,6 +588,7 @@ def main():
     # C train end
     '''
 
+    '''
     measure_cnt = 4
     lo = 0.1
     hi = 0.4
@@ -610,6 +623,7 @@ def main():
         song = np.append(part_a, part_b, axis=1)
         song = np.append(song, part_c, axis=1)
         song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,12', second_rep)
+    '''
 
 
 if __name__ == '__main__':
