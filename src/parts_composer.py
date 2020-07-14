@@ -4,7 +4,9 @@ from tensorflow.python.keras.optimizers import RMSprop
 from tensorflow.python.keras.callbacks import EarlyStopping
 
 import consts
+import dur_translator
 import nihavent_parts
+import note_translator
 from mu2_reader import *
 from model_ops import load_model, save_model
 import numpy as np
@@ -33,6 +35,8 @@ def get_flattened_parts(makam, part_id, dir_path, note_dict, oh_manager):
 
 def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size, is_whole=False):
     songs = []
+    nt = note_translator.NoteTranslator(makam)
+    dt = dur_translator.DurTranslator(makam)
 
     if makam == 'hicaz':
         for curr_song in hicaz_parts.hicaz_songs:
@@ -46,7 +50,7 @@ def make_db(makam, part_id, dir_path, note_dict, oh_manager, set_size, is_whole=
             song = curr_song['file']
             part_map = curr_song['parts_map']
             song_final = curr_song['sf']
-            song = decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager)
+            song = decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager, nt, dt)
             songs.append(song)
 
     x_lst, y_lst = [], []

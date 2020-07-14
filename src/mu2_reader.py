@@ -8,7 +8,7 @@ from songobj import SongObj
 import hicaz_parts
 
 
-def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager):
+def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager, nt=None, dt=None):
     nom_index = 2
     den_index = 3
     beat, tot = None, Fraction(0)
@@ -31,18 +31,28 @@ def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager):
             elif parts[0] == 52:
                 song.set_tempo(int(parts[4]))
 
-            elif (parts[0] in [1, 7, 9, 10, 11, 12, 23, 24, 28]) and (
+            elif (parts[0] in [1, 4, 7, 9, 10, 11, 12, 23, 24, 28]) and (
                     parts[nom_index].isdigit() and parts[den_index].isdigit()):
                 # note name
                 note_name = parts[1].lower().strip()
                 if note_name == '':
                     note_name = 'rest'
-                note_num = note_dict.get_note_by_name(note_name)
+
+                if nt:
+                    note_num = nt.get_note_num_by_name(note_name)
+                else:
+                    note_num = note_dict.get_note_by_name(note_name)
+
                 # note dur
                 note_len = Fraction(int(parts[nom_index]), int(parts[den_index]))
                 dur = str(note_len)
                 dur_alt = parts[nom_index] + '/' + parts[den_index]
-                dur = note_dict.get_num_by_dur(dur)
+
+                if dt:
+                    dur = dt.get_dur_num_by_name(dur_alt)
+                else:
+                    dur = note_dict.get_num_by_dur(dur)
+
                 if not dur:
                     dur = note_dict.get_num_by_dur(dur_alt)
                 # repr
