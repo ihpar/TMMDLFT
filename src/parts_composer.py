@@ -33,7 +33,12 @@ def get_flattened_parts(makam, part_id, dir_path, note_dict, oh_manager):
         song = curr_song['file']
         part_map = curr_song['parts_map']
         song_final = curr_song['sf']
-        song = decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager)
+        if makam == 'hicaz':
+            song = decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager)
+        if makam == 'nihavent':
+            nt = note_translator.NoteTranslator(makam)
+            dt = dur_translator.DurTranslator(makam)
+            song = decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager, nt, dt)
         part = song.get_part(part_id)
         parts.append(part)
     return parts
@@ -91,8 +96,8 @@ def train_whole(makam, src_model, xs, ys, target_model, eps=0):
     for i, layer in enumerate(base_model.layers):
         if i == 4:
             break
-        if i < 2:
-            layer.trainable = False
+        # if i < 2:
+        #    layer.trainable = False
         new_model.add(layer)
 
     new_model.add(Dense(out_shape))
@@ -545,7 +550,7 @@ def compose_ending(makam, enders, part, time_sig, measure_cnt, note_dict, oh_man
 def main():
     # makam = 'hicaz'
     makam = 'nihavent'
-    dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
+    # dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
     dir_path = 'E:\\Akademik\\Tik5\\nihavent_sarkilar\\nihavent-ekler'
     note_dict = NCDictionary()
     oh_manager = OhManager(makam)
@@ -553,9 +558,9 @@ def main():
     # time_sig = Fraction(9, 8)
     time_sig = Fraction(8, 8)
     # ver = '62'
-    ver = '101'
+    ver = '102'
     # sep = 'CW2'
-    sep = 'BW1'
+    sep = 'BW2'
 
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
@@ -592,7 +597,12 @@ def main():
     # BW7 (freeze 1st, new dense, val_split: 0, batch=16), BW8 (freeze 1st , 2nd, new dense, val_split: 0, batch=16)
     # BW9,10 (freeze 1st, new dense, val_split: 0, batch=16)
     # BW11,12 (freeze 1st, new dense, val_split: 0, batch=16, epoch=12,10)
-    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=10)
+
+    # nihavent
+    # BW1 (base 101, freeze 1st, new dense, val_split: 0.1, epcs=10)
+    # BW2 (base 102, unfreeze all, new dense, val_split: 0.1, epcs=auto)
+
+    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
     # nakarat train end
 
     '''
