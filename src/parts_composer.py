@@ -22,8 +22,14 @@ cnt_pa, cnt_pb = 0, 0
 
 
 def get_flattened_parts(makam, part_id, dir_path, note_dict, oh_manager):
-    parts = []
-    for curr_song in hicaz_parts.hicaz_songs:
+    parts, curr_songs = [], []
+
+    if makam == 'hicaz':
+        curr_songs = hicaz_parts.hicaz_songs.copy()
+    elif makam == 'nihavent':
+        curr_songs = nihavent_parts.nihavent_songs.copy()
+
+    for curr_song in curr_songs:
         song = curr_song['file']
         part_map = curr_song['parts_map']
         song_final = curr_song['sf']
@@ -547,20 +553,20 @@ def main():
     # time_sig = Fraction(9, 8)
     time_sig = Fraction(8, 8)
     # ver = '62'
-    ver = '102'
+    ver = '101'
     # sep = 'CW2'
-    sep = 'IAW2'
+    sep = 'BW1'
 
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
-    xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    xa, ya = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    # xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    # xa, ya = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     # xb, yb = make_db(makam, 'B', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     # xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    xs = np.concatenate((xi, xa), axis=0)
+    # xs = np.concatenate((xi, xa), axis=0)
     # xs = np.concatenate((xs, xb), axis=0)
     # xs = np.concatenate((xs, xc), axis=0)
-    ys = np.concatenate((yi, ya), axis=0)
+    # ys = np.concatenate((yi, ya), axis=0)
     # ys = np.concatenate((ys, yb), axis=0)
     # ys = np.concatenate((ys, yc), axis=0)
     # IABCW1 (freeze 1st, new dense, val_split: 0.1),
@@ -570,9 +576,8 @@ def main():
     # nihavent
     # IAW1 (base 101, freeze 1st, new dense, val_split: 0.1, epcs=10)
     # IAW2 (base 102, unfreeze all, new dense, val_split: 0.1, epcs=auto)
-    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
+    # train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
 
-    '''
     # nakarat train begin
     xs, ys = make_ab_db(makam, ['A', 'B'], dir_path, note_dict, oh_manager, set_size)
     # xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
@@ -589,7 +594,7 @@ def main():
     # BW11,12 (freeze 1st, new dense, val_split: 0, batch=16, epoch=12,10)
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=10)
     # nakarat train end
-    '''
+
     '''
     # C train begin
     xs, ys = make_ab_db(makam, ['B', 'C'], dir_path, note_dict, oh_manager, set_size)
