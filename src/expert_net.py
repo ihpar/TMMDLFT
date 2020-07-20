@@ -74,7 +74,7 @@ def create_training_data(makam, model_a, model_b, oh_manager):
 
         x_train.append(x_mj)
         y_train.append(y_data_j)
-        if counter % 10 == 0:
+        if counter % 100 == 0:
             print(f'd {counter}')
         counter += 1
 
@@ -83,6 +83,9 @@ def create_training_data(makam, model_a, model_b, oh_manager):
 
 def create_training_data_by_part(makam, model_a, model_b, oh_manager, note_dict, parts):
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
+    if makam == 'nihavent':
+        dir_path = 'E:\\Akademik\\Tik5\\nihavent_sarkilar\\nihavent-ekler'
+
     x_train, y_train = [], []
     counter = 0
     for part_id in parts:
@@ -110,7 +113,7 @@ def create_training_data_by_part(makam, model_a, model_b, oh_manager, note_dict,
 
             x_train.append(x_mj)
             y_train.append(y_data_j)
-            if counter % 10 == 0:
+            if counter % 100 == 0:
                 print(f'd {counter}')
             counter += 1
 
@@ -166,28 +169,36 @@ def train_model(makam, model, model_name, x, y, epcs=0):
 
 def main():
     start = time.time()
-    makam = 'hicaz'
+    # makam = 'hicaz'
+    makam = 'nihavent'
 
     note_dict = NCDictionary()
     oh_manager = OhManager(makam)
-    model_a = load_model(makam, 'lstm_v60')
-    model_b = load_model(makam, 'lstm_v62')
+    # hicaz
+    # model_a = load_model(makam, 'lstm_v60')
+    # model_b = load_model(makam, 'lstm_v62')
+
+    # nihavent
+    model_a, model_b = load_model(makam, 'lstm_v101'), load_model(makam, 'lstm_v102')
 
     x_f, y_f = create_training_data(makam, model_a, model_b, oh_manager)
     x_shape = x_f.shape
     x_f = x_f.reshape((x_shape[0], 1, x_shape[1]))
 
-    x_s, y_s = create_training_data_by_part(makam, model_a, model_b, oh_manager, note_dict, ['C'])
+    x_s, y_s = create_training_data_by_part(makam, model_a, model_b, oh_manager, note_dict, ['I', 'A'])
     x_shape = x_s.shape
     x_s = x_s.reshape((x_shape[0], 1, x_shape[1]))
 
     # v0: LSTM(100), v1: LSTM(200), v2: LSTM(100)*LSTM(100)
-    v = 'v_c9'
+    # v = 'v_c9'
+
+    v = 'v_ia2'
+
     x_train = np.append(x_f, x_s, axis=0)
     y_train = np.append(y_f, y_s, axis=0)
     print(x_train.shape, y_train.shape)
     model = make_model(x_train.shape[1:], y_train.shape[1])
-    train_model(makam, model, 'b_decider_' + v, x_train, y_train)
+    train_model(makam, model, 'b_decider_' + v, x_train, y_train, epcs=10)
 
     end = time.time()
     hours, rem = divmod(end - start, 3600)
