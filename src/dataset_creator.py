@@ -2,6 +2,7 @@ import os
 import codecs
 from fractions import Fraction
 import json
+
 from note_dictionary import NoteDictionary
 from note_translator import NoteTranslator
 from dur_translator import DurTranslator
@@ -203,6 +204,27 @@ def test_training_file(makam, ver, f_name):
             print(note_name, note_dur)
 
 
+def create_nc_corpus(makam, ver):
+    oh_manager = OhManager(makam)
+
+    dir_path = os.path.join(os.path.abspath('..'), 'data', makam, ver)
+    files = [f for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f))]
+    songs = []
+    for f in files:
+        song = []
+        with open(os.path.join(dir_path, f), 'r') as cf:
+            notes = json.load(cf)
+            for note in notes:
+                nd = oh_manager.oh_2_nd(note)
+                song.append(nd)
+        songs.append(song)
+
+    with open(makam + '--nc_corpus.txt', 'w') as tf:
+        for song in songs:
+            line = ' '.join(song)
+            tf.write(line + '\n')
+
+
 def main():
     makam = 'nihavent'
     dirs = ['mu2', 'txt']
@@ -215,7 +237,8 @@ def main():
 
     # turn whole SymbTr into training data
     # create_training_data(makam, dir_path, dirs)
-    test_training_file(makam, 'oh', 's_0')
+    # test_training_file(makam, 'oh', 's_0')
+    # create_nc_corpus(makam, 'oh')
 
 
 if __name__ == '__main__':
