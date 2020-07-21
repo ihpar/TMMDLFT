@@ -365,13 +365,21 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
         parts = n_d.split(':')
         note_num = int(parts[0])
         dur = int(parts[1])
-        dur = Fraction(note_dict.get_dur_by_num(dur))
+        if makam == 'nihavent':
+            dur = Fraction(dt.get_dur_name_by_num(dur))
+        elif makam == 'hicaz':
+            dur = Fraction(note_dict.get_dur_by_num(dur))
         dur_cpy = dur
 
         if dur > measure_remainder:
             dur = measure_remainder
 
-        dur_num = note_dict.get_num_by_dur(str(dur))
+        dur_num = 0
+        if makam == 'nihavent':
+            dur_num = dt.get_dur_num_by_name(str(dur))
+        elif makam == 'hicaz':
+            dur_num = note_dict.get_num_by_dur(str(dur))
+
         n_c_d = str(note_num) + ':' + str(dur_num)
         try:
             n_d_num = oh_manager.nd_2_int(n_c_d)
@@ -685,6 +693,7 @@ def main():
     # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
     cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
     part_a = compose_v2(makam, time_sig, measure_cnt, initiator, models_a, set_size, lo, hi, cp, note_dict, oh_manager)
+    print(part_a)
     # end region
 
 
