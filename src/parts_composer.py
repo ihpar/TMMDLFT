@@ -153,7 +153,7 @@ def train_model(makam, src_model, xs, ys, target_model, eps):
     plt.show()
 
 
-def get_starters(init_file, set_size, note_dict, oh_manager):
+def get_starters(init_file, set_size, note_dict, oh_manager, nt=None, dt=None):
     nom_index = 2
     den_index = 3
     beat, tot = None, Fraction(0)
@@ -168,19 +168,29 @@ def get_starters(init_file, set_size, note_dict, oh_manager):
             parts = [s.strip() for s in parts]
             parts[0] = int(parts[0])
 
-            if (parts[0] in [1, 7, 9, 10, 11, 12, 24, 28]) and (
+            if (parts[0] in [1, 4, 7, 9, 10, 11, 12, 23, 24, 28]) and (
                     parts[nom_index].isdigit() and parts[den_index].isdigit()):
                 # note name
                 note_name = parts[1].lower().strip()
                 if note_name == '':
                     note_name = 'rest'
-                note_num = note_dict.get_note_by_name(note_name)
+
+                if nt:
+                    note_num = nt.get_note_num_by_name(note_name)
+                else:
+                    note_num = note_dict.get_note_by_name(note_name)
+
                 # note dur
                 note_len = Fraction(int(parts[nom_index]), int(parts[den_index]))
                 tot += note_len
                 dur = str(note_len)
                 dur_alt = parts[nom_index] + '/' + parts[den_index]
-                dur = note_dict.get_num_by_dur(dur)
+
+                if dt:
+                    dur = dt.get_dur_num_by_name(dur_alt)
+                else:
+                    dur = note_dict.get_num_by_dur(dur)
+
                 if not dur:
                     dur = note_dict.get_num_by_dur(dur_alt)
                 combine = oh_manager.nd_2_oh(str(note_num) + ':' + str(dur))
@@ -189,7 +199,7 @@ def get_starters(init_file, set_size, note_dict, oh_manager):
     return np.array(starters), tot
 
 
-def get_starters_by_part(init_part, set_size, note_dict, oh_manager, models, lo, hi, cp, time_sig):
+def get_starters_by_part(init_part, set_size, note_dict, oh_manager, models, lo, hi, cp, time_sig, nt=None, dt=None):
     starter = init_part[0][-set_size:]
     song = np.array([np.copy(starter)])
     total = Fraction(0)
@@ -310,8 +320,18 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
     model_b = models[1]
     decider = models[2]
 
+    nt, dt = None, None
+    if makam == 'nihavent':
+        nt = note_translator.NoteTranslator(makam)
+        dt = dur_translator.DurTranslator(makam)
+
+    starters, tot = None, None
+
     if not by_part:
-        starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
+        if makam == 'hicaz':
+            starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
+        elif makam == 'nihavent':
+            starters, tot = get_starters(init_file, set_size, note_dict, oh_manager, nt, dt)
     else:
         starters, tot = get_starters_by_part(init_file, set_size, note_dict, oh_manager, models, lo, hi, cp, time_sig)
 
@@ -562,16 +582,17 @@ def main():
     # sep = 'CW2'
     sep = 'BW2'
 
+    '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
     # ys = [[n1,n2,...,nm], song:[outs]]
-    # xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    # xa, ya = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    xi, yi = make_db(makam, 'I', dir_path, note_dict, oh_manager, set_size, is_whole=True)
+    xa, ya = make_db(makam, 'A', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     # xb, yb = make_db(makam, 'B', dir_path, note_dict, oh_manager, set_size, is_whole=True)
     # xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
-    # xs = np.concatenate((xi, xa), axis=0)
+    xs = np.concatenate((xi, xa), axis=0)
     # xs = np.concatenate((xs, xb), axis=0)
     # xs = np.concatenate((xs, xc), axis=0)
-    # ys = np.concatenate((yi, ya), axis=0)
+    ys = np.concatenate((yi, ya), axis=0)
     # ys = np.concatenate((ys, yb), axis=0)
     # ys = np.concatenate((ys, yc), axis=0)
     # IABCW1 (freeze 1st, new dense, val_split: 0.1),
@@ -581,8 +602,10 @@ def main():
     # nihavent
     # IAW1 (base 101, freeze 1st, new dense, val_split: 0.1, epcs=10)
     # IAW2 (base 102, unfreeze all, new dense, val_split: 0.1, epcs=auto)
-    # train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
+    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
+    '''
 
+    '''
     # nakarat train begin
     xs, ys = make_ab_db(makam, ['A', 'B'], dir_path, note_dict, oh_manager, set_size)
     # xc, yc = make_db(makam, 'C', dir_path, note_dict, oh_manager, set_size, is_whole=True)
@@ -604,6 +627,7 @@ def main():
 
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
     # nakarat train end
+    '''
 
     '''
     # C train begin
@@ -649,6 +673,19 @@ def main():
         song = np.append(song, part_c, axis=1)
         song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,12', second_rep)
     '''
+
+    # region test
+    init = '0'
+    measure_cnt = 4
+    lo = 0.1
+    hi = 0.4
+    models_a = [load_model(makam, 'sec_IAW1_v101'), load_model(makam, 'sec_IAW2_v102'), load_model(makam, 'b_decider_v_ia1')]
+    song_name = 'Nihavent_Duyek_Tester_' + init
+    initiator = 'init-nihavent-' + init + '.mu2'
+    # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
+    cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
+    part_a = compose_v2(makam, time_sig, measure_cnt, initiator, models_a, set_size, lo, hi, cp, note_dict, oh_manager)
+    # end region
 
 
 if __name__ == '__main__':

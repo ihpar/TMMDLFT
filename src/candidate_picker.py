@@ -1,3 +1,5 @@
+import dur_translator
+import note_translator
 from mu2_reader import decompose_mu2
 import numpy as np
 import random
@@ -10,11 +12,19 @@ class CandidatePicker:
         self.br_probabilities = {}  # broad corpus
         self.set_size = set_size
 
+        nt, dt = None, None
+        if makam == 'nihavent':
+            nt = note_translator.NoteTranslator(makam)
+            dt = dur_translator.DurTranslator(makam)
+
         for curr_song in songs_arr:
             song = curr_song['file']
             part_map = curr_song['parts_map']
             song_final = curr_song['sf']
-            song = decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager)
+            if makam == 'hicaz':
+                song = decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager)
+            elif makam == 'nihavent':
+                song = decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager, nt, dt)
             self.songs.append(song)
 
         total = 0
