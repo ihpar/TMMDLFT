@@ -96,8 +96,8 @@ def train_whole(makam, src_model, xs, ys, target_model, eps=0):
     for i, layer in enumerate(base_model.layers):
         if i == 4:
             break
-        # if i < 2:
-        #    layer.trainable = False
+        if i < 2:
+            layer.trainable = False
         new_model.add(layer)
 
     new_model.add(Dense(out_shape))
@@ -218,10 +218,18 @@ def get_starters_by_part(init_part, set_size, note_dict, oh_manager, models, lo,
         n_d = oh_manager.int_2_nd(chosen)
         parts = n_d.split(':')
         note_num = int(parts[0])
-        dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
+
+        if dt:
+            dur = Fraction(dt.get_dur_name_by_num(int(parts[1])))
+        else:
+            dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
+
         if dur > m_remainder:
             dur = m_remainder
-            dur_num = note_dict.get_num_by_dur(str(dur))
+            if dt:
+                dur_num = dt.get_dur_num_by_name(str(dur))
+            else:
+                dur_num = note_dict.get_num_by_dur(str(dur))
             chosen = oh_manager.nd_2_int(str(note_num) + ':' + str(dur_num))
 
         m_remainder -= dur
@@ -333,7 +341,10 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
         elif makam == 'nihavent':
             starters, tot = get_starters(init_file, set_size, note_dict, oh_manager, nt, dt)
     else:
-        starters, tot = get_starters_by_part(init_file, set_size, note_dict, oh_manager, models, lo, hi, cp, time_sig)
+        if makam == 'hicaz':
+            starters, tot = get_starters_by_part(init_file, set_size, note_dict, oh_manager, models, lo, hi, cp, time_sig)
+        elif makam == 'nihavent':
+            starters, tot = get_starters_by_part(init_file, set_size, note_dict, oh_manager, models, lo, hi, cp, time_sig, nt, dt)
 
     # print_notes(starters, oh_manager, note_dict)
 
@@ -454,9 +465,21 @@ def get_mu2_str(note, nom, denom):
 
 
 def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_rep):
+    nt, dt = None, None
+    if makam == 'nihavent':
+        nt = note_translator.NoteTranslator(makam)
+        dt = dur_translator.DurTranslator(makam)
+
     lines = consts.mu2_header.copy()
-    lines[0] = '9	8	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	0.0'
-    lines[2] = '51		9	8				Aksak		'
+    if makam == 'hicaz':
+        lines[0] = '9	8	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	0.0'
+        lines[2] = '51		9	8				Aksak		'
+    elif makam == 'nihavent':
+        lines[0] = '8	8	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	1'
+        lines[1] = '50							{makam}	B4b5/E5b5	'
+        lines[2] = '51		8	8				Düyek		'
+        lines[3] = '52		1	8	160					'
+
     lines[1] = lines[1].replace('{makam}', makam)
     lines[7] = lines[7].replace('{song_title}', title)
     m_tot = Fraction(0)
@@ -469,12 +492,20 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_
         parts = n_d.split(':')
         note = int(parts[0])
         dur = int(parts[1])
-        note = note_dict.get_note_by_num(note)
+
+        if nt:
+            note = nt.get_note_name_by_num(note)
+        else:
+            note = note_dict.get_note_by_num(note)
         if not note:
             raise Exception('Note N/A')
         note = note.capitalize()
 
-        dur = note_dict.get_dur_by_num(dur).split('/')
+        if dt:
+            dur = dt.get_dur_name_by_num(dur).split('/')
+        else:
+            dur = note_dict.get_dur_by_num(dur).split('/')
+
         lines.append(get_mu2_str(note, dur[0], dur[1]))
 
         m_tot += Fraction(int(dur[0]), int(dur[1]))
@@ -586,9 +617,9 @@ def main():
     # time_sig = Fraction(9, 8)
     time_sig = Fraction(8, 8)
     # ver = '62'
-    ver = '102'
+    ver = '101'
     # sep = 'CW2'
-    sep = 'BW2'
+    sep = 'CW1'
 
     '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
@@ -637,13 +668,15 @@ def main():
     # nakarat train end
     '''
 
-    '''
     # C train begin
     xs, ys = make_ab_db(makam, ['B', 'C'], dir_path, note_dict, oh_manager, set_size)
     # CW1,2 (freeze 1st, new dense, val_split: 0.1, batch=16)
+
+    # nihavent
+    # CW1 (base 101, freeze 1st, new dense, val_split: 0.1, epcs=10)
+    # CW2 (base 102, unfreeze all, new dense, val_split: 0.1, epcs=auto)
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=10)
     # C train end
-    '''
 
     '''
     measure_cnt = 4
@@ -682,19 +715,34 @@ def main():
         song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,12', second_rep)
     '''
 
+    '''
     # region test
     init = '0'
     measure_cnt = 4
     lo = 0.1
     hi = 0.4
     models_a = [load_model(makam, 'sec_IAW1_v101'), load_model(makam, 'sec_IAW2_v102'), load_model(makam, 'b_decider_v_ia1')]
+    models_b = [load_model(makam, 'sec_BW1_v101'), load_model(makam, 'sec_BW2_v102'), load_model(makam, 'b_decider_v_b1')]
     song_name = 'Nihavent_Duyek_Tester_' + init
     initiator = 'init-nihavent-' + init + '.mu2'
     # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
     cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
     part_a = compose_v2(makam, time_sig, measure_cnt, initiator, models_a, set_size, lo, hi, cp, note_dict, oh_manager)
-    print(part_a)
+    if len(part_a) == 0:
+        # continue
+        pass
+
+    cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['B'], dir_path, note_dict, oh_manager, set_size)
+    part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+    # second_rep = compose_ending(makam, enders, part_b, time_sig, measure_cnt, note_dict, oh_manager, lo, hi)
+    if len(part_b) == 0:
+        # continue
+        pass
+
+    song = np.append(part_a, part_b, axis=1)
+    song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,8', np.array([]))
     # end region
+    '''
 
 
 if __name__ == '__main__':
