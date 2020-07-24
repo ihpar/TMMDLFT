@@ -185,20 +185,20 @@ def main():
     x_shape = x_f.shape
     x_f = x_f.reshape((x_shape[0], 1, x_shape[1]))
 
-    x_s, y_s = create_training_data_by_part(makam, model_a, model_b, oh_manager, note_dict, ['B'])
+    x_s, y_s = create_training_data_by_part(makam, model_a, model_b, oh_manager, note_dict, ['C'])
     x_shape = x_s.shape
     x_s = x_s.reshape((x_shape[0], 1, x_shape[1]))
 
     # v0: LSTM(100), v1: LSTM(200), v2: LSTM(100)*LSTM(100)
     # v = 'v_c9'
 
-    v = 'v_b2'
+    v = 'v_c2'
 
     x_train = np.append(x_f, x_s, axis=0)
     y_train = np.append(y_f, y_s, axis=0)
     print(x_train.shape, y_train.shape)
     model = make_model(x_train.shape[1:], y_train.shape[1])
-    train_model(makam, model, 'b_decider_' + v, x_train, y_train)
+    train_model(makam, model, 'b_decider_' + v, x_train, y_train, epcs=10)
 
     end = time.time()
     hours, rem = divmod(end - start, 3600)

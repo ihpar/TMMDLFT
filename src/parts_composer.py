@@ -96,8 +96,8 @@ def train_whole(makam, src_model, xs, ys, target_model, eps=0):
     for i, layer in enumerate(base_model.layers):
         if i == 4:
             break
-        if i < 2:
-            layer.trainable = False
+        # if i < 2:
+        #     layer.trainable = False
         new_model.add(layer)
 
     new_model.add(Dense(out_shape))
@@ -617,9 +617,9 @@ def main():
     # time_sig = Fraction(9, 8)
     time_sig = Fraction(8, 8)
     # ver = '62'
-    ver = '101'
+    ver = '102'
     # sep = 'CW2'
-    sep = 'CW1'
+    sep = 'CW2'
 
     '''
     # xs = [[[n1,n2,n3,..,n8],[n2,n3,...,n9]], song:[8s:[],8s:[],...]]
@@ -675,7 +675,7 @@ def main():
     # nihavent
     # CW1 (base 101, freeze 1st, new dense, val_split: 0.1, epcs=10)
     # CW2 (base 102, unfreeze all, new dense, val_split: 0.1, epcs=auto)
-    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver, eps=10)
+    train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
     # C train end
 
     '''
