@@ -1,6 +1,8 @@
 # from nakarat_endings import hicaz_song_endings
+import dur_translator
+import note_translator
 from ending_picker import EndingPicker
-from my_endings import my_hicaz_song_endings
+from my_endings import my_hicaz_song_endings, my_nihavent_song_endings
 
 from tensorflow.python.keras.layers import Activation, Dense
 from tensorflow.python.keras.models import Sequential
@@ -15,35 +17,63 @@ import hicaz_parts
 import random
 
 
-def parse_notes(notes, note_dict, oh_manager):
+def parse_notes(notes, note_dict, oh_manager, nt=None, dt=None):
     res = []
     for n in notes:
         parts = n.split(':')
         name = parts[0].lower()
         dur = parts[1]
-        name = note_dict.get_note_by_name(name)
-        dur = note_dict.get_num_by_dur(dur)
+        if nt:
+            name = nt.get_note_num_by_name(name)
+        else:
+            name = note_dict.get_note_by_name(name)
+
+        if dt:
+            dur = dt.get_dur_num_by_name(dur)
+        else:
+            dur = note_dict.get_num_by_dur(dur)
+
         oh = oh_manager.nd_2_oh(str(name) + ':' + str(dur))
         res.append(oh)
     return np.array(res)
 
 
 def make_ending_data(makam, note_dict, oh_manager, set_size):
-    xs, ys = [], []
-    for hse in my_hicaz_song_endings:
-        prevs = hse['prevs']
-        # end_f = hse['endings'][0]
-        end_s = hse['endings'][1]
-        # fin = hse['fin']
-        prevs = parse_notes(prevs, note_dict, oh_manager)
-        end_s = parse_notes(end_s, note_dict, oh_manager)
-        prevs = np.concatenate((prevs, end_s))
-        seq_len = prevs.shape[0]
-        for i in range(seq_len - set_size):
-            x = prevs[i:i + set_size]
-            y = prevs[i + set_size]
-            xs.append(x)
-            ys.append(y)
+    nt, dt = None, None
+    if makam == 'nihavent':
+        nt = note_translator.NoteTranslator(makam)
+        dt = dur_translator.DurTranslator(makam)
+
+    xs, ys, endings = [], [], []
+    if makam == 'hicaz':
+        endings = my_hicaz_song_endings.copy()
+    elif makam == 'nihavent':
+        endings = my_nihavent_song_endings.copy()
+
+    for se in endings:
+        try:
+            prevs = se['prevs']
+            if not prevs:
+                continue
+            # end_f = hse['endings'][0]
+            end_s = se['endings'][1]
+            # fin = hse['fin']
+            if makam == 'hicaz':
+                prevs = parse_notes(prevs, note_dict, oh_manager)
+                end_s = parse_notes(end_s, note_dict, oh_manager)
+            elif makam == 'nihavent':
+                prevs = parse_notes(prevs, note_dict, oh_manager, nt, dt)
+                end_s = parse_notes(end_s, note_dict, oh_manager, nt, dt)
+
+            prevs = np.concatenate((prevs, end_s))
+            seq_len = prevs.shape[0]
+            for i in range(seq_len - set_size):
+                x = prevs[i:i + set_size]
+                y = prevs[i + set_size]
+                xs.append(x)
+                ys.append(y)
+        except KeyError as e:
+            print(se['file'] + '\n' + str(e))
     return np.array(xs), np.array(ys)
 
 
@@ -294,10 +324,11 @@ def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_ma
 
 
 def main():
-    makam = 'hicaz'
-    ver = 'v2'
+    # makam = 'hicaz'
+    makam = 'nihavent'
+    ver = 'v1'
     model_name = 'nakarat_end_' + ver
-    base_model = 'sec_BW11_v61'
+    base_model = 'sec_BW1_v101'
     set_size = 8
     note_dict = NCDictionary()
     oh_manager = OhManager(makam)

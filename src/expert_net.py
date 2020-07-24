@@ -191,7 +191,7 @@ def main():
 
     # v0: LSTM(100), v1: LSTM(200), v2: LSTM(100)*LSTM(100)
     # v = 'v_c9'
-
+    # TODO: run this
     v = 'v_c2'
 
     x_train = np.append(x_f, x_s, axis=0)

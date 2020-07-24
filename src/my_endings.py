@@ -1459,3 +1459,1387 @@ my_hicaz_song_endings = [
         'fin': [1, 5]
     }
 ]
+
+my_nihavent_song_endings = [
+    {
+        'file': 'nihavent--ek--aglamakla--inlemekle',
+        'prevs': [
+            'Fa5:1/16',
+            'Rest:1/16',
+            'La5:1/8',
+            'La5:1/16',
+            'La5:1/16',
+            'Sol5:1/16',
+            'Fa5:1/16',
+            'Mi5b5:1/16'
+        ],
+        'endings': [
+            [
+                'Rest:1/16',
+                'Sol5:1/8',
+                'Sol5:1/16',
+                'Sol5:1/16',
+                'Fa5:1/16',
+                'Mi5b5:1/16',
+                'Re5:1/16',
+                'Re5:1/16',
+                'Mi5b5:1/16',
+                'Re5:1/16',
+                'Do5:1/16',
+                'Si4b5:1/16',
+                'Do5:1/16',
+                'Re5:1/8'
+            ],
+            [
+                'Rest:1/16',
+                'Sol5:1/8',
+                'Sol5:1/16',
+                'Sol5:1/16',
+                'Fa5:1/16',
+                'Mi5b5:1/16',
+                'Re5:1/16',
+                'Do5:1/8',
+                'Si4b5:1/16',
+                'La4:1/16',
+                'Sol4:1/4'
+            ]
+        ],
+        'fin': [1, 10]
+    },
+
+    {
+        'file': 'nihavent--ek--aksami-getiren',
+        'prevs': [
+            'Sol5:1/4',
+            'La4:1/8',
+            'Do5:1/8',
+            'Si4b5:1/4',
+            'Rest:1/8',
+            'La4:1/8',
+            'Sol4:1/8',
+            'Fa4#4:1/8'
+        ],
+        'endings': [
+            [
+                'Sol4:3/4',
+                'Rest:1/4'
+            ],
+            [
+                'Sol4:3/4',
+                'Rest:1/4'
+            ]
+        ],
+        'fin': [1, 1]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--ahimi_hicranimi--selahattin_inal',
+        'prevs': [
+            'Re5:1/16',
+            'Do5:1/16',
+            'Re5:3/32',
+            'Do5:1/32',
+            'Si4b5:1/16',
+            'La4:1/16',
+            'Si4b5:3/32',
+            'La4:1/32'
+        ],
+        'endings': [
+            [
+                'Sol4:3/4',
+                'Rest:1/4'
+            ],
+            [
+                'Sol4:3/4',
+                'Rest:1/4'
+            ]
+        ],
+        'fin': [1, 1]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--ak_duvaklar--omer_dilek',
+        'prevs': [
+            'Re5:1/8',
+            'Do5:1/8',
+            'Rest:1/8',
+            'Mi5b5:1/4',
+            'Re5:1/8',
+            'Do5:1/4',
+            'Si4b5:1/8',
+            'La4:1/8'
+        ],
+        'endings': [
+            [
+                'Si4b5:1/8',
+                'La4:1/8',
+                'Sol4:1/8',
+                'Fa4#4:1/8',
+                'Sol4:1/2',
+                'Si4b5:1/8',
+                'La4:1/8',
+                'Sol4:1/8',
+                'Fa4#4:1/8',
+                'Sol4:1/2'
+            ],
+            [
+                'Si4b5:1/8',
+                'La4:1/8',
+                'Sol4:1/8',
+                'Fa4#4:1/8',
+                'Sol4:1/2',
+                'Si4b5:1/8',
+                'La4:1/8',
+                'Sol4:1/8',
+                'Fa4#4:1/8',
+                'Sol4:1/2'
+            ]
+        ],
+        'fin': [1, 9]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--askim_bahardi--yildirim_gurses',
+        'prevs': [
+            'Do5:1/4',
+            'Si4b5:1/4',
+            'Rest:1/8',
+            'Sol4:1/8',
+            'La4:1/8',
+            'Si4b5:1/8',
+            'Mi5b5:1/4',
+            'Re5:1/4'
+        ],
+        'endings': [
+            [
+                'Re5:1/8',
+                'Do5:1/8',
+                'Si4b5:1/8',
+                'La4:1/8',
+                'Sol4:1/8',
+                'Si4b5:1/16',
+                'La4:1/16',
+                'Si4b5:1/16',
+                'La4:1/16',
+                'Si4b5:1/16',
+                'La4:1/16'
+            ],
+            [
+                'Re5:1/8',
+                'Do5:1/8',
+                'Si4b5:1/8',
+                'La4:1/8',
+                'Sol4:1/2'
+            ]
+        ],
+        'fin': [1, 4]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--askimin_ilk--arif_sami_toker',
+        'prevs': [
+            'Do5:1/32',
+            'Re5:1/32',
+            'Mi5b5:1/8',
+            'Rest:1/4',
+            'La4:1/8',
+            'Si4b5:1/8',
+            'La4:1/4',
+            'Re5:1/4'
+        ],
+        'endings': [
+            [
+                'Rest:1/8',
+                'Si4b5:4/16',
+                'La4:1/16',
+                'Sol4:1/16',
+                'Sol4:1/2'
+            ],
+            [
+                'Rest:1/8',
+                'Si4b5:4/16',
+                'La4:1/16',
+                'Sol4:1/16',
+                'Sol4:1/2'
+            ]
+        ],
+        'fin': [1, 4]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--ayrilik_bukuverdi--arif_sami_toker',
+        'prevs': [
+            'Sol4:3/8',
+            'Si4b5:1/16',
+            'La4:1/16',
+            'Sol4:1/16',
+            'La4:1/16',
+            'Si4b5:1/16',
+            'Do5:1/16',
+            'Re5:1/4'
+        ],
+        'endings': [
+            [
+                'Sol4:1/1'
+            ],
+            [
+                'Sol4:1/1'
+            ]
+        ],
+        'fin': [1, 0]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--bir_demet--zeki_muren',
+        'prevs': [
+            'Rest:1/8',
+            'La4:1/4',
+            'Sol4:1/8',
+            'Fa4#4:1/8',
+            'Sol4:1/8',
+            'Si4b5:1/8',
+            'La4:1/16',
+            'Sol4:1/16'
+        ],
+        'endings': [
+            [
+                'Sol4:3/8',
+                'La4:1/8',
+                'Si4b5:1/8',
+                'Do5:1/8',
+                'Re5:1/4'
+            ],
+            [
+                'Sol4:3/8',
+                'Re5:1/8',
+                'Mi5b5:1/8',
+                'Fa5#4:1/8',
+                'Sol5:1/4'
+            ]
+        ],
+        'fin': [1, 4]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--bir_ihtimal--osman_nihat_akin',
+        'prevs': [
+            'Rest:1/8',
+            'La4:1/4',
+            'Si4b5:1/8',
+            'Do5:1/8',
+            'Re5:1/8',
+            'Do5:1/16',
+            'Re5:1/16',
+            'Re5:1/4'
+        ],
+        'endings': [
+            [
+                'La4:1/8',
+                'Si4b5:1/16',
+                'La4:1/16',
+                'Sol4:1/8',
+                'Sol4:1/16',
+                'Fa4#4:1/16',
+                'Sol4:1/2'
+            ],
+            [
+                'La4:1/8',
+                'Si4b5:1/16',
+                'La4:1/16',
+                'Sol4:1/8',
+                'Sol4:1/16',
+                'Fa4#4:1/16',
+                'Sol4:1/2'
+            ]
+        ],
+        'fin': [1, 6]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--bugun_yine--emin_ongan',
+        'prevs': [
+            'Mi5b5:1/16',
+            'Re5:1/16',
+            'Do5:1/16',
+            'Si4b5:1/4',
+            'La4:1/8',
+            'Do5:1/4',
+            'Do5:1/8',
+            'Re5:1/2'
+        ],
+        'endings': [
+            [
+                'La4:1/8',
+                'Si4b5:1/8',
+                'Sol4:1/8',
+                'Fa4#4:1/8',
+                'Sol4:1/4'
+            ],
+            [
+                'La4:1/8',
+                'Si4b5:1/8',
+                'Sol4:1/8',
+                'Fa4#4:1/8',
+                'Sol4:1/4'
+            ]
+        ],
+        'fin': [1, 4]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--bulbul_asikmis--zeki_muren',
+        'prevs': [
+            'Re5:1/16',
+            'Mi5b5:1/16',
+            'Re5:1/16',
+            'Mi5b5:1/16',
+            'Re5:1/16',
+            'Do5:1/16',
+            'Si4b5:1/4',
+            'La4:1/4'
+        ],
+        'endings': [
+            [
+                'Rest:1/8',
+                'Si4b5:1/4',
+                'Fa4#4:1/8',
+                'Sol4:1/4',
+                'Rest:1/4'
+            ],
+            [
+                'Rest:1/8',
+                'Si4b5:1/4',
+                'Fa4#4:1/8',
+                'Sol4:1/4',
+                'Rest:1/4'
+            ]
+        ],
+        'fin': [1, 4]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--doymadim_sana--nevzat_akay',
+        'prevs': [
+            'Mi5b5:1/8',
+            'Re5:1/8',
+            'Do5:1/8',
+            'Si4b5:1/8',
+            'La4:1/8',
+            'Si4b5:1/16',
+            'Rest:1/8',
+            'Do5:1/16'
+        ],
+        'endings': [
+            [
+                'Re5:1/4',
+                'Do5:1/16',
+                'Si4b5:1/16',
+                'La4:1/16',
+                'Si4b5:1/16',
+                'Sol4:1/2'
+            ],
+            [
+                'Re5:1/4',
+                'Do5:1/16',
+                'Si4b5:1/16',
+                'La4:1/16',
+                'Si4b5:1/16',
+                'Sol4:1/2'
+            ]
+        ],
+        'fin': [1, 5]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--ellerim_boyle--sekip_ayhan_ozisik',
+        'prevs': [
+            'Sol4:1/8',
+            'Re5:1/1',
+            'Do5:1/8',
+            'Re5:1/4',
+            'Do5:1/8',
+            'Si4b5:1/4',
+            'La4:1/8',
+            'Si4b5:1/8'
+        ],
+        'endings': [
+            [
+                'Sol4:1/1'
+            ],
+            [
+                'Sol4:1/1'
+            ]
+        ],
+        'fin': [1, 0]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--gizli_ask--zeynettin_maras',
+        'prevs': [
+            'Do5:1/16',
+            'Do5:1/8',
+            'Si4b5:1/8',
+            'Do5:3/16',
+            'Si4b5:1/16',
+            'Do5:1/16',
+            'Si4b5:1/16',
+            'La4:3/8'
+        ],
+        'endings': [
+            [
+                'Rest:1/8',
+                'Re5:1/8',
+                'Si4b5:1/8',
+                'La4:1/8',
+                'Sol4:1/2'
+            ],
+            [
+                'Rest:1/8',
+                'Re5:1/8',
+                'Si4b5:1/8',
+                'La4:1/8',
+                'Sol4:1/2'
+            ]
+        ],
+        'fin': [1, 4]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--gokyuzunde--teoman_alpay',
+        'prevs': [
+            'La4:1/4',
+            'Si4b5:1/4',
+            'Do5:1/8',
+            'Do5:3/8',
+            'Si4b5:1/4',
+            'Do5:1/4',
+            'Re5:1/8',
+            'Re5:3/8'
+        ],
+        'endings': [
+            [
+                'Rest:1/8',
+                'Si4b5:1/4',
+                'Fa4#4:1/8',
+                'Sol4:1/2'
+            ],
+            [
+                'Rest:1/8',
+                'Si4b5:1/4',
+                'Fa4#4:1/8',
+                'Sol4:1/2'
+            ]
+        ],
+        'fin': [1, 3]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--istanbul_biricik--sadettin_kaynak',
+        'prevs': [
+            'Re5:1/8',
+            'Mi5b5:1/8',
+            'Fa5#4:1/8',
+            'Sol5:1/4',
+            'La5:1/8',
+            'Do6:1/8',
+            'Si5b5:1/8',
+            'La5:1/8'
+        ],
+        'endings': [
+            [
+                'Sol5:1/2',
+                'Sol5:1/2'
+            ],
+            [
+                'Sol5:1/2',
+                'Sol5:1/2'
+            ]
+        ],
+        'fin': [1, 1]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--sarkilar_seni--muzaffer_ilkar',
+        'prevs': [
+            'La4:1/16',
+            'La4:1/4',
+            'Mi5b5:1/8',
+            'Re5:1/4',
+            'Do5:1/8',
+            'Si4b5:1/4',
+            'La4:1/8',
+            'Si4b5:1/8'
+        ],
+        'endings': [
+            [
+                'Sol4:3/8',
+                'Re5:1/16',
+                'Do5:1/16',
+                'Si4b5:3/32',
+                'La4:1/32',
+                'Si4b5:1/16',
+                'Do5:1/16',
+                'Re5:1/4'
+            ],
+            [
+                'Sol4:3/8',
+                'Sol4:1/8',
+                'Rest:1/4',
+                'Rest:1/4'
+            ]
+        ],
+        'fin': [1, 3]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--sen_benim--emin_ongan',
+        'prevs': [
+            'Do5:1/8',
+            'La4:1/2',
+            'Rest:3/8',
+            'Re5:1/4',
+            'Do5:1/8',
+            'Si4:1/8',
+            'Do5:1/4',
+            'Si4b5:1/4'
+        ],
+        'endings': [
+            [
+                'La4:1/8',
+                'Si4b5:1/8',
+                'Sol4:3/4'
+            ],
+            [
+                'La4:1/8',
+                'Si4b5:1/8',
+                'Sol4:3/4'
+            ]
+        ],
+        'fin': [1, 2]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--seninle_bu--dursun_karaca',
+        'prevs': [
+            'Do5:1/8',
+            'La4:1/2',
+            'La4:1/2',
+            'Fa4#4:1/4',
+            'Re4:1/4',
+            'Si4b5:1/4',
+            'La4:1/8',
+            'Si4b5:1/8'
+        ],
+        'endings': [
+            [
+
+                'Sol4:1/2',
+                'Sol4:1/2'
+            ],
+            [
+                'Sol4:1/2',
+                'Sol4:1/2'
+            ]
+        ],
+        'fin': [1, 1]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--sevil_neselen--sadettin_oktenay',
+        'prevs': [
+            'Do5:1/8',
+            'La4:7/8',
+            'Rest:1/8',
+            'Re5:1/4',
+            'Do5:1/8',
+            'Si4b5:1/4',
+            'La4:1/8',
+            'Si4b5:1/8'
+        ],
+        'endings': [
+            [
+                'Sol4:1/8',
+                'La4:1/8',
+                'Si4b5:1/8',
+                'Do5:1/8',
+                'Re5:1/8',
+                'Mi5b5:1/8',
+                'Fa5:1/8',
+                'Sol5:1/8'
+            ],
+            [
+                'Sol4:1/1'
+            ]
+        ],
+        'fin': [1, 0]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--su_guzeller--necip_mirkelamoglu',
+        'prevs': [
+            'Do5:1/8',
+            'Si4b5:1/16',
+            'La4:1/16',
+            'Sol4:1/16',
+            'La4:1/16',
+            'Si4b5:1/16',
+            'Do5:1/16',
+            'Re5:1/4'
+        ],
+        'endings': [
+            [
+                'Rest:1/16',
+                'Sol5:1/8',
+                'Re5:1/16',
+                'Mi5b5:1/8',
+                'Do5:1/8',
+                'Si4b5:1/8',
+                'La4:1/8',
+                'Sol4:1/4'
+            ],
+            [
+                'Rest:1/16',
+                'Sol5:1/8',
+                'Re5:1/16',
+                'Mi5b5:1/8',
+                'Do5:1/8',
+                'Si4b5:1/8',
+                'La4:1/8',
+                'Sol4:1/4'
+            ]
+        ],
+        'fin': [1, 7]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--unutturamaz_seni--ekrem_guyer',
+        'prevs': [
+            'La4:1/8',
+            'Sol4:1/8',
+            'Fa4#4:1/8',
+            'Sol4:1/8',
+            'La4:1/8',
+            'Si4b5:1/8',
+            'La4:1/16',
+            'Sol4:1/16'
+        ],
+        'endings': [
+            [
+                'Sol4:3/8',
+                'Re5:1/16',
+                'Mi5b5:1/16',
+                'Re5:1/16',
+                'Do5:1/16',
+                'Si4b5:1/16',
+                'Do5:1/16',
+                'Re5:1/4'
+            ],
+            [
+                'Sol4:3/8',
+                'Sol4:1/8',
+                'Sol4:3/8',
+                'Sol4:1/8'
+            ]
+        ],
+        'fin': [1, 3]
+    },
+
+    {
+        'file': 'nihavent--ek--a--sarki--duyek--yillari_durduracak--necdet_tokatlioglu',
+        'prevs': [
+            'Rest:1/8',
+            'Re5:1/8',
+            'Do5:1/8',
+            'Si4b5:1/8',
+            'Do5:1/4',
+            'Si4b5:1/8',
+            'Si4b5:1/16',
+            'La4:1/16'
+        ],
+        'endings': [
+            [
+                'Sol4:1/2',
+                'Re4:1/4',
+                'Sol4:1/4'
+            ],
+            [
+                'Sol4:1/2',
+                'Re4:1/4',
+                'Sol4:1/4'
+            ]
+        ],
+        'fin': [1, 2]
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    },
+
+    {
+        'file': '',
+        'prevs': [
+
+        ],
+        'endings': [
+            [
+
+            ],
+            [
+
+            ]
+        ],
+        'fin': []
+    }
+]
