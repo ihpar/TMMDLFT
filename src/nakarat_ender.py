@@ -74,6 +74,7 @@ def make_ending_data(makam, note_dict, oh_manager, set_size):
                 ys.append(y)
         except KeyError as e:
             print(se['file'] + '\n' + str(e))
+            raise Exception('Nope')
     return np.array(xs), np.array(ys)
 
 
@@ -334,7 +335,7 @@ def main():
     oh_manager = OhManager(makam)
 
     xs, ys = make_ending_data(makam, note_dict, oh_manager, set_size)
-    train_nakarat_ending_model(makam, base_model, model_name, xs, ys, eps=15)
+    # train_nakarat_ending_model(makam, base_model, model_name, xs, ys, eps=15)
 
 
 if __name__ == '__main__':
