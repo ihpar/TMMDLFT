@@ -737,12 +737,12 @@ def main():
     '''
 
     # region nihavent test
-    models_a = [load_model(makam, 'sec_IAW1_v101'), load_model(makam, 'sec_IAW2_v102'), load_model(makam, 'b_decider_v_ia1')]
+    models_a = [load_model(makam, 'sec_IAW1_v101'), load_model(makam, 'sec_IAW2_v102'), load_model(makam, 'b_decider_v_ia2')]
     models_b = [load_model(makam, 'sec_BW1_v101'), load_model(makam, 'sec_BW2_v102'), load_model(makam, 'b_decider_v_b2')]
     models_c = [load_model(makam, 'sec_CW1_v101'), load_model(makam, 'sec_CW2_v102'), load_model(makam, 'b_decider_v_c2')]
     enders = ['nakarat_end_v2', 'nakarat_end_v1']
 
-    for i in range(0, 10):
+    for i in range(0, 1):
         init = str(i)
         measure_cnt = 4
         lo = 0.1
