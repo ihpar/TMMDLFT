@@ -327,15 +327,15 @@ def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_ma
 def main():
     # makam = 'hicaz'
     makam = 'nihavent'
-    ver = 'v1'
+    ver = 'v2'
     model_name = 'nakarat_end_' + ver
-    base_model = 'sec_BW1_v101'
+    base_model = 'sec_BW2_v102'
     set_size = 8
     note_dict = NCDictionary()
     oh_manager = OhManager(makam)
 
     xs, ys = make_ending_data(makam, note_dict, oh_manager, set_size)
-    # train_nakarat_ending_model(makam, base_model, model_name, xs, ys, eps=15)
+    train_nakarat_ending_model(makam, base_model, model_name, xs, ys)
 
 
 if __name__ == '__main__':
