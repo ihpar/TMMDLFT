@@ -742,7 +742,7 @@ def main():
     models_c = [load_model(makam, 'sec_CW1_v101'), load_model(makam, 'sec_CW2_v102'), load_model(makam, 'b_decider_v_c2')]
     enders = ['nakarat_end_v2', 'nakarat_end_v1']
 
-    for i in range(0, 1):
+    for i in range(9, 10):
         init = str(i)
         measure_cnt = 4
         lo = 0.1
