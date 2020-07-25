@@ -477,7 +477,7 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_
     elif makam == 'nihavent':
         lines[0] = '8	8	Pay	Payda	Legato%	Bas	Çek	Söz-1	Söz-2	1'
         lines[1] = '50							{makam}	B4b5/E5b5	'
-        lines[2] = '51		8	8				Düyek		'
+        lines[2] = '51		8	8				Duyek		'
         lines[3] = '52		1	8	160					'
 
     lines[1] = lines[1].replace('{makam}', makam)
@@ -538,9 +538,18 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_
                 for s_r in second_rep:
                     n_d = oh_manager.oh_2_nd(s_r)
                     parts = n_d.split(':')
-                    note = note_dict.get_note_by_num(int(parts[0])).capitalize()
-                    dur = note_dict.get_dur_by_num(int(parts[1])).split('/')
+                    if nt:
+                        note = nt.get_note_name_by_num(int(parts[0])).capitalize()
+                    else:
+                        note = note_dict.get_note_by_num(int(parts[0])).capitalize()
+
+                    if dt:
+                        dur = dt.get_dur_name_by_num(int(parts[1])).split('/')
+                    else:
+                        dur = note_dict.get_dur_by_num(int(parts[1])).split('/')
+
                     lines.append(get_mu2_str(note, dur[0], dur[1]))
+
             if m_cnt == mzs[1]:
                 if has_second_rep:
                     lines.append('9								2)	0.0')
@@ -588,12 +597,22 @@ def compose_ending(makam, enders, part, time_sig, measure_cnt, note_dict, oh_man
     second_rep = np.array([])
     perfect_end = False
     perfect_note = 'La4'
+    nt, note = None, None
+
     if makam == 'hicaz':
         perfect_note = 'La4'
+    elif makam == 'nihavent':
+        perfect_note = 'Sol4'
+        nt = note_translator.NoteTranslator(makam)
+
     for row in reversed(part[0]):
         n_d = oh_manager.oh_2_nd(row)
         parts = n_d.split(':')
-        note = note_dict.get_note_by_num(int(parts[0])).capitalize()
+        if makam == 'hicaz':
+            note = note_dict.get_note_by_num(int(parts[0])).capitalize()
+        elif makam == 'nihavent':
+            note = nt.get_note_name_by_num(int(parts[0])).capitalize()
+
         if note == 'Rest':
             continue
         if note == perfect_note:
@@ -668,6 +687,7 @@ def main():
     # nakarat train end
     '''
 
+    '''
     # C train begin
     xs, ys = make_ab_db(makam, ['B', 'C'], dir_path, note_dict, oh_manager, set_size)
     # CW1,2 (freeze 1st, new dense, val_split: 0.1, batch=16)
@@ -677,6 +697,7 @@ def main():
     # CW2 (base 102, unfreeze all, new dense, val_split: 0.1, epcs=auto)
     train_whole(makam, 'lstm_v' + ver, xs, ys, 'sec_' + sep + '_v' + ver)
     # C train end
+    '''
 
     '''
     measure_cnt = 4
@@ -715,16 +736,20 @@ def main():
         song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,12', second_rep)
     '''
 
-    '''
     # region test
     init = '0'
     measure_cnt = 4
     lo = 0.1
     hi = 0.4
+
     models_a = [load_model(makam, 'sec_IAW1_v101'), load_model(makam, 'sec_IAW2_v102'), load_model(makam, 'b_decider_v_ia1')]
     models_b = [load_model(makam, 'sec_BW1_v101'), load_model(makam, 'sec_BW2_v102'), load_model(makam, 'b_decider_v_b1')]
+    models_c = [load_model(makam, 'sec_CW1_v101'), load_model(makam, 'sec_CW2_v102'), load_model(makam, 'b_decider_v_c1')]
+    enders = ['nakarat_end_v2', 'nakarat_end_v1']
+
     song_name = 'Nihavent_Duyek_Tester_' + init
     initiator = 'init-nihavent-' + init + '.mu2'
+
     # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
     cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
     part_a = compose_v2(makam, time_sig, measure_cnt, initiator, models_a, set_size, lo, hi, cp, note_dict, oh_manager)
@@ -734,15 +759,21 @@ def main():
 
     cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['B'], dir_path, note_dict, oh_manager, set_size)
     part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
-    # second_rep = compose_ending(makam, enders, part_b, time_sig, measure_cnt, note_dict, oh_manager, lo, hi)
+    second_rep = compose_ending(makam, enders, part_b, time_sig, measure_cnt, note_dict, oh_manager, lo, hi)
     if len(part_b) == 0:
         # continue
         pass
 
+    cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['C'], dir_path, note_dict, oh_manager, set_size)
+    part_c = compose_v2(makam, time_sig, measure_cnt, part_b, models_c, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+    if len(part_c) == 0:
+        # continue
+        pass
+
     song = np.append(part_a, part_b, axis=1)
-    song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,8', np.array([]))
+    song = np.append(song, part_c, axis=1)
+    song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,12', second_rep)
     # end region
-    '''
 
 
 if __name__ == '__main__':

@@ -142,7 +142,7 @@ def pick_chosen(pred_a, pred_b, threshold):
     return random.choice(candidates)
 
 
-def make_ending_predictions(last_notes, nakarat_ender_model_a, nakarat_ender_model_b, time_sig, oh_manager, note_dict, threshold):
+def make_ending_predictions(last_notes, nakarat_ender_model_a, nakarat_ender_model_b, time_sig, oh_manager, note_dict, threshold, nt=None, dt=None):
     print('making ending predictions')
     tot = Fraction(0)
     xpy = last_notes.shape[1]
@@ -156,12 +156,22 @@ def make_ending_predictions(last_notes, nakarat_ender_model_a, nakarat_ender_mod
         n_d = oh_manager.int_2_nd(chosen)
         parts = n_d.split(':')
         note_num = int(parts[0])
-        dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
+
+        if dt:
+            dur = Fraction(dt.get_dur_name_by_num(int(parts[1])))
+        else:
+            dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
+
         remaining = time_sig - tot
         if dur > remaining:
             dur = remaining
         tot += dur
-        dur_num = note_dict.get_num_by_dur(str(dur))
+
+        if dt:
+            dur_num = dt.get_dur_num_by_name(str(dur))
+        else:
+            dur_num = note_dict.get_num_by_dur(str(dur))
+
         n_c_d = str(note_num) + ':' + str(dur_num)
         try:
             n_d_num = oh_manager.nd_2_int(n_c_d)
@@ -178,14 +188,20 @@ def make_ending_predictions(last_notes, nakarat_ender_model_a, nakarat_ender_mod
     return np.array(predictions)
 
 
-def get_remaining(remainder, oh_manager, note_dict):
+def get_remaining(remainder, oh_manager, note_dict, nt=None, dt=None):
     res = []
     num = remainder.numerator
     den = remainder.denominator
-    note_num = note_dict.get_note_by_name('rest')
+    if nt:
+        note_num = nt.get_note_num_by_name('rest')
+    else:
+        note_num = note_dict.get_note_by_name('rest')
 
     if num == 1 or (num % 2) == 0:
-        note_dur = note_dict.get_num_by_dur(str(Fraction(num, den)))
+        if dt:
+            note_dur = dt.get_dur_num_by_name(str(Fraction(num, den)))
+        else:
+            note_dur = note_dict.get_num_by_dur(str(Fraction(num, den)))
         oh = oh_manager.nd_2_oh(str(note_num) + ':' + str(note_dur))
         res.append(oh)
     else:
@@ -193,37 +209,56 @@ def get_remaining(remainder, oh_manager, note_dict):
         one_fr = Fraction(1, den)
         rem_fr = Fraction(num - 1, den)
 
-        note_dur = note_dict.get_num_by_dur(str(one_fr))
+        if dt:
+            note_dur = dt.get_dur_num_by_name(str(one_fr))
+        else:
+            note_dur = note_dict.get_num_by_dur(str(one_fr))
+
         oh = oh_manager.nd_2_oh(str(note_num) + ':' + str(note_dur))
         res.append(oh)
         while (rem_fr.numerator != 1) and (rem_fr.numerator % 2 != 0):
             num = rem_fr.numerator
             den = rem_fr.denominator
             one_fr = Fraction(1, den)
-            note_dur = note_dict.get_num_by_dur(str(one_fr))
+
+            if dt:
+                note_dur = dt.get_dur_num_by_name(str(one_fr))
+            else:
+                note_dur = note_dict.get_num_by_dur(str(one_fr))
+
             oh = oh_manager.nd_2_oh(str(note_num) + ':' + str(note_dur))
             res.append(oh)
             rem_fr = Fraction(num - 1, den)
 
-        note_dur = note_dict.get_num_by_dur(str(rem_fr))
+        if dt:
+            note_dur = dt.get_dur_num_by_name(str(rem_fr))
+        else:
+            note_dur = note_dict.get_num_by_dur(str(rem_fr))
+
         oh = oh_manager.nd_2_oh(str(note_num) + ':' + str(note_dur))
         res.append(oh)
 
     return res
 
 
-def end_if_can(predictions, makam, oh_manager, note_dict, time_sig):
+def end_if_can(predictions, makam, oh_manager, note_dict, time_sig, nt=None, dt=None):
     print('checking if can end')
     perfect_note = 'La4'
     if makam == 'hicaz':
         perfect_note = 'La4'
+    elif makam == 'nihavent':
+        perfect_note = 'Sol4'
 
     can_end = False
     i = 0
     for row in reversed(predictions):
         n_d = oh_manager.oh_2_nd(row)
         parts = n_d.split(':')
-        note = note_dict.get_note_by_num(int(parts[0])).capitalize()
+        if nt:
+            note = nt.get_note_name_by_num(int(parts[0])).capitalize()
+        else:
+            note = note_dict.get_note_by_num(int(parts[0])).capitalize()
+
         if note == perfect_note:
             can_end = True
             break
@@ -240,7 +275,10 @@ def end_if_can(predictions, makam, oh_manager, note_dict, time_sig):
         if j < (len(predictions) - i):
             n_d = oh_manager.oh_2_nd(row)
             parts = n_d.split(':')
-            dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
+            if dt:
+                dur = Fraction(dt.get_dur_name_by_num(int(parts[1])))
+            else:
+                dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
             tot += dur
 
             new_ending.append(row)
@@ -249,23 +287,35 @@ def end_if_can(predictions, makam, oh_manager, note_dict, time_sig):
 
     remainder = time_sig - tot
     if remainder > 0:
-        remaining_parts = get_remaining(remainder, oh_manager, note_dict)
+        remaining_parts = get_remaining(remainder, oh_manager, note_dict, nt, dt)
         for row in remaining_parts:
             new_ending.append(row)
 
     return can_end, np.array(new_ending)
 
 
-def fixed_ending(fixed_note_lst, fixed_dur_list, oh_manager, note_dict):
+def fixed_ending(fixed_note_lst, fixed_dur_list, oh_manager, note_dict, nt=None, dt=None):
     res = []
     for note, dur in zip(fixed_note_lst, fixed_dur_list):
-        note_num = note_dict.get_note_by_name(note)
-        dur_num = note_dict.get_num_by_dur(dur)
+        if nt:
+            note_num = nt.get_note_num_by_name(note)
+        else:
+            note_num = note_dict.get_note_by_name(note)
+
+        if dt:
+            dur_num = dt.get_dur_num_by_name(dur)
+        else:
+            dur_num = note_dict.get_num_by_dur(dur)
+
         res.append(oh_manager.nd_2_oh(str(note_num) + ':' + str(dur_num)))
     return np.array(res)
 
 
 def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_manager, lo, hi):
+    nt, dt = None, None
+    if makam == 'nihavent':
+        nt = note_translator.NoteTranslator(makam)
+        dt = dur_translator.DurTranslator(makam)
     # ending_picker = EndingPicker(makam, hicaz_parts.hicaz_songs, 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2', note_dict, oh_manager, 4)
     nakarat_ender_model_a, nakarat_ender_model_b = load_model(makam, enders[0]), load_model(makam, enders[1])
     tot = Fraction(0)
@@ -277,7 +327,11 @@ def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_ma
     for r in part[0]:
         n_d = oh_manager.oh_2_nd(r)
         parts = n_d.split(':')
-        dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
+        if dt:
+            dur = Fraction(dt.get_dur_name_by_num(int(parts[1])))
+        else:
+            dur = Fraction(note_dict.get_dur_by_num(int(parts[1])))
+
         tot += dur
         measures[m_no].append(n_d)
         if tot == time_sig:
@@ -304,8 +358,8 @@ def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_ma
     predictions = []
     while not song_can_end:
         try:
-            predictions = make_ending_predictions(x, nakarat_ender_model_a, nakarat_ender_model_b, time_sig, oh_manager, note_dict, hi)
-            song_can_end, predictions = end_if_can(predictions, makam, oh_manager, note_dict, time_sig)
+            predictions = make_ending_predictions(x, nakarat_ender_model_a, nakarat_ender_model_b, time_sig, oh_manager, note_dict, hi, nt, dt)
+            song_can_end, predictions = end_if_can(predictions, makam, oh_manager, note_dict, time_sig, nt, dt)
             if song_can_end:
                 correctly_ended = True
         except:
@@ -320,7 +374,10 @@ def make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_ma
         if makam == 'hicaz':
             fixed_note_lst = ['la4', 'la4', 'la4', 'la4', 'rest', 'rest']
             fixed_dur_list = ['1/4', '1/8', '1/8', '1/4', '1/4', '1/8']
-        predictions = fixed_ending(fixed_note_lst, fixed_dur_list, oh_manager, note_dict)
+        elif makam == 'nihavent':
+            fixed_note_lst = ['sol4', 'sol4', 'sol4', 'sol4', 'rest']
+            fixed_dur_list = ['1/8', '1/4', '1/8', '1/4', '1/4']
+        predictions = fixed_ending(fixed_note_lst, fixed_dur_list, oh_manager, note_dict, nt, dt)
     return predictions
 
 
