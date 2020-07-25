@@ -736,44 +736,42 @@ def main():
         song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,12', second_rep)
     '''
 
-    # region test
-    init = '0'
-    measure_cnt = 4
-    lo = 0.1
-    hi = 0.4
+    # region nihavent test
+    for i in range(0, 1):
+        init = str(i)
+        measure_cnt = 4
+        lo = 0.1
+        hi = 0.4
 
-    models_a = [load_model(makam, 'sec_IAW1_v101'), load_model(makam, 'sec_IAW2_v102'), load_model(makam, 'b_decider_v_ia1')]
-    models_b = [load_model(makam, 'sec_BW1_v101'), load_model(makam, 'sec_BW2_v102'), load_model(makam, 'b_decider_v_b1')]
-    models_c = [load_model(makam, 'sec_CW1_v101'), load_model(makam, 'sec_CW2_v102'), load_model(makam, 'b_decider_v_c1')]
-    enders = ['nakarat_end_v2', 'nakarat_end_v1']
+        models_a = [load_model(makam, 'sec_IAW1_v101'), load_model(makam, 'sec_IAW2_v102'), load_model(makam, 'b_decider_v_ia1')]
+        models_b = [load_model(makam, 'sec_BW1_v101'), load_model(makam, 'sec_BW2_v102'), load_model(makam, 'b_decider_v_b2')]
+        models_c = [load_model(makam, 'sec_CW1_v101'), load_model(makam, 'sec_CW2_v102'), load_model(makam, 'b_decider_v_c2')]
+        enders = ['nakarat_end_v2', 'nakarat_end_v1']
 
-    song_name = 'Nihavent_Duyek_Tester_' + init
-    initiator = 'init-nihavent-' + init + '.mu2'
+        song_name = 'Nihavent_Duyek_Tester_' + init
+        initiator = 'init-nihavent-' + init + '.mu2'
 
-    # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
-    cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
-    part_a = compose_v2(makam, time_sig, measure_cnt, initiator, models_a, set_size, lo, hi, cp, note_dict, oh_manager)
-    if len(part_a) == 0:
-        # continue
-        pass
+        # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
+        cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
+        part_a = compose_v2(makam, time_sig, measure_cnt, initiator, models_a, set_size, lo, hi, cp, note_dict, oh_manager)
+        if len(part_a) == 0:
+            continue
 
-    cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['B'], dir_path, note_dict, oh_manager, set_size)
-    part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
-    second_rep = compose_ending(makam, enders, part_b, time_sig, measure_cnt, note_dict, oh_manager, lo, hi)
-    if len(part_b) == 0:
-        # continue
-        pass
+        cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['B'], dir_path, note_dict, oh_manager, set_size)
+        part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+        second_rep = compose_ending(makam, enders, part_b, time_sig, measure_cnt, note_dict, oh_manager, lo, hi)
+        if len(part_b) == 0:
+            continue
 
-    cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['C'], dir_path, note_dict, oh_manager, set_size)
-    part_c = compose_v2(makam, time_sig, measure_cnt, part_b, models_c, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
-    if len(part_c) == 0:
-        # continue
-        pass
+        cp = CandidatePicker(makam, nihavent_parts.nihavent_songs, ['C'], dir_path, note_dict, oh_manager, set_size)
+        part_c = compose_v2(makam, time_sig, measure_cnt, part_b, models_c, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+        if len(part_c) == 0:
+            continue
 
-    song = np.append(part_a, part_b, axis=1)
-    song = np.append(song, part_c, axis=1)
-    song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,12', second_rep)
-    # end region
+        song = np.append(part_a, part_b, axis=1)
+        song = np.append(song, part_c, axis=1)
+        song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,12', second_rep)
+        # end region
 
 
 if __name__ == '__main__':
