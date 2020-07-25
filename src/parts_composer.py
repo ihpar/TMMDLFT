@@ -737,7 +737,7 @@ def main():
     '''
 
     # region nihavent test
-    for i in range(0, 1):
+    for i in range(0, 10):
         init = str(i)
         measure_cnt = 4
         lo = 0.1
