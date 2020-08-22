@@ -74,7 +74,13 @@ def get_base_data(makam, note_dict=None, nt=None, dt=None):
             if song['file'].startswith('bes-hicaz-'):
                 added_songs.append(song['file'])
 
-    print(added_songs)
+    for song in added_songs:
+        song = os.path.join(os.path.abspath('..'), 'songs', 'added', makam, song)
+        song = parse_song_in_mu2(song, note_dict, nt, dt)
+        for note in song:
+            parts = [int(x) for x in note.split(':')]
+            note_nums.append(parts[0])
+            dur_nums.append(parts[1])
 
     note_nums = np.array(note_nums)
     dur_nums = np.array(dur_nums)
