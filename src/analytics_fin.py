@@ -153,9 +153,18 @@ def abs_measurement(makam, generated_songs_path):
     std_gen = np.std(note_nums_gen)
     print('gen mean:', mean_gen, 'gen std:', std_gen)
 
+    print('base min:', min_len, 'gen min:', gen_min_len)
 
-def exhaustive_cross_val_inter():
-    num_samples = 100
+
+def exhaustive_cross_val_inter(makam):
+    oh_manager, nt, dt, note_dict = None, None, None, None
+    if makam == 'hicaz':
+        note_dict = NCDictionary()
+    else:
+        nt = NoteTranslator(makam)
+        dt = DurTranslator(makam)
+
+    num_samples = 70
 
     set1_eval = {'total_used_pitch': np.zeros((num_samples, 1))}
     metrics_list = set1_eval.keys()
@@ -166,13 +175,20 @@ def exhaustive_cross_val_inter():
     set1_intra = np.zeros((num_samples, len(metrics_list), num_samples - 1))
     set2_intra = np.zeros((num_samples, len(metrics_list), num_samples - 1))
 
+    note_nums_src, dur_nums_src, broad_list, min_len = get_base_data(makam, note_dict, nt, dt)
+
+    for i in range(0, num_samples):
+        set1_eval[metrics_list[0]][i] = 1
+
 
 def main():
-    makam = 'nihavent'
-    gen_dir = 'nihavent'
-    generated_songs_path = os.path.join(os.path.abspath('..'), 'songs', gen_dir)
-    # abs_measurement(makam, generated_songs_path)
-    exhaustive_cross_val_inter()
+    makam = ['hicaz', 'nihavent']
+    gen_dir = ['hicaz-sarkilar', 'nihavent']
+    curr_makam = 1
+
+    generated_songs_path = os.path.join(os.path.abspath('..'), 'songs', gen_dir[curr_makam])
+    # abs_measurement(makam[curr_makam], generated_songs_path)
+    exhaustive_cross_val_inter(makam[curr_makam])
 
 
 if __name__ == '__main__':
