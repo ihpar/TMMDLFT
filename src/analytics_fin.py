@@ -7,6 +7,7 @@ import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy import stats, integrate
+import random
 
 import hicaz_parts
 import nihavent_parts
@@ -165,6 +166,12 @@ def get_different_pitch_count(song):
     return elem_count
 
 
+def get_different_dur_count(song):
+    unique = set(song['durs'])
+    elem_count = len(unique)
+    return elem_count
+
+
 def utils_c_dist(a, b):
     c_dist = np.zeros(len(b))
     for i in range(0, len(b)):
@@ -173,7 +180,7 @@ def utils_c_dist(a, b):
 
 
 def utils_kl_dist(a, b, num_sample=1000):
-    pdf_a = stats.gaussian_kde(a)
+    pdf_a = stats.gaussian_kde(a)  # Representation of a kernel-density estimate using Gaussian kernels.
     pdf_b = stats.gaussian_kde(b)
     sample_a = np.linspace(np.min(a), np.max(a), num_sample)
     sample_b = np.linspace(np.min(b), np.max(b), num_sample)
@@ -197,13 +204,18 @@ def total_used_pitch(makam, generated_songs_path):
     num_samples = 10
 
     note_nums_src, dur_nums_src, base_broad_list, min_len = get_base_data(makam, note_dict, nt, dt)
+    song_idx = range(len(base_broad_list))
+    # chosen = random.sample(song_idx, num_samples)
+    # chosen = [96, 30, 66, 27, 63, 15, 79, 77, 110, 24]  # hicaz
+    chosen = [142, 149, 98, 73, 157, 143, 104, 147, 97, 135]  # nihavent
+    print('chosen:', chosen)
     note_nums_gen, dur_nums_gen, gen_broad_list, gen_min_len = get_gen_data(generated_songs_path, note_dict, nt, dt)
 
     set1_eval = {'total_used_pitch': np.zeros((num_samples, 1))}  # base set
     metrics_list = list(set1_eval.keys())
 
     for i in range(num_samples):
-        set1_eval[metrics_list[0]][i] = get_different_pitch_count(base_broad_list[i])
+        set1_eval[metrics_list[0]][i] = get_different_pitch_count(base_broad_list[chosen[i]])
 
     set2_eval = {'total_used_pitch': np.zeros((num_samples, 1))}  # gen set
     for i in range(num_samples):
@@ -211,7 +223,7 @@ def total_used_pitch(makam, generated_songs_path):
 
     for i in range(0, len(metrics_list)):
         mli = metrics_list[i]
-        print(mli + ':')
+        print('\n' + mli + ':')
         print('------------------------')
         print(' base_set')
         print('  mean: ', np.mean(set1_eval[mli], axis=0))
@@ -242,26 +254,117 @@ def total_used_pitch(makam, generated_songs_path):
             sets_inter[test_index[0]][i] = utils_c_dist(set1_eval[metrics_list[i]][test_index], set2_eval[metrics_list[i]])
 
     plot_set1_intra = np.transpose(set1_intra, (1, 0, 2)).reshape(len(metrics_list), -1)
+    # print(plot_set1_intra[0])
     plot_set2_intra = np.transpose(set2_intra, (1, 0, 2)).reshape(len(metrics_list), -1)
+    # print(plot_set2_intra[0])
     plot_sets_inter = np.transpose(sets_inter, (1, 0, 2)).reshape(len(metrics_list), -1)
+    # print(plot_sets_inter[0])
     for i in range(0, len(metrics_list)):
-        sns.kdeplot(plot_set1_intra[i], label='intra_set1')
-        sns.kdeplot(plot_sets_inter[i], label='inter')
-        sns.kdeplot(plot_set2_intra[i], label='intra_set2')
+        sns.kdeplot(plot_set1_intra[i], label='intra base set')
+        sns.kdeplot(plot_sets_inter[i], label='inter sets')
+        sns.kdeplot(plot_set2_intra[i], label='intra gen set')
 
-        plt.title(metrics_list[i])
+        plt.title('Total Used Pitch')
         plt.xlabel('Euclidean distance')
         plt.show()
 
     for i in range(0, len(metrics_list)):
-        print(metrics_list[i] + ':')
+        print('\n' + metrics_list[i] + ':')
         print('------------------------')
-        print(' demo_set1')
+        print(' base set')
         print('  Kullback–Leibler divergence:', utils_kl_dist(plot_set1_intra[i], plot_sets_inter[i]))
         print('  Overlap area:', utils_overlap_area(plot_set1_intra[i], plot_sets_inter[i]))
 
         print('------------------------')
-        print(' demo_set2')
+        print(' gen set')
+        print('  Kullback–Leibler divergence:', utils_kl_dist(plot_set2_intra[i], plot_sets_inter[i]))
+        print('  Overlap area:', utils_overlap_area(plot_set2_intra[i], plot_sets_inter[i]))
+
+
+def total_used_durs(makam, generated_songs_path):
+    oh_manager, nt, dt, note_dict = None, None, None, None
+    if makam == 'hicaz':
+        note_dict = NCDictionary()
+    else:
+        nt = NoteTranslator(makam)
+        dt = DurTranslator(makam)
+
+    num_samples = 10
+
+    note_nums_src, dur_nums_src, base_broad_list, min_len = get_base_data(makam, note_dict, nt, dt)
+    song_idx = range(len(base_broad_list))
+    chosen = random.sample(song_idx, num_samples)
+    # chosen = [161, 136, 40, 151, 120, 79, 48, 149, 102, 42]  # hicaz
+    # chosen = [75, 82, 188, 137, 191, 9, 160, 40, 93, 2]  # nihavent
+    print('chosen:', chosen)
+    note_nums_gen, dur_nums_gen, gen_broad_list, gen_min_len = get_gen_data(generated_songs_path, note_dict, nt, dt)
+
+    set1_eval = {'total_used_durs': np.zeros((num_samples, 1))}  # base set
+    metrics_list = list(set1_eval.keys())
+
+    for i in range(num_samples):
+        set1_eval[metrics_list[0]][i] = get_different_dur_count(base_broad_list[chosen[i]])
+
+    set2_eval = {'total_used_durs': np.zeros((num_samples, 1))}  # gen set
+    for i in range(num_samples):
+        set2_eval[metrics_list[0]][i] = get_different_dur_count(gen_broad_list[i])
+
+    for i in range(0, len(metrics_list)):
+        mli = metrics_list[i]
+        print('\n' + mli + ':')
+        print('------------------------')
+        print(' base_set')
+        print('  mean: ', np.mean(set1_eval[mli], axis=0))
+        print('  std: ', np.std(set1_eval[mli], axis=0))
+
+        print('------------------------')
+        print(' gen_set')
+        print('  mean: ', np.mean(set2_eval[mli], axis=0))
+        print('  std: ', np.std(set2_eval[mli], axis=0))
+
+    loo = LeaveOneOut()
+    loo.get_n_splits(np.arange(num_samples))
+
+    set1_intra = np.zeros((num_samples, len(metrics_list), num_samples - 1))
+    set2_intra = np.zeros((num_samples, len(metrics_list), num_samples - 1))
+
+    for i in range(len(metrics_list)):
+        for train_index, test_index in loo.split(np.arange(num_samples)):
+            set1_intra[test_index[0]][i] = utils_c_dist(set1_eval[metrics_list[i]][test_index], set1_eval[metrics_list[i]][train_index])
+            set2_intra[test_index[0]][i] = utils_c_dist(set2_eval[metrics_list[i]][test_index], set2_eval[metrics_list[i]][train_index])
+
+    loo = LeaveOneOut()
+    loo.get_n_splits(np.arange(num_samples))
+    sets_inter = np.zeros((num_samples, len(metrics_list), num_samples))
+
+    for i in range(len(metrics_list)):
+        for train_index, test_index in loo.split(np.arange(num_samples)):
+            sets_inter[test_index[0]][i] = utils_c_dist(set1_eval[metrics_list[i]][test_index], set2_eval[metrics_list[i]])
+
+    plot_set1_intra = np.transpose(set1_intra, (1, 0, 2)).reshape(len(metrics_list), -1)
+    # print(plot_set1_intra[0])
+    plot_set2_intra = np.transpose(set2_intra, (1, 0, 2)).reshape(len(metrics_list), -1)
+    # print(plot_set2_intra[0])
+    plot_sets_inter = np.transpose(sets_inter, (1, 0, 2)).reshape(len(metrics_list), -1)
+    # print(plot_sets_inter[0])
+    for i in range(0, len(metrics_list)):
+        sns.kdeplot(plot_set1_intra[i], label='intra base set')
+        sns.kdeplot(plot_sets_inter[i], label='inter sets')
+        sns.kdeplot(plot_set2_intra[i], label='intra gen set')
+
+        plt.title('Total Used Durations')
+        plt.xlabel('Euclidean distance')
+        plt.show()
+
+    for i in range(0, len(metrics_list)):
+        print('\n' + metrics_list[i] + ':')
+        print('------------------------')
+        print(' base set')
+        print('  Kullback–Leibler divergence:', utils_kl_dist(plot_set1_intra[i], plot_sets_inter[i]))
+        print('  Overlap area:', utils_overlap_area(plot_set1_intra[i], plot_sets_inter[i]))
+
+        print('------------------------')
+        print(' gen set')
         print('  Kullback–Leibler divergence:', utils_kl_dist(plot_set2_intra[i], plot_sets_inter[i]))
         print('  Overlap area:', utils_overlap_area(plot_set2_intra[i], plot_sets_inter[i]))
 
@@ -269,11 +372,12 @@ def total_used_pitch(makam, generated_songs_path):
 def main():
     makam = ['hicaz', 'nihavent']
     gen_dir = ['hicaz-sarkilar', 'nihavent']
-    curr_makam = 0
+    curr_makam = 1
 
     generated_songs_path = os.path.join(os.path.abspath('..'), 'songs', gen_dir[curr_makam])
     # abs_measurement(makam[curr_makam], generated_songs_path)
-    total_used_pitch(makam[curr_makam], generated_songs_path)
+    # total_used_pitch(makam[curr_makam], generated_songs_path)
+    total_used_durs(makam[curr_makam], generated_songs_path)
 
 
 if __name__ == '__main__':
