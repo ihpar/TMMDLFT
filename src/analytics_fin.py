@@ -4,6 +4,9 @@ import codecs
 from fractions import Fraction
 from sklearn.model_selection import LeaveOneOut
 import sys
+import seaborn as sns
+import matplotlib.pyplot as plt
+from scipy import stats, integrate
 
 import hicaz_parts
 import nihavent_parts
@@ -156,7 +159,34 @@ def abs_measurement(makam, generated_songs_path):
     print('base min:', min_len, 'gen min:', gen_min_len)
 
 
-def exhaustive_cross_val_inter(makam):
+def get_different_pitch_count(song):
+    unique = set(song['notes'])
+    elem_count = len(unique)
+    return elem_count
+
+
+def utils_c_dist(a, b):
+    c_dist = np.zeros(len(b))
+    for i in range(0, len(b)):
+        c_dist[i] = np.linalg.norm(a - b[i])
+    return c_dist
+
+
+def utils_kl_dist(a, b, num_sample=1000):
+    pdf_a = stats.gaussian_kde(a)
+    pdf_b = stats.gaussian_kde(b)
+    sample_a = np.linspace(np.min(a), np.max(a), num_sample)
+    sample_b = np.linspace(np.min(b), np.max(b), num_sample)
+    return stats.entropy(pdf_a(sample_a), pdf_b(sample_b))
+
+
+def utils_overlap_area(a, b):
+    pdf_a = stats.gaussian_kde(a)
+    pdf_b = stats.gaussian_kde(b)
+    return integrate.quad(lambda x: min(pdf_a(x), pdf_b(x)), np.min((np.min(a), np.min(b))), np.max((np.max(a), np.max(b))))[0]
+
+
+def total_used_pitch(makam, generated_songs_path):
     oh_manager, nt, dt, note_dict = None, None, None, None
     if makam == 'hicaz':
         note_dict = NCDictionary()
@@ -164,10 +194,33 @@ def exhaustive_cross_val_inter(makam):
         nt = NoteTranslator(makam)
         dt = DurTranslator(makam)
 
-    num_samples = 70
+    num_samples = 10
 
-    set1_eval = {'total_used_pitch': np.zeros((num_samples, 1))}
-    metrics_list = set1_eval.keys()
+    note_nums_src, dur_nums_src, base_broad_list, min_len = get_base_data(makam, note_dict, nt, dt)
+    note_nums_gen, dur_nums_gen, gen_broad_list, gen_min_len = get_gen_data(generated_songs_path, note_dict, nt, dt)
+
+    set1_eval = {'total_used_pitch': np.zeros((num_samples, 1))}  # base set
+    metrics_list = list(set1_eval.keys())
+
+    for i in range(num_samples):
+        set1_eval[metrics_list[0]][i] = get_different_pitch_count(base_broad_list[i])
+
+    set2_eval = {'total_used_pitch': np.zeros((num_samples, 1))}  # gen set
+    for i in range(num_samples):
+        set2_eval[metrics_list[0]][i] = get_different_pitch_count(gen_broad_list[i])
+
+    for i in range(0, len(metrics_list)):
+        mli = metrics_list[i]
+        print(mli + ':')
+        print('------------------------')
+        print(' base_set')
+        print('  mean: ', np.mean(set1_eval[mli], axis=0))
+        print('  std: ', np.std(set1_eval[mli], axis=0))
+
+        print('------------------------')
+        print(' gen_set')
+        print('  mean: ', np.mean(set2_eval[mli], axis=0))
+        print('  std: ', np.std(set2_eval[mli], axis=0))
 
     loo = LeaveOneOut()
     loo.get_n_splits(np.arange(num_samples))
@@ -175,20 +228,52 @@ def exhaustive_cross_val_inter(makam):
     set1_intra = np.zeros((num_samples, len(metrics_list), num_samples - 1))
     set2_intra = np.zeros((num_samples, len(metrics_list), num_samples - 1))
 
-    note_nums_src, dur_nums_src, broad_list, min_len = get_base_data(makam, note_dict, nt, dt)
+    for i in range(len(metrics_list)):
+        for train_index, test_index in loo.split(np.arange(num_samples)):
+            set1_intra[test_index[0]][i] = utils_c_dist(set1_eval[metrics_list[i]][test_index], set1_eval[metrics_list[i]][train_index])
+            set2_intra[test_index[0]][i] = utils_c_dist(set2_eval[metrics_list[i]][test_index], set2_eval[metrics_list[i]][train_index])
 
-    for i in range(0, num_samples):
-        set1_eval[metrics_list[0]][i] = 1
+    loo = LeaveOneOut()
+    loo.get_n_splits(np.arange(num_samples))
+    sets_inter = np.zeros((num_samples, len(metrics_list), num_samples))
+
+    for i in range(len(metrics_list)):
+        for train_index, test_index in loo.split(np.arange(num_samples)):
+            sets_inter[test_index[0]][i] = utils_c_dist(set1_eval[metrics_list[i]][test_index], set2_eval[metrics_list[i]])
+
+    plot_set1_intra = np.transpose(set1_intra, (1, 0, 2)).reshape(len(metrics_list), -1)
+    plot_set2_intra = np.transpose(set2_intra, (1, 0, 2)).reshape(len(metrics_list), -1)
+    plot_sets_inter = np.transpose(sets_inter, (1, 0, 2)).reshape(len(metrics_list), -1)
+    for i in range(0, len(metrics_list)):
+        sns.kdeplot(plot_set1_intra[i], label='intra_set1')
+        sns.kdeplot(plot_sets_inter[i], label='inter')
+        sns.kdeplot(plot_set2_intra[i], label='intra_set2')
+
+        plt.title(metrics_list[i])
+        plt.xlabel('Euclidean distance')
+        plt.show()
+
+    for i in range(0, len(metrics_list)):
+        print(metrics_list[i] + ':')
+        print('------------------------')
+        print(' demo_set1')
+        print('  Kullback–Leibler divergence:', utils_kl_dist(plot_set1_intra[i], plot_sets_inter[i]))
+        print('  Overlap area:', utils_overlap_area(plot_set1_intra[i], plot_sets_inter[i]))
+
+        print('------------------------')
+        print(' demo_set2')
+        print('  Kullback–Leibler divergence:', utils_kl_dist(plot_set2_intra[i], plot_sets_inter[i]))
+        print('  Overlap area:', utils_overlap_area(plot_set2_intra[i], plot_sets_inter[i]))
 
 
 def main():
     makam = ['hicaz', 'nihavent']
     gen_dir = ['hicaz-sarkilar', 'nihavent']
-    curr_makam = 1
+    curr_makam = 0
 
     generated_songs_path = os.path.join(os.path.abspath('..'), 'songs', gen_dir[curr_makam])
     # abs_measurement(makam[curr_makam], generated_songs_path)
-    exhaustive_cross_val_inter(makam[curr_makam])
+    total_used_pitch(makam[curr_makam], generated_songs_path)
 
 
 if __name__ == '__main__':
