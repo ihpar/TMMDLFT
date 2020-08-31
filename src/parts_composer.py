@@ -699,7 +699,7 @@ def main():
     # C train end
     '''
 
-    '''
+
     measure_cnt = 4
     lo = 0.1
     hi = 0.4
@@ -734,8 +734,9 @@ def main():
         song = np.append(part_a, part_b, axis=1)
         song = np.append(song, part_c, axis=1)
         song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,12', second_rep)
-    '''
 
+
+    '''
     # region nihavent test
     models_a = [load_model(makam, 'sec_IAW1_v101'), load_model(makam, 'sec_IAW2_v102'), load_model(makam, 'b_decider_v_ia2')]
     models_b = [load_model(makam, 'sec_BW1_v101'), load_model(makam, 'sec_BW2_v102'), load_model(makam, 'b_decider_v_b2')]
@@ -772,6 +773,7 @@ def main():
         song = np.append(song, part_c, axis=1)
         song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,12', second_rep)
         # end region
+    '''
 
 
 if __name__ == '__main__':
