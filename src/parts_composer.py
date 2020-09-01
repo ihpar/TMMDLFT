@@ -626,15 +626,15 @@ def compose_ending(makam, enders, part, time_sig, measure_cnt, note_dict, oh_man
 
 
 def main():
-    # makam = 'hicaz'
-    makam = 'nihavent'
-    # dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
-    dir_path = 'E:\\Akademik\\Tik5\\nihavent_sarkilar\\nihavent-ekler'
+    makam = 'hicaz'
+    # makam = 'nihavent'
+    dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
+    # dir_path = 'E:\\Akademik\\Tik5\\nihavent_sarkilar\\nihavent-ekler'
     note_dict = NCDictionary()
     oh_manager = OhManager(makam)
     set_size = 8
-    # time_sig = Fraction(9, 8)
-    time_sig = Fraction(8, 8)
+    time_sig = Fraction(9, 8)
+    # time_sig = Fraction(8, 8)
     # ver = '62'
     ver = '102'
     # sep = 'CW2'
@@ -699,7 +699,6 @@ def main():
     # C train end
     '''
 
-
     measure_cnt = 4
     lo = 0.1
     hi = 0.4
@@ -709,7 +708,7 @@ def main():
     models_c = [load_model(makam, 'sec_CW1_v61'), load_model(makam, 'sec_CW2_v62'), load_model(makam, 'b_decider_v_c9')]
     enders = ['nakarat_end_v2', 'nakarat_end_v1']
 
-    for i in range(0, 1):
+    for i in range(10, 20):
         init = str(i)
 
         song_name = 'Hicaz_Aksak_Tester_' + init
@@ -734,7 +733,6 @@ def main():
         song = np.append(part_a, part_b, axis=1)
         song = np.append(song, part_c, axis=1)
         song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,12', second_rep)
-
 
     '''
     # region nihavent test
