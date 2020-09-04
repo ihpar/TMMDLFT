@@ -700,31 +700,39 @@ def main():
     '''
 
     measure_cnt = 4
-    lo = 0.1
-    hi = 0.4
+    lo = 0.15
+    hi = 0.30
+
+    boundaries = [[0.15, 0.35], [0.15, 0.35], [0.10, 0.30]]
 
     models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'b_decider_v_ia7')]
     models_b = [load_model(makam, 'sec_BW11_v61'), load_model(makam, 'sec_BW12_v62'), load_model(makam, 'b_decider_v_b8')]
     models_c = [load_model(makam, 'sec_CW1_v61'), load_model(makam, 'sec_CW2_v62'), load_model(makam, 'b_decider_v_c9')]
     enders = ['nakarat_end_v2', 'nakarat_end_v1']
 
-    for i in range(10, 20):
+    for i in range(17, 18):
         init = str(i)
 
         song_name = 'Hicaz_Aksak_Tester_' + init
         initiator = 'init-hicaz-' + init + '.mu2'
         # compose(makam, time_sig, measure_cnt, initiator, model, set_size, lo, hi, cp, note_dict, oh_manager, song_name)
+        lo, hi = boundaries[0][0], boundaries[0][1]
+        print('lo a', lo, 'hi a', hi)
         cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
         part_a = compose_v2(makam, time_sig, measure_cnt, initiator, models_a, set_size, lo, hi, cp, note_dict, oh_manager)
         if len(part_a) == 0:
             continue
 
+        lo, hi = boundaries[1][0], boundaries[1][1]
+        print('lo b', lo, 'hi b', hi)
         cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['B'], dir_path, note_dict, oh_manager, set_size)
         part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
         second_rep = compose_ending(makam, enders, part_b, time_sig, measure_cnt, note_dict, oh_manager, lo, hi)
         if len(part_b) == 0:
             continue
 
+        lo, hi = boundaries[2][0], boundaries[2][1]
+        print('lo c', lo, 'hi c', hi)
         cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['C'], dir_path, note_dict, oh_manager, set_size)
         part_c = compose_v2(makam, time_sig, measure_cnt, part_b, models_c, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
         if len(part_c) == 0:
