@@ -13,6 +13,7 @@ import added_ss
 import hicaz_parts
 import nihavent_parts
 from dur_translator import DurTranslator
+from mu2_reader import decompose_mu2
 from nc_dictionary import NCDictionary
 from note_translator import NoteTranslator
 
@@ -62,48 +63,15 @@ def get_base_data(makam, note_dict=None, nt=None, dt=None):
     broad_list = []
     note_nums, dur_nums = [], []
     base_songs = added_ss.added_songs[makam]
-    with open(makam + '--nc_corpus.txt', 'r') as crp:
-        songs = crp.read().splitlines()
-        for song in songs:
-            song_entity = {'notes': [], 'durs': []}
-            notes = song.split(' ')
-            for note in notes:
-                parts = [int(x) for x in note.split(':')]
-                '''
-                if makam == 'hicaz':
-                    nota = note_dict.get_note_by_num(parts[0])
-                    dur = note_dict.get_dur_by_num(parts[1])
-                else:
-                    nota = nt.get_note_name_by_num(parts[0])
-                    dur = dt.get_dur_name_by_num(parts[1])
-                '''
-                note_nums.append(parts[0])
-                dur_nums.append(parts[1])
-
-                song_entity['notes'].append(parts[0])
-                song_entity['durs'].append(parts[1])
-
-            min_song_len = min(min_song_len, len(song_entity['notes']))
-            broad_list.append(song_entity)
-
-    added_songs = []
-    if makam == 'hicaz':
-        for song in hicaz_parts.hicaz_songs:
-            if song['file'].startswith('bes-hicaz-'):
-                added_songs.append(song['file'])
-    elif makam == 'nihavent':
-        for song in nihavent_parts.nihavent_songs:
-            added_songs.append(song['file'])
-
-    for song in added_songs:
-        song = os.path.join(os.path.abspath('..'), 'songs', 'added', makam, song)
-        song = parse_song_in_mu2(song, note_dict, nt, dt)
+    d_path = os.path.join(os.path.abspath('..'), 'mu2')
+    for bs in base_songs:
+        song = parse_song_in_mu2(os.path.join(d_path, bs['file']), note_dict, nt, dt)
         song_entity = {'notes': [], 'durs': []}
-
         for note in song:
             parts = [int(x) for x in note.split(':')]
             note_nums.append(parts[0])
             dur_nums.append(parts[1])
+
             song_entity['notes'].append(parts[0])
             song_entity['durs'].append(parts[1])
 
@@ -192,7 +160,8 @@ def utils_kl_dist(a, b, num_sample=1000):
 def utils_overlap_area(a, b):
     pdf_a = stats.gaussian_kde(a)
     pdf_b = stats.gaussian_kde(b)
-    return integrate.quad(lambda x: min(pdf_a(x), pdf_b(x)), np.min((np.min(a), np.min(b))), np.max((np.max(a), np.max(b))))[0]
+    options = {'limit': 100}
+    return integrate.quad(lambda x: min(pdf_a(x), pdf_b(x)), np.min((np.min(a), np.min(b))), np.max((np.max(a), np.max(b))), limit=100)[0]
 
 
 def abs_rel_pdfs(feature, makam, generated_songs_path):
@@ -286,7 +255,7 @@ def main():
                 'bar_used_pitch',
                 'total_used_note']
 
-    curr_feature = 1
+    curr_feature = 0
 
     generated_songs_path = os.path.join(os.path.abspath('..'), 'songs', gen_dirs[curr_makam])
     # abs_measurement(makams[curr_makam], generated_songs_path)
