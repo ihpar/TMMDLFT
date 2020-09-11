@@ -8,6 +8,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy import stats, integrate
 import random
+import added_ss
 
 import hicaz_parts
 import nihavent_parts
@@ -60,6 +61,7 @@ def get_base_data(makam, note_dict=None, nt=None, dt=None):
     min_song_len = sys.maxsize
     broad_list = []
     note_nums, dur_nums = [], []
+    base_songs = added_ss.added_songs[makam]
     with open(makam + '--nc_corpus.txt', 'r') as crp:
         songs = crp.read().splitlines()
         for song in songs:
@@ -281,12 +283,13 @@ def main():
     gen_dirs = ['hicaz-sarkilar', 'nihavent']
     curr_makam = 0
     features = ['total_used_pitch',
+                'bar_used_pitch',
                 'total_used_note']
+
     curr_feature = 1
 
     generated_songs_path = os.path.join(os.path.abspath('..'), 'songs', gen_dirs[curr_makam])
     # abs_measurement(makams[curr_makam], generated_songs_path)
-
     abs_rel_pdfs(features[curr_feature], makams[curr_makam], generated_songs_path)
 
 
