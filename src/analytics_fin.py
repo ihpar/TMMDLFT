@@ -16,6 +16,7 @@ from dur_translator import DurTranslator
 from mu2_reader import decompose_mu2
 from nc_dictionary import NCDictionary
 from note_translator import NoteTranslator
+from itertools import chain
 
 
 # from oh_manager import OhManager
@@ -140,6 +141,13 @@ def get_different_pitch_count(song):
 def get_pitch_count_per_bar(song, bars):
     num_bars = sum(bars)
     res = np.zeros((num_bars, 1))
+    pm = song['parts']
+    pa = my_flatten(pm['I'] + pm['A'])
+    pa = pa[:bars[0]]
+    pb = my_flatten(pm['B'])
+    pb = pb[:bars[1]]
+    pc = my_flatten(pm['C'])
+    pc = pc[:bars[2]]
     return res
 
 
@@ -171,9 +179,37 @@ def utils_overlap_area(a, b):
     return integrate.quad(lambda x: min(pdf_a(x), pdf_b(x)), np.min((np.min(a), np.min(b))), np.max((np.max(a), np.max(b))), limit=100)[0]
 
 
+def my_flatten(il):
+    res = []
+    for i in il:
+        if type(i) is list:
+            res.extend(i)
+        else:
+            res.append(i)
+    return res
+
+
+def is_choosable(song_obj, bars):
+    res = False
+    pm = song_obj['parts']
+    pa = my_flatten(pm['I'] + pm['A'])
+    pb = my_flatten(pm['B'])
+    pc = my_flatten(pm['C'])
+    if (len(pa) >= bars[0]) and (len(pb) >= bars[1]) and (len(pc) >= bars[2]):
+        res = True
+    return res
+
+
 def choose_songs(base_broad_list, bars, num_samples):
-    song_idx = range(len(base_broad_list))
-    chosen = random.sample(song_idx, num_samples)
+    song_idx = list(range(len(base_broad_list)))
+    chosen_songs = random.sample(song_idx, num_samples)
+    song_idx = [x for x in song_idx if x not in chosen_songs]
+    for i, song_ix in enumerate(chosen_songs):
+        new_song = song_ix
+        while not is_choosable(base_broad_list[new_song], bars):
+            new_song = random.choice(song_idx)
+            song_idx.remove(new_song)
+        chosen_songs[i] = new_song
     res = []
     return res
 
