@@ -138,7 +138,11 @@ def get_different_pitch_count(song):
     return elem_count
 
 
-def get_pitch_count_per_bar(song, bars):
+def get_pitch_count_per_bar(song, bars, makam, note_dict=None, nt=None, dt=None):
+    time_sig = Fraction(9, 8)
+    if makam == 'nihavent':
+        time_sig = Fraction(8, 8)
+
     num_bars = sum(bars)
     res = np.zeros((num_bars, 1))
     pm = song['parts']
@@ -148,6 +152,26 @@ def get_pitch_count_per_bar(song, bars):
     pb = pb[:bars[1]]
     pc = my_flatten(pm['C'])
     pc = pc[:bars[2]]
+
+    notes = song['notes']
+    durs = song['durs']
+
+    measures = []
+    measure = {'notes': [], 'durs': []}
+    total = Fraction(0)
+
+    for n, d in zip(notes, durs):
+        if note_dict:
+            dl = Fraction(note_dict.get_dur_by_num(d))
+        else:
+            dl = Fraction(dt.get_dur_name_by_num(d))
+        measure['notes'].append(n)
+        measure['durs'].append(d)
+        total += dl
+        if total >= time_sig:
+            measures.append(measure)
+            measure = {'notes': [], 'durs': []}
+            total = Fraction(0)
     return res
 
 
@@ -210,8 +234,8 @@ def choose_songs(base_broad_list, bars, num_samples):
             new_song = random.choice(song_idx)
             song_idx.remove(new_song)
         chosen_songs[i] = new_song
-    res = []
-    return res
+
+    return chosen_songs
 
 
 def abs_rel_pdfs(feature, makam, generated_songs_path):
@@ -249,7 +273,7 @@ def abs_rel_pdfs(feature, makam, generated_songs_path):
             set1_eval[i] = get_different_pitch_count(base_broad_list[chosen[i]])
             set2_eval[i] = get_different_pitch_count(gen_broad_list[i])
         elif feature == 'bar_used_pitch':
-            set1_eval[i] = get_pitch_count_per_bar(base_broad_list[chosen[i]], bars)
+            set1_eval[i] = get_pitch_count_per_bar(base_broad_list[chosen[i]], bars, makam, note_dict, nt, dt)
             set2_eval[i] = get_pitch_count_per_bar(gen_broad_list[i], bars)
         elif feature == 'total_used_note':
             set1_eval[i] = get_different_dur_count(base_broad_list[chosen[i]])
