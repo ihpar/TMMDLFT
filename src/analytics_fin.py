@@ -59,13 +59,18 @@ def parse_song_in_mu2(song_path, note_dict, nt=None, dt=None):
     return song
 
 
-def get_base_data(makam, note_dict=None, nt=None, dt=None):
+def get_songs_data(makam, note_dict=None, nt=None, dt=None, is_base=True):
     min_song_len = sys.maxsize
     broad_list = []
     note_nums, dur_nums = [], []
-    base_songs = added_ss.added_songs[makam]
-    d_path = os.path.join(os.path.abspath('..'), 'mu2')
-    for bs in base_songs:
+    if is_base:
+        songs = added_ss.added_songs[makam]
+        d_path = os.path.join(os.path.abspath('..'), 'mu2')
+    else:
+        songs = added_ss.added_songs[makam + '_gen']
+        d_path = os.path.join(os.path.abspath('..'), 'songs', makam)
+
+    for bs in songs:
         song = parse_song_in_mu2(os.path.join(d_path, bs['file']), note_dict, nt, dt)
         song_entity = {'notes': [], 'durs': [], 'parts': {}}
         for note in song:
@@ -85,31 +90,6 @@ def get_base_data(makam, note_dict=None, nt=None, dt=None):
     return note_nums, dur_nums, broad_list, min_song_len
 
 
-# noinspection DuplicatedCode
-def get_gen_data(generated_songs_path, note_dict=None, nt=None, dt=None):
-    min_song_len = sys.maxsize
-    broad_list = []
-
-    note_nums, dur_nums = [], []
-    gen_songs = [os.path.join(generated_songs_path, f) for f in os.listdir(generated_songs_path) if os.path.isfile(os.path.join(generated_songs_path, f))]
-    for song in gen_songs:
-        song = parse_song_in_mu2(song, note_dict, nt, dt)
-        song_entity = {'notes': [], 'durs': []}
-        for note in song:
-            parts = [int(x) for x in note.split(':')]
-            note_nums.append(parts[0])
-            dur_nums.append(parts[1])
-            song_entity['notes'].append(parts[0])
-            song_entity['durs'].append(parts[1])
-
-        min_song_len = min(min_song_len, len(song_entity['notes']))
-        broad_list.append(song_entity)
-
-    note_nums = np.array(note_nums)
-    dur_nums = np.array(dur_nums)
-    return note_nums, dur_nums, broad_list, min_song_len
-
-
 def abs_measurement(makam, generated_songs_path):
     oh_manager, nt, dt, note_dict = None, None, None, None
     if makam == 'hicaz':
@@ -119,12 +99,13 @@ def abs_measurement(makam, generated_songs_path):
         dt = DurTranslator(makam)
 
     # oh_manager = OhManager(makam)
-    note_nums_src, dur_nums_src, broad_list, min_len = get_base_data(makam, note_dict, nt, dt)
+    note_nums_src, dur_nums_src, broad_list, min_len = get_songs_data(makam, note_dict, nt, dt, True)
     mean_src = np.mean(note_nums_src)
     std_src = np.std(note_nums_src)
     print('src mean:', mean_src, 'src std:', std_src)
 
-    note_nums_gen, dur_nums_gen, gen_broad_list, gen_min_len = get_gen_data(generated_songs_path, note_dict, nt, dt)
+    # TODO: check!!!
+    note_nums_gen, dur_nums_gen, gen_broad_list, gen_min_len = get_songs_data(makam, note_dict, nt, dt, False)
     mean_gen = np.mean(note_nums_gen)
     std_gen = np.std(note_nums_gen)
     print('gen mean:', mean_gen, 'gen std:', std_gen)
@@ -260,7 +241,7 @@ def abs_rel_pdfs(feature, makam, generated_songs_path):
         dt = DurTranslator(makam)
 
     num_samples = 20
-    note_nums_src, dur_nums_src, base_broad_list, min_len = get_base_data(makam, note_dict, nt, dt)
+    note_nums_src, dur_nums_src, base_broad_list, min_len = get_songs_data(makam, note_dict, nt, dt, True)
     song_idx = range(len(base_broad_list))
 
     bars = [4, 4, 2]
@@ -270,9 +251,9 @@ def abs_rel_pdfs(feature, makam, generated_songs_path):
         chosen = choose_songs(base_broad_list, bars, num_samples)
     else:
         chosen = random.sample(song_idx, num_samples)
-
     print('chosen:', chosen)
-    note_nums_gen, dur_nums_gen, gen_broad_list, gen_min_len = get_gen_data(generated_songs_path, note_dict, nt, dt)
+    # TODO: check!!!
+    note_nums_gen, dur_nums_gen, gen_broad_list, gen_min_len = get_songs_data(makam, note_dict, nt, dt, False)
 
     if feature == 'bar_used_pitch':
         set1_eval = np.zeros((num_samples, num_bars, 1))  # base set
@@ -351,7 +332,7 @@ def abs_rel_pdfs(feature, makam, generated_songs_path):
 
 def main():
     makams = ['hicaz', 'nihavent']
-    gen_dirs = ['hicaz-sarkilar', 'nihavent']
+    gen_dirs = ['hicaz', 'nihavent']
     curr_makam = 0
     features = ['total_used_pitch',
                 'bar_used_pitch',
