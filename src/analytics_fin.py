@@ -138,13 +138,11 @@ def get_different_pitch_count(song):
     return elem_count
 
 
-def get_pitch_count_per_bar(song, bars, makam, note_dict=None, nt=None, dt=None):
+def get_related_measures(song, bars, makam, note_dict=None, nt=None, dt=None):
     time_sig = Fraction(9, 8)
     if makam == 'nihavent':
         time_sig = Fraction(8, 8)
 
-    num_bars = sum(bars)
-    res = np.zeros((num_bars, 1))
     pm = song['parts']
     pa = my_flatten(pm['I'] + pm['A'])
     pa = pa[:bars[0]]
@@ -160,6 +158,8 @@ def get_pitch_count_per_bar(song, bars, makam, note_dict=None, nt=None, dt=None)
     measure = {'notes': [], 'durs': []}
     total = Fraction(0)
 
+    measure_no = 0
+    res = []
     for n, d in zip(notes, durs):
         if note_dict:
             dl = Fraction(note_dict.get_dur_by_num(d))
@@ -170,8 +170,21 @@ def get_pitch_count_per_bar(song, bars, makam, note_dict=None, nt=None, dt=None)
         total += dl
         if total >= time_sig:
             measures.append(measure)
+            if (measure_no in pa) or (measure_no in pb) or (measure_no in pc):
+                res.append(measure)
             measure = {'notes': [], 'durs': []}
             total = Fraction(0)
+            measure_no += 1
+    return res
+
+
+def get_pitch_count_per_bar(song, bars, makam, note_dict=None, nt=None, dt=None):
+    num_bars = sum(bars)
+    res = np.zeros((num_bars, 1))
+    measures = get_related_measures(song, bars, makam, note_dict, nt, dt)
+    for i, measure in enumerate(measures):
+        pc = len(set(measure['notes']))
+        res[i] = pc
     return res
 
 
@@ -274,7 +287,7 @@ def abs_rel_pdfs(feature, makam, generated_songs_path):
             set2_eval[i] = get_different_pitch_count(gen_broad_list[i])
         elif feature == 'bar_used_pitch':
             set1_eval[i] = get_pitch_count_per_bar(base_broad_list[chosen[i]], bars, makam, note_dict, nt, dt)
-            set2_eval[i] = get_pitch_count_per_bar(gen_broad_list[i], bars)
+            set2_eval[i] = get_pitch_count_per_bar(gen_broad_list[i], bars, makam, note_dict, nt, dt)
         elif feature == 'total_used_note':
             set1_eval[i] = get_different_dur_count(base_broad_list[chosen[i]])
             set2_eval[i] = get_different_dur_count(gen_broad_list[i])
