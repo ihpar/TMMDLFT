@@ -228,7 +228,41 @@ def choose_songs(base_broad_list, bars, num_samples):
     return chosen_songs
 
 
-def abs_rel_pdfs(feature, makam):
+def get_pch(song_obj, note_dict, nt, dt):
+    hist = np.zeros(53)
+    h_dict = {}
+    for n in song_obj['notes']:
+        note_body, note_octave, note_acc, acc_amt = '', '', '', ''
+        if nt:
+            note_name = nt.get_note_name_by_num(n)
+        else:
+            note_name = note_dict.get_note_by_num(n)
+
+        if len(note_name) >= 2:
+            acc = note_name[-2]
+            if (acc == 'b' or acc == '#') and note_name[-1].isnumeric():
+                note_acc = acc
+                acc_amt = note_name[-1]
+                note_name = note_name[:-2]
+
+        if note_name == 'rest':
+            note_body = note_name
+        else:
+            note_octave = note_name[-1]
+            note_body = note_name[:-1]
+
+        # print(note_body, note_octave, note_acc, acc_amt)
+        oi_note = note_body + note_acc + acc_amt
+        print(oi_note)
+        if oi_note in h_dict:
+            h_dict[oi_note] += 1
+        else:
+            h_dict[oi_note] = 1
+
+    return hist
+
+
+def abs_rel_pdfs(feature, makam, titles):
     oh_manager, nt, dt, note_dict = None, None, None, None
     if makam == 'hicaz':
         note_dict = NCDictionary()
@@ -254,6 +288,9 @@ def abs_rel_pdfs(feature, makam):
     if feature == 'bar_used_pitch' or feature == 'bar_used_note':
         set1_eval = np.zeros((num_samples, num_bars, 1))  # base set
         set2_eval = np.zeros((num_samples, num_bars, 1))  # gen set
+    elif feature == 'total_pitch_class_histogram':
+        set1_eval = np.zeros((num_samples, 53))  # base set
+        set2_eval = np.zeros((num_samples, 53))  # gen set
     else:
         set1_eval = np.zeros((num_samples, 1))  # base set
         set2_eval = np.zeros((num_samples, 1))  # gen set
@@ -265,19 +302,15 @@ def abs_rel_pdfs(feature, makam):
         elif feature == 'bar_used_pitch':
             set1_eval[i] = get_count_per_bar(base_broad_list[chosen[i]], bars, makam, note_dict, nt, dt, ND.note)
             set2_eval[i] = get_count_per_bar(gen_broad_list[i], bars, makam, note_dict, nt, dt, ND.note)
-        elif feature == 'bar_used_note':
-            set1_eval[i] = get_count_per_bar(base_broad_list[chosen[i]], bars, makam, note_dict, nt, dt, ND.dur)
-            set2_eval[i] = get_count_per_bar(gen_broad_list[i], bars, makam, note_dict, nt, dt, ND.dur)
         elif feature == 'total_used_note':
             set1_eval[i] = get_different_dur_count(base_broad_list[chosen[i]])
             set2_eval[i] = get_different_dur_count(gen_broad_list[i])
-
-    titles = {
-        'total_used_pitch': 'Total Used Pitches',
-        'bar_used_pitch': 'Pitches Per Bar',
-        'total_used_note': 'Total Used Durations',
-        'bar_used_note': 'Durations Per Bar'
-    }
+        elif feature == 'bar_used_note':
+            set1_eval[i] = get_count_per_bar(base_broad_list[chosen[i]], bars, makam, note_dict, nt, dt, ND.dur)
+            set2_eval[i] = get_count_per_bar(gen_broad_list[i], bars, makam, note_dict, nt, dt, ND.dur)
+        elif feature == 'total_pitch_class_histogram':
+            set1_eval[i] = get_pch(base_broad_list[chosen[i]], note_dict, nt, dt)
+            set2_eval[i] = get_pch(gen_broad_list[i], note_dict, nt, dt)
 
     print('\n' + titles[feature] + ':')
     print('------------------------')
@@ -341,16 +374,25 @@ def abs_rel_pdfs(feature, makam):
 
 def main():
     makams = ['hicaz', 'nihavent']
-    curr_makam = 0
+    curr_makam = 1
     features = ['total_used_pitch',
                 'bar_used_pitch',
                 'total_used_note',
-                'bar_used_note']
+                'bar_used_note',
+                'total_pitch_class_histogram']
 
-    curr_feature = 3
+    titles = {
+        features[0]: 'Total Used Pitches',
+        features[1]: 'Pitches Per Bar',
+        features[2]: 'Total Used Durations',
+        features[3]: 'Durations Per Bar',
+        features[4]: 'Total Pitch Class Histogram'
+    }
+
+    curr_feature = 4
 
     # abs_measurement(makams[curr_makam])
-    abs_rel_pdfs(features[curr_feature], makams[curr_makam])
+    abs_rel_pdfs(features[curr_feature], makams[curr_makam], titles)
 
 
 if __name__ == '__main__':
