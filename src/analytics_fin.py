@@ -1,25 +1,19 @@
 import os
 import numpy as np
 import codecs
-from fractions import Fraction
-from sklearn.model_selection import LeaveOneOut
 import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
-from scipy import stats, integrate
 import random
 import added_ss
 
-import hicaz_parts
-import nihavent_parts
+from fractions import Fraction
+from sklearn.model_selection import LeaveOneOut
+from scipy import stats, integrate
 from dur_translator import DurTranslator
-from mu2_reader import decompose_mu2
 from nc_dictionary import NCDictionary
 from note_translator import NoteTranslator
-from itertools import chain
-
-
-# from oh_manager import OhManager
+from analytics_utils import ND, ST
 
 
 def parse_song_in_mu2(song_path, note_dict, nt=None, dt=None):
@@ -59,11 +53,11 @@ def parse_song_in_mu2(song_path, note_dict, nt=None, dt=None):
     return song
 
 
-def get_songs_data(makam, note_dict=None, nt=None, dt=None, is_base=True):
+def get_songs_data(makam, note_dict=None, nt=None, dt=None, st=ST.base):
     min_song_len = sys.maxsize
     broad_list = []
     note_nums, dur_nums = [], []
-    if is_base:
+    if st == ST.base:
         songs = added_ss.added_songs[makam]
         d_path = os.path.join(os.path.abspath('..'), 'mu2')
     else:
@@ -90,7 +84,7 @@ def get_songs_data(makam, note_dict=None, nt=None, dt=None, is_base=True):
     return note_nums, dur_nums, broad_list, min_song_len
 
 
-def abs_measurement(makam, generated_songs_path):
+def abs_measurement(makam):
     oh_manager, nt, dt, note_dict = None, None, None, None
     if makam == 'hicaz':
         note_dict = NCDictionary()
@@ -99,13 +93,12 @@ def abs_measurement(makam, generated_songs_path):
         dt = DurTranslator(makam)
 
     # oh_manager = OhManager(makam)
-    note_nums_src, dur_nums_src, broad_list, min_len = get_songs_data(makam, note_dict, nt, dt, True)
+    note_nums_src, dur_nums_src, broad_list, min_len = get_songs_data(makam, note_dict, nt, dt, ST.base)
     mean_src = np.mean(note_nums_src)
     std_src = np.std(note_nums_src)
     print('src mean:', mean_src, 'src std:', std_src)
 
-    # TODO: check!!!
-    note_nums_gen, dur_nums_gen, gen_broad_list, gen_min_len = get_songs_data(makam, note_dict, nt, dt, False)
+    note_nums_gen, dur_nums_gen, gen_broad_list, gen_min_len = get_songs_data(makam, note_dict, nt, dt, ST.generated)
     mean_gen = np.mean(note_nums_gen)
     std_gen = np.std(note_nums_gen)
     print('gen mean:', mean_gen, 'gen std:', std_gen)
@@ -159,13 +152,16 @@ def get_related_measures(song, bars, makam, note_dict=None, nt=None, dt=None):
     return res
 
 
-def get_pitch_count_per_bar(song, bars, makam, note_dict=None, nt=None, dt=None):
+def get_count_per_bar(song, bars, makam, note_dict=None, nt=None, dt=None, nd=ND.note):
     num_bars = sum(bars)
     res = np.zeros((num_bars, 1))
     measures = get_related_measures(song, bars, makam, note_dict, nt, dt)
     for i, measure in enumerate(measures):
-        pc = len(set(measure['notes']))
-        res[i] = pc
+        if nd == ND.note:
+            cnt = len(set(measure['notes']))
+        else:
+            cnt = len(set(measure['durs']))
+        res[i] = cnt
     return res
 
 
@@ -193,8 +189,8 @@ def utils_kl_dist(a, b, num_sample=1000):
 def utils_overlap_area(a, b):
     pdf_a = stats.gaussian_kde(a)
     pdf_b = stats.gaussian_kde(b)
-    options = {'limit': 100}
-    return integrate.quad(lambda x: min(pdf_a(x), pdf_b(x)), np.min((np.min(a), np.min(b))), np.max((np.max(a), np.max(b))), limit=100)[0]
+    lim = 200
+    return integrate.quad(lambda x: min(pdf_a(x), pdf_b(x)), np.min((np.min(a), np.min(b))), np.max((np.max(a), np.max(b))), limit=lim)[0]
 
 
 def my_flatten(il):
@@ -232,7 +228,7 @@ def choose_songs(base_broad_list, bars, num_samples):
     return chosen_songs
 
 
-def abs_rel_pdfs(feature, makam, generated_songs_path):
+def abs_rel_pdfs(feature, makam):
     oh_manager, nt, dt, note_dict = None, None, None, None
     if makam == 'hicaz':
         note_dict = NCDictionary()
@@ -241,21 +237,21 @@ def abs_rel_pdfs(feature, makam, generated_songs_path):
         dt = DurTranslator(makam)
 
     num_samples = 20
-    note_nums_src, dur_nums_src, base_broad_list, min_len = get_songs_data(makam, note_dict, nt, dt, True)
+    note_nums_src, dur_nums_src, base_broad_list, min_len = get_songs_data(makam, note_dict, nt, dt, ST.base)
     song_idx = range(len(base_broad_list))
 
     bars = [4, 4, 2]
     num_bars = sum(bars)
 
-    if feature == 'bar_used_pitch':
+    if feature == 'bar_used_pitch' or feature == 'bar_used_note':
         chosen = choose_songs(base_broad_list, bars, num_samples)
     else:
         chosen = random.sample(song_idx, num_samples)
     print('chosen:', chosen)
-    # TODO: check!!!
-    note_nums_gen, dur_nums_gen, gen_broad_list, gen_min_len = get_songs_data(makam, note_dict, nt, dt, False)
 
-    if feature == 'bar_used_pitch':
+    note_nums_gen, dur_nums_gen, gen_broad_list, gen_min_len = get_songs_data(makam, note_dict, nt, dt, ST.generated)
+
+    if feature == 'bar_used_pitch' or feature == 'bar_used_note':
         set1_eval = np.zeros((num_samples, num_bars, 1))  # base set
         set2_eval = np.zeros((num_samples, num_bars, 1))  # gen set
     else:
@@ -267,22 +263,40 @@ def abs_rel_pdfs(feature, makam, generated_songs_path):
             set1_eval[i] = get_different_pitch_count(base_broad_list[chosen[i]])
             set2_eval[i] = get_different_pitch_count(gen_broad_list[i])
         elif feature == 'bar_used_pitch':
-            set1_eval[i] = get_pitch_count_per_bar(base_broad_list[chosen[i]], bars, makam, note_dict, nt, dt)
-            set2_eval[i] = get_pitch_count_per_bar(gen_broad_list[i], bars, makam, note_dict, nt, dt)
+            set1_eval[i] = get_count_per_bar(base_broad_list[chosen[i]], bars, makam, note_dict, nt, dt, ND.note)
+            set2_eval[i] = get_count_per_bar(gen_broad_list[i], bars, makam, note_dict, nt, dt, ND.note)
+        elif feature == 'bar_used_note':
+            set1_eval[i] = get_count_per_bar(base_broad_list[chosen[i]], bars, makam, note_dict, nt, dt, ND.dur)
+            set2_eval[i] = get_count_per_bar(gen_broad_list[i], bars, makam, note_dict, nt, dt, ND.dur)
         elif feature == 'total_used_note':
             set1_eval[i] = get_different_dur_count(base_broad_list[chosen[i]])
             set2_eval[i] = get_different_dur_count(gen_broad_list[i])
 
-    print('\n' + feature + ':')
+    titles = {
+        'total_used_pitch': 'Total Used Pitches',
+        'bar_used_pitch': 'Pitches Per Bar',
+        'total_used_note': 'Total Used Durations',
+        'bar_used_note': 'Durations Per Bar'
+    }
+
+    print('\n' + titles[feature] + ':')
     print('------------------------')
-    print(' base_set')
-    print('  mean: ', np.mean(set1_eval, axis=0))
-    print('  std: ', np.std(set1_eval, axis=0))
+    print(' Base Set')
+    if feature == 'bar_used_pitch' or feature == 'bar_used_note':
+        print('  mean: ', np.mean(set1_eval))
+        print('  std: ', np.std(set1_eval))
+    else:
+        print('  mean: ', np.mean(set1_eval, axis=0))
+        print('  std: ', np.std(set1_eval, axis=0))
 
     print('------------------------')
-    print(' gen_set')
-    print('  mean: ', np.mean(set2_eval, axis=0))
-    print('  std: ', np.std(set2_eval, axis=0))
+    print(' Gen Set')
+    if feature == 'bar_used_pitch' or feature == 'bar_used_note':
+        print('  mean: ', np.mean(set2_eval))
+        print('  std: ', np.std(set2_eval))
+    else:
+        print('  mean: ', np.mean(set2_eval, axis=0))
+        print('  std: ', np.std(set2_eval, axis=0))
 
     loo = LeaveOneOut()
     loo.get_n_splits(np.arange(num_samples))
@@ -305,11 +319,6 @@ def abs_rel_pdfs(feature, makam, generated_songs_path):
     plot_set2_intra = np.transpose(set2_intra, (1, 0, 2)).reshape(1, -1)
     plot_sets_inter = np.transpose(sets_inter, (1, 0, 2)).reshape(1, -1)
 
-    titles = {
-        'total_used_pitch': 'Total Used Pitches',
-        'total_used_note': 'Total Used Durations'
-    }
-
     sns.kdeplot(plot_set1_intra[0], label='intra base set')
     sns.kdeplot(plot_sets_inter[0], label='inter sets')
     sns.kdeplot(plot_set2_intra[0], label='intra gen set')
@@ -318,31 +327,30 @@ def abs_rel_pdfs(feature, makam, generated_songs_path):
     plt.xlabel('Euclidean distance')
     plt.show()
 
-    print('\n' + feature + ':')
+    print('\n' + titles[feature] + ':')
     print('------------------------')
-    print(' base set')
+    print(' Base Set')
     print('  Kullback–Leibler Divergence:', utils_kl_dist(plot_set1_intra[0], plot_sets_inter[0]))
     print('  Overlap Area:', utils_overlap_area(plot_set1_intra[0], plot_sets_inter[0]))
 
     print('------------------------')
-    print(' gen set')
+    print(' Gen Set')
     print('  Kullback–Leibler Divergence:', utils_kl_dist(plot_set2_intra[0], plot_sets_inter[0]))
     print('  Overlap Area:', utils_overlap_area(plot_set2_intra[0], plot_sets_inter[0]))
 
 
 def main():
     makams = ['hicaz', 'nihavent']
-    gen_dirs = ['hicaz', 'nihavent']
     curr_makam = 0
     features = ['total_used_pitch',
                 'bar_used_pitch',
-                'total_used_note']
+                'total_used_note',
+                'bar_used_note']
 
-    curr_feature = 1
+    curr_feature = 3
 
-    generated_songs_path = os.path.join(os.path.abspath('..'), 'songs', gen_dirs[curr_makam])
-    # abs_measurement(makams[curr_makam], generated_songs_path)
-    abs_rel_pdfs(features[curr_feature], makams[curr_makam], generated_songs_path)
+    # abs_measurement(makams[curr_makam])
+    abs_rel_pdfs(features[curr_feature], makams[curr_makam])
 
 
 if __name__ == '__main__':
