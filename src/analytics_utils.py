@@ -1,5 +1,5 @@
 import os
-
+import numpy as np
 import added_ss
 from dur_translator import DurTranslator
 from nc_dictionary import NCDictionary
@@ -16,6 +16,25 @@ class ND:
     dur = 2
 
 
+def parse_note(note_str):
+    note_body, note_octave, note_acc, acc_amt = '', '', '', ''
+
+    if len(note_str) >= 2:
+        acc = note_str[-2]
+        if (acc == 'b' or acc == '#') and note_str[-1].isnumeric():
+            note_acc = acc
+            acc_amt = note_str[-1]
+            note_str = note_str[:-2]
+
+    if note_str == 'rest':
+        note_body = note_str
+    else:
+        note_octave = note_str[-1]
+        note_body = note_str[:-1]
+
+    return note_body, note_octave, note_acc, acc_amt
+
+
 class PCH:
     def __init__(self, makam):
         self.makam = makam
@@ -27,6 +46,9 @@ class PCH:
         self.note_dict, self.nt, self.dt = None, None, None
 
         self.note_nums, self.dur_nums = set(), set()
+        self.octaves = ['3', '4', '5', '6']
+        self.note_collection, self.dur_collection = [], []
+        self.note_histogram = {}
 
         if makam == 'hicaz':
             self.note_dict = NCDictionary()
@@ -52,33 +74,64 @@ class PCH:
                 self.note_nums.add(parts[0])
                 self.dur_nums.add(parts[1])
 
-        octaves = set()
+        oi_names = set()
         for n in self.note_nums:
-            note_body, note_octave, note_acc, acc_amt = '', '', '', ''
             if self.nt:
                 note_name = self.nt.get_note_name_by_num(n)
             else:
                 note_name = self.note_dict.get_note_by_num(n)
 
-            if len(note_name) >= 2:
-                acc = note_name[-2]
-                if (acc == 'b' or acc == '#') and note_name[-1].isnumeric():
-                    note_acc = acc
-                    acc_amt = note_name[-1]
-                    note_name = note_name[:-2]
+            note_body, note_octave, note_acc, acc_amt = parse_note(note_name)
+            oi_name = note_body + note_acc + acc_amt
+            for oc in self.octaves:
+                n_name = note_body + oc + note_acc + acc_amt
+                if self.nt:
+                    note_name = self.nt.get_note_num_by_name(n_name)
+                else:
+                    note_name = self.note_dict.get_note_by_name(n_name)
 
-            if note_name == 'rest':
-                note_body = note_name
+                if note_name and (oi_name not in oi_names):
+                    self.note_collection.append(n)
+                    oi_names.add(oi_name)
+                    break
+        self.note_collection.sort()
+
+    def add_note(self, note_num):
+        if self.nt:
+            note_name = self.nt.get_note_name_by_num(note_num)
+        else:
+            note_name = self.note_dict.get_note_by_num(note_num)
+        note_body, note_octave, note_acc, acc_amt = parse_note(note_name)
+
+        for oc in self.octaves:
+            n_name = note_body + oc + note_acc + acc_amt
+            if self.nt:
+                nn = self.nt.get_note_num_by_name(n_name)
             else:
-                note_octave = note_name[-1]
-                note_body = note_name[:-1]
+                nn = self.note_dict.get_note_by_name(n_name)
 
-            # print(note_body, note_octave, note_acc, acc_amt)
-            octaves.add(note_octave)
-            oi_note = note_body + note_acc + acc_amt
-            print(oi_note)
+            if nn in self.note_collection:
+                if nn in self.note_histogram:
+                    self.note_histogram[nn] += 1
+                else:
+                    self.note_histogram[nn] = 1
+                break
 
-        print(octaves)
+    def get_note_histogram(self):
+        res = np.zeros(len(self.note_collection))
+        for i, n in enumerate(self.note_collection):
+            if n in self.note_histogram:
+                res[i] = self.note_histogram[n]
+            else:
+                res[i] = 0
+        res = res / sum(res)
+        return res
+
+    def init_note_histogram(self):
+        self.note_histogram = {}
+
+    def get_bin_count(self):
+        return len(self.note_collection)
 
 
 def main():

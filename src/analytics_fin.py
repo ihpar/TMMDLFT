@@ -13,7 +13,7 @@ from scipy import stats, integrate
 from dur_translator import DurTranslator
 from nc_dictionary import NCDictionary
 from note_translator import NoteTranslator
-from analytics_utils import ND, ST
+from analytics_utils import ND, ST, PCH
 
 
 def parse_song_in_mu2(song_path, note_dict, nt=None, dt=None):
@@ -228,38 +228,13 @@ def choose_songs(base_broad_list, bars, num_samples):
     return chosen_songs
 
 
-def get_pch(song_obj, note_dict, nt, dt):
-    hist = np.zeros(53)
-    h_dict = {}
-    for n in song_obj['notes']:
-        note_body, note_octave, note_acc, acc_amt = '', '', '', ''
-        if nt:
-            note_name = nt.get_note_name_by_num(n)
-        else:
-            note_name = note_dict.get_note_by_num(n)
-
-        if len(note_name) >= 2:
-            acc = note_name[-2]
-            if (acc == 'b' or acc == '#') and note_name[-1].isnumeric():
-                note_acc = acc
-                acc_amt = note_name[-1]
-                note_name = note_name[:-2]
-
-        if note_name == 'rest':
-            note_body = note_name
-        else:
-            note_octave = note_name[-1]
-            note_body = note_name[:-1]
-
-        # print(note_body, note_octave, note_acc, acc_amt)
-        oi_note = note_body + note_acc + acc_amt
-        print(oi_note)
-        if oi_note in h_dict:
-            h_dict[oi_note] += 1
-        else:
-            h_dict[oi_note] = 1
-
-    return hist
+def get_pch(song_obj, pch):
+    notes = set()
+    pch.init_note_histogram()
+    for note in song_obj['notes']:
+        pch.add_note(note)
+        notes.add(note)
+    return pch.get_note_histogram()
 
 
 def abs_rel_pdfs(feature, makam, titles):
@@ -284,13 +259,16 @@ def abs_rel_pdfs(feature, makam, titles):
     print('chosen:', chosen)
 
     note_nums_gen, dur_nums_gen, gen_broad_list, gen_min_len = get_songs_data(makam, note_dict, nt, dt, ST.generated)
+    pch = None
 
     if feature == 'bar_used_pitch' or feature == 'bar_used_note':
         set1_eval = np.zeros((num_samples, num_bars, 1))  # base set
         set2_eval = np.zeros((num_samples, num_bars, 1))  # gen set
     elif feature == 'total_pitch_class_histogram':
-        set1_eval = np.zeros((num_samples, 53))  # base set
-        set2_eval = np.zeros((num_samples, 53))  # gen set
+        pch = PCH(makam)
+        bc = pch.get_bin_count()
+        set1_eval = np.zeros((num_samples, bc))  # base set
+        set2_eval = np.zeros((num_samples, bc))  # gen set
     else:
         set1_eval = np.zeros((num_samples, 1))  # base set
         set2_eval = np.zeros((num_samples, 1))  # gen set
@@ -309,13 +287,13 @@ def abs_rel_pdfs(feature, makam, titles):
             set1_eval[i] = get_count_per_bar(base_broad_list[chosen[i]], bars, makam, note_dict, nt, dt, ND.dur)
             set2_eval[i] = get_count_per_bar(gen_broad_list[i], bars, makam, note_dict, nt, dt, ND.dur)
         elif feature == 'total_pitch_class_histogram':
-            set1_eval[i] = get_pch(base_broad_list[chosen[i]], note_dict, nt, dt)
-            set2_eval[i] = get_pch(gen_broad_list[i], note_dict, nt, dt)
+            set1_eval[i] = get_pch(base_broad_list[chosen[i]], pch)
+            set2_eval[i] = get_pch(gen_broad_list[i], pch)
 
     print('\n' + titles[feature] + ':')
     print('------------------------')
     print(' Base Set')
-    if feature == 'bar_used_pitch' or feature == 'bar_used_note':
+    if feature in ['bar_used_pitch', 'bar_used_note', 'total_pitch_class_histogram']:
         print('  mean: ', np.mean(set1_eval))
         print('  std: ', np.std(set1_eval))
     else:
@@ -324,7 +302,7 @@ def abs_rel_pdfs(feature, makam, titles):
 
     print('------------------------')
     print(' Gen Set')
-    if feature == 'bar_used_pitch' or feature == 'bar_used_note':
+    if feature in ['bar_used_pitch', 'bar_used_note', 'total_pitch_class_histogram']:
         print('  mean: ', np.mean(set2_eval))
         print('  std: ', np.std(set2_eval))
     else:
