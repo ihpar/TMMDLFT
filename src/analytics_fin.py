@@ -16,6 +16,7 @@ from note_translator import NoteTranslator
 from analytics_utils import ND, ST, PCH
 
 
+# noinspection DuplicatedCode
 def parse_song_in_mu2(song_path, note_dict, nt=None, dt=None):
     nom_index = 2
     den_index = 3
@@ -112,7 +113,7 @@ def get_different_pitch_count(song):
     return elem_count
 
 
-def get_related_measures(song, bars, makam, note_dict=None, nt=None, dt=None):
+def get_related_measures(song, bars, makam, note_dict=None, dt=None):
     time_sig = Fraction(9, 8)
     if makam == 'nihavent':
         time_sig = Fraction(8, 8)
@@ -152,10 +153,10 @@ def get_related_measures(song, bars, makam, note_dict=None, nt=None, dt=None):
     return res
 
 
-def get_count_per_bar(song, bars, makam, note_dict=None, nt=None, dt=None, nd=ND.note):
+def get_count_per_bar(song, bars, makam, note_dict=None, dt=None, nd=ND.note):
     num_bars = sum(bars)
     res = np.zeros((num_bars, 1))
-    measures = get_related_measures(song, bars, makam, note_dict, nt, dt)
+    measures = get_related_measures(song, bars, makam, note_dict, dt)
     for i, measure in enumerate(measures):
         if nd == ND.note:
             cnt = len(set(measure['notes']))
@@ -166,7 +167,7 @@ def get_count_per_bar(song, bars, makam, note_dict=None, nt=None, dt=None, nd=ND
 
 
 def get_bar_pch(song, pch, bars, makam, note_dict=None, nt=None, dt=None):
-    pass
+    return []
 
 
 def get_different_dur_count(song):
@@ -190,6 +191,7 @@ def utils_kl_dist(a, b, num_sample=1000):
     return stats.entropy(pdf_a(sample_a), pdf_b(sample_b))
 
 
+# noinspection PyTypeChecker
 def utils_overlap_area(a, b):
     pdf_a = stats.gaussian_kde(a)
     pdf_b = stats.gaussian_kde(b)
@@ -296,14 +298,14 @@ def abs_rel_pdfs(feature, makam, titles):
             set1_eval[i] = get_different_pitch_count(base_broad_list[chosen[i]])
             set2_eval[i] = get_different_pitch_count(gen_broad_list[i])
         elif feature == 'bar_used_pitch':
-            set1_eval[i] = get_count_per_bar(base_broad_list[chosen[i]], bars, makam, note_dict, nt, dt, ND.note)
-            set2_eval[i] = get_count_per_bar(gen_broad_list[i], bars, makam, note_dict, nt, dt, ND.note)
+            set1_eval[i] = get_count_per_bar(base_broad_list[chosen[i]], bars, makam, note_dict, dt, ND.note)
+            set2_eval[i] = get_count_per_bar(gen_broad_list[i], bars, makam, note_dict, dt, ND.note)
         elif feature == 'total_used_note':
             set1_eval[i] = get_different_dur_count(base_broad_list[chosen[i]])
             set2_eval[i] = get_different_dur_count(gen_broad_list[i])
         elif feature == 'bar_used_note':
-            set1_eval[i] = get_count_per_bar(base_broad_list[chosen[i]], bars, makam, note_dict, nt, dt, ND.dur)
-            set2_eval[i] = get_count_per_bar(gen_broad_list[i], bars, makam, note_dict, nt, dt, ND.dur)
+            set1_eval[i] = get_count_per_bar(base_broad_list[chosen[i]], bars, makam, note_dict, dt, ND.dur)
+            set2_eval[i] = get_count_per_bar(gen_broad_list[i], bars, makam, note_dict, dt, ND.dur)
         elif feature == 'total_pitch_class_histogram':
             set1_eval[i] = get_pch(base_broad_list[chosen[i]], pch)
             set2_eval[i] = get_pch(gen_broad_list[i], pch)

@@ -8,6 +8,7 @@ from songobj import SongObj
 import hicaz_parts
 
 
+# noinspection DuplicatedCode
 def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager, nt=None, dt=None):
     nom_index = 2
     den_index = 3
@@ -77,7 +78,6 @@ def decompose_mu2(dp, fn, part_map, song_final, note_dict, oh_manager, nt=None, 
 
 
 def main():
-    '''
     makam = 'hicaz'
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
     note_dict = NCDictionary()
@@ -88,8 +88,6 @@ def main():
         part_map = curr_song['parts_map']
         song_final = curr_song['sf']
         decompose_mu2(dir_path, song, part_map, song_final, note_dict, oh_manager)
-    '''
-    pass
 
 
 if __name__ == '__main__':
