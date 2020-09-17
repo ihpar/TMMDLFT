@@ -49,6 +49,7 @@ class PCH:
         self.octaves = ['3', '4', '5', '6']
         self.note_collection, self.dur_collection = [], []
         self.note_histogram = {}
+        self.dur_histogram = {}
 
         if makam == 'hicaz':
             self.note_dict = NCDictionary()
@@ -96,6 +97,10 @@ class PCH:
                     break
         self.note_collection.sort()
 
+        for d in self.dur_nums:
+            self.dur_collection.append(d)
+        self.dur_collection.sort()
+
     def add_note(self, note_num):
         if self.nt:
             note_name = self.nt.get_note_name_by_num(note_num)
@@ -117,6 +122,12 @@ class PCH:
                     self.note_histogram[nn] = 1
                 break
 
+    def add_dur(self, dur_num):
+        if dur_num in self.dur_histogram:
+            self.dur_histogram[dur_num] += 1
+        else:
+            self.dur_histogram[dur_num] = 1
+
     def get_note_histogram(self):
         res = np.zeros(len(self.note_collection))
         for i, n in enumerate(self.note_collection):
@@ -127,11 +138,27 @@ class PCH:
         res = res / sum(res)
         return res
 
+    def get_dur_histogram(self):
+        res = np.zeros(len(self.dur_collection))
+        for i, d in enumerate(self.dur_collection):
+            if d in self.dur_histogram:
+                res[i] = self.dur_histogram[d]
+            else:
+                res[i] = 0
+        res = res / sum(res)
+        return res
+
     def init_note_histogram(self):
         self.note_histogram = {}
 
-    def get_bin_count(self):
+    def init_dur_histogram(self):
+        self.dur_histogram = {}
+
+    def get_note_bin_count(self):
         return len(self.note_collection)
+
+    def get_dur_bin_count(self):
+        return len(self.dur_collection)
 
 
 def main():

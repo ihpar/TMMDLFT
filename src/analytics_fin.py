@@ -165,6 +165,10 @@ def get_count_per_bar(song, bars, makam, note_dict=None, nt=None, dt=None, nd=ND
     return res
 
 
+def get_bar_pch(song, pch, bars, makam, note_dict=None, nt=None, dt=None):
+    pass
+
+
 def get_different_dur_count(song):
     unique = set(song['durs'])
     elem_count = len(unique)
@@ -229,12 +233,17 @@ def choose_songs(base_broad_list, bars, num_samples):
 
 
 def get_pch(song_obj, pch):
-    notes = set()
     pch.init_note_histogram()
     for note in song_obj['notes']:
         pch.add_note(note)
-        notes.add(note)
     return pch.get_note_histogram()
+
+
+def get_dch(song_obj, pch):
+    pch.init_dur_histogram()
+    for dur in song_obj['durs']:
+        pch.add_dur(dur)
+    return pch.get_dur_histogram()
 
 
 def abs_rel_pdfs(feature, makam, titles):
@@ -252,7 +261,7 @@ def abs_rel_pdfs(feature, makam, titles):
     bars = [4, 4, 2]
     num_bars = sum(bars)
 
-    if feature == 'bar_used_pitch' or feature == 'bar_used_note':
+    if feature in ['bar_used_pitch', 'bar_used_note', 'bar_pitch_class_histogram']:
         chosen = choose_songs(base_broad_list, bars, num_samples)
     else:
         chosen = random.sample(song_idx, num_samples)
@@ -264,11 +273,20 @@ def abs_rel_pdfs(feature, makam, titles):
     if feature == 'bar_used_pitch' or feature == 'bar_used_note':
         set1_eval = np.zeros((num_samples, num_bars, 1))  # base set
         set2_eval = np.zeros((num_samples, num_bars, 1))  # gen set
-    elif feature == 'total_pitch_class_histogram':
+    elif feature == 'total_pitch_class_histogram' or feature == 'total_note_length_histogram':
         pch = PCH(makam)
-        bc = pch.get_bin_count()
+        if feature == 'total_pitch_class_histogram':
+            bc = pch.get_note_bin_count()
+        else:
+            bc = pch.get_dur_bin_count()
+
         set1_eval = np.zeros((num_samples, bc))  # base set
         set2_eval = np.zeros((num_samples, bc))  # gen set
+    elif feature == 'bar_pitch_class_histogram':
+        pch = PCH(makam)
+        bc = pch.get_note_bin_count()
+        set1_eval = np.zeros((num_samples, num_bars, bc))  # base set
+        set2_eval = np.zeros((num_samples, num_bars, bc))  # gen set
     else:
         set1_eval = np.zeros((num_samples, 1))  # base set
         set2_eval = np.zeros((num_samples, 1))  # gen set
@@ -289,11 +307,18 @@ def abs_rel_pdfs(feature, makam, titles):
         elif feature == 'total_pitch_class_histogram':
             set1_eval[i] = get_pch(base_broad_list[chosen[i]], pch)
             set2_eval[i] = get_pch(gen_broad_list[i], pch)
+        elif feature == 'bar_pitch_class_histogram':
+            set1_eval[i] = get_bar_pch(base_broad_list[chosen[i]], pch, bars, makam, note_dict, nt, dt)
+            set2_eval[i] = get_bar_pch(gen_broad_list[i], pch, bars, makam, note_dict, nt, dt)
+        elif feature == 'total_note_length_histogram':
+            set1_eval[i] = get_dch(base_broad_list[chosen[i]], pch)
+            set2_eval[i] = get_dch(gen_broad_list[i], pch)
 
+    no_ax_set = ['bar_used_pitch', 'bar_used_note', 'total_pitch_class_histogram', 'total_note_length_histogram']
     print('\n' + titles[feature] + ':')
     print('------------------------')
     print(' Base Set')
-    if feature in ['bar_used_pitch', 'bar_used_note', 'total_pitch_class_histogram']:
+    if feature in no_ax_set:
         print('  mean: ', np.mean(set1_eval))
         print('  std: ', np.std(set1_eval))
     else:
@@ -302,7 +327,7 @@ def abs_rel_pdfs(feature, makam, titles):
 
     print('------------------------')
     print(' Gen Set')
-    if feature in ['bar_used_pitch', 'bar_used_note', 'total_pitch_class_histogram']:
+    if feature in no_ax_set:
         print('  mean: ', np.mean(set2_eval))
         print('  std: ', np.std(set2_eval))
     else:
@@ -334,11 +359,11 @@ def abs_rel_pdfs(feature, makam, titles):
     sns.kdeplot(plot_sets_inter[0], label='inter sets')
     sns.kdeplot(plot_set2_intra[0], label='intra gen set')
 
-    plt.title(titles[feature])
+    plt.title(titles[feature] + ' (' + makam.capitalize() + ')')
     plt.xlabel('Euclidean distance')
     plt.show()
 
-    print('\n' + titles[feature] + ':')
+    print('\n' + titles[feature] + ' (' + makam.capitalize() + ')' + ':')
     print('------------------------')
     print(' Base Set')
     print('  Kullback–Leibler Divergence:', utils_kl_dist(plot_set1_intra[0], plot_sets_inter[0]))
@@ -352,22 +377,26 @@ def abs_rel_pdfs(feature, makam, titles):
 
 def main():
     makams = ['hicaz', 'nihavent']
-    curr_makam = 1
+    curr_makam = 0
     features = ['total_used_pitch',
                 'bar_used_pitch',
                 'total_used_note',
                 'bar_used_note',
-                'total_pitch_class_histogram']
+                'total_pitch_class_histogram',
+                'bar_pitch_class_histogram',
+                'total_note_length_histogram']
 
     titles = {
         features[0]: 'Total Used Pitches',
         features[1]: 'Pitches Per Bar',
         features[2]: 'Total Used Durations',
         features[3]: 'Durations Per Bar',
-        features[4]: 'Total Pitch Class Histogram'
+        features[4]: 'Total Pitch Class Histogram',
+        features[5]: 'Pitch Class Histogram Per Bar',
+        features[6]: 'Total Duration Class Histogram'
     }
 
-    curr_feature = 4
+    curr_feature = 5
 
     # abs_measurement(makams[curr_makam])
     abs_rel_pdfs(features[curr_feature], makams[curr_makam], titles)
