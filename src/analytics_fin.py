@@ -258,6 +258,17 @@ def get_dch(song_obj, pch):
     return pch.get_dur_histogram()
 
 
+def get_pctm(song_obj, pch):
+    pch.init_note_transition_matrix()
+    notes = song_obj['notes']
+    note_len = len(notes) - 1
+    for i in range(note_len):
+        curr = notes[i]
+        nex = notes[i + 1]
+        pch.add_tuple(curr, nex)
+    return pch.get_note_transition_matrix()
+
+
 def abs_rel_pdfs(feature, makam, titles):
     oh_manager, nt, dt, note_dict = None, None, None, None
     if makam == 'hicaz':
@@ -299,6 +310,11 @@ def abs_rel_pdfs(feature, makam, titles):
         bc = pch.get_note_bin_count()
         set1_eval = np.zeros((num_samples, num_bars, bc))  # base set
         set2_eval = np.zeros((num_samples, num_bars, bc))  # gen set
+    elif feature == 'pitch_class_transition_matrix':
+        pch = PCH(makam)
+        bc = pch.get_note_bin_count()
+        set1_eval = np.zeros((num_samples, bc, bc))  # base set
+        set2_eval = np.zeros((num_samples, bc, bc))  # gen set
     else:
         set1_eval = np.zeros((num_samples, 1))  # base set
         set2_eval = np.zeros((num_samples, 1))  # gen set
@@ -325,12 +341,16 @@ def abs_rel_pdfs(feature, makam, titles):
         elif feature == 'total_note_length_histogram':
             set1_eval[i] = get_dch(base_broad_list[chosen[i]], pch)
             set2_eval[i] = get_dch(gen_broad_list[i], pch)
+        elif feature == 'pitch_class_transition_matrix':
+            set1_eval[i] = get_pctm(base_broad_list[chosen[i]], pch)
+            set2_eval[i] = get_pctm(gen_broad_list[i], pch)
 
     no_ax_set = ['bar_used_pitch',
                  'bar_used_note',
                  'total_pitch_class_histogram',
                  'total_note_length_histogram',
-                 'bar_pitch_class_histogram']
+                 'bar_pitch_class_histogram',
+                 'pitch_class_transition_matrix']
 
     print('\n' + titles[feature] + ':')
     print('------------------------')
@@ -394,14 +414,15 @@ def abs_rel_pdfs(feature, makam, titles):
 
 def main():
     makams = ['hicaz', 'nihavent']
-    curr_makam = 1
+    curr_makam = 0
     features = ['total_used_pitch',
                 'bar_used_pitch',
                 'total_used_note',
                 'bar_used_note',
                 'total_pitch_class_histogram',
                 'bar_pitch_class_histogram',
-                'total_note_length_histogram']
+                'total_note_length_histogram',
+                'pitch_class_transition_matrix']
 
     titles = {
         features[0]: 'Total Used Pitches',
@@ -410,10 +431,11 @@ def main():
         features[3]: 'Durations Per Bar',
         features[4]: 'Total Pitch Class Histogram',
         features[5]: 'Pitch Class Histogram Per Bar',
-        features[6]: 'Total Duration Class Histogram'
+        features[6]: 'Total Duration Class Histogram',
+        features[7]: 'Pitch Class Transition Matrix'
     }
 
-    curr_feature = 5
+    curr_feature = 7
 
     # abs_measurement(makams[curr_makam])
     abs_rel_pdfs(features[curr_feature], makams[curr_makam], titles)

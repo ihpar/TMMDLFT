@@ -51,6 +51,8 @@ class PCH:
         self.note_histogram = {}
         self.dur_histogram = {}
 
+        self.pctm = None
+
         if makam == 'hicaz':
             self.note_dict = NCDictionary()
         else:
@@ -101,7 +103,7 @@ class PCH:
             self.dur_collection.append(d)
         self.dur_collection.sort()
 
-    def add_note(self, note_num):
+    def translate_note_num(self, note_num):
         if self.nt:
             note_name = self.nt.get_note_name_by_num(note_num)
         else:
@@ -116,11 +118,39 @@ class PCH:
                 nn = self.note_dict.get_note_by_name(n_name)
 
             if nn in self.note_collection:
-                if nn in self.note_histogram:
-                    self.note_histogram[nn] += 1
-                else:
-                    self.note_histogram[nn] = 1
-                break
+                return nn
+
+        return -1
+
+    def add_note(self, note_num):
+        nn = self.translate_note_num(note_num)
+        if nn == -1:
+            return
+
+        if nn in self.note_histogram:
+            self.note_histogram[nn] += 1
+        else:
+            self.note_histogram[nn] = 1
+
+    def get_m_idx(self, note_num):
+        nn = self.translate_note_num(note_num)
+        if nn == -1:
+            return -1
+        idx = 0
+        for nc in self.note_collection:
+            if nc == nn:
+                return idx
+            idx += 1
+        return idx
+
+    def add_tuple(self, n1, n2):
+        ix1 = self.get_m_idx(n1)
+        ix2 = self.get_m_idx(n2)
+
+        if ix1 == -1 or ix2 == -1:
+            return
+
+        self.pctm[ix1][ix2] += 1
 
     def add_dur(self, dur_num):
         if dur_num in self.dur_histogram:
@@ -154,16 +184,17 @@ class PCH:
     def init_dur_histogram(self):
         self.dur_histogram = {}
 
+    def init_note_transition_matrix(self):
+        bc = self.get_note_bin_count()
+        self.pctm = np.zeros((bc, bc))
+
     def get_note_bin_count(self):
         return len(self.note_collection)
 
     def get_dur_bin_count(self):
         return len(self.dur_collection)
 
-
-def main():
-    pch = PCH('nihavent')
-
-
-if __name__ == '__main__':
-    main()
+    def get_note_transition_matrix(self):
+        trans_mat = np.copy(self.pctm)
+        trans_mat = trans_mat / sum(sum(trans_mat))
+        return trans_mat
