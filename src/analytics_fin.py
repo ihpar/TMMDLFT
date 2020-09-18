@@ -167,7 +167,17 @@ def get_count_per_bar(song, bars, makam, note_dict=None, dt=None, nd=ND.note):
 
 
 def get_bar_pch(song, pch, bars, makam, note_dict=None, nt=None, dt=None):
-    return []
+    num_bars = sum(bars)
+    measures = get_related_measures(song, bars, makam, note_dict, dt)
+    bc = pch.get_note_bin_count()
+    res = np.zeros((num_bars, bc))
+    for i, measure in enumerate(measures):
+        pch.init_note_histogram()
+        notes = measure['notes']
+        for note in notes:
+            pch.add_note(note)
+        res[i] = pch.get_note_histogram()
+    return res
 
 
 def get_different_dur_count(song):
@@ -316,7 +326,12 @@ def abs_rel_pdfs(feature, makam, titles):
             set1_eval[i] = get_dch(base_broad_list[chosen[i]], pch)
             set2_eval[i] = get_dch(gen_broad_list[i], pch)
 
-    no_ax_set = ['bar_used_pitch', 'bar_used_note', 'total_pitch_class_histogram', 'total_note_length_histogram']
+    no_ax_set = ['bar_used_pitch',
+                 'bar_used_note',
+                 'total_pitch_class_histogram',
+                 'total_note_length_histogram',
+                 'bar_pitch_class_histogram']
+
     print('\n' + titles[feature] + ':')
     print('------------------------')
     print(' Base Set')
@@ -379,7 +394,7 @@ def abs_rel_pdfs(feature, makam, titles):
 
 def main():
     makams = ['hicaz', 'nihavent']
-    curr_makam = 0
+    curr_makam = 1
     features = ['total_used_pitch',
                 'bar_used_pitch',
                 'total_used_note',
