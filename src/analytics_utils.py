@@ -51,7 +51,7 @@ class PCH:
         self.note_histogram = {}
         self.dur_histogram = {}
 
-        self.pctm = None
+        self.pctm, self.nltm = None, None
 
         if makam == 'hicaz':
             self.note_dict = NCDictionary()
@@ -143,6 +143,14 @@ class PCH:
             idx += 1
         return idx
 
+    def get_dm_idx(self, dur_num):
+        idx = 0
+        for dc in self.dur_collection:
+            if dc == dur_num:
+                return idx
+            idx += 1
+        return -1
+
     def add_tuple(self, n1, n2):
         ix1 = self.get_m_idx(n1)
         ix2 = self.get_m_idx(n2)
@@ -151,6 +159,13 @@ class PCH:
             return
 
         self.pctm[ix1][ix2] += 1
+
+    def add_dur_tuple(self, d1, d2):
+        ix1 = self.get_dm_idx(d1)
+        ix2 = self.get_dm_idx(d2)
+        if ix1 == -1 or ix2 == -1:
+            return
+        self.nltm[ix1][ix2] += 1
 
     def add_dur(self, dur_num):
         if dur_num in self.dur_histogram:
@@ -188,6 +203,10 @@ class PCH:
         bc = self.get_note_bin_count()
         self.pctm = np.zeros((bc, bc))
 
+    def init_dur_transition_matrix(self):
+        bc = self.get_dur_bin_count()
+        self.nltm = np.zeros((bc, bc))
+
     def get_note_bin_count(self):
         return len(self.note_collection)
 
@@ -196,5 +215,10 @@ class PCH:
 
     def get_note_transition_matrix(self):
         trans_mat = np.copy(self.pctm)
+        trans_mat = trans_mat / sum(sum(trans_mat))
+        return trans_mat
+
+    def get_dur_transition_matrix(self):
+        trans_mat = np.copy(self.nltm)
         trans_mat = trans_mat / sum(sum(trans_mat))
         return trans_mat
