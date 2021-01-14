@@ -305,7 +305,7 @@ def get_nltm(song_obj, pch):
     return pch.get_dur_transition_matrix()
 
 
-def abs_rel_pdfs(feature, makam, titles):
+def abs_rel_pdfs(feature, makam, titles, cu_feat):
     oh_manager, nt, dt, note_dict = None, None, None, None
     if makam == 'hicaz':
         note_dict = NCDictionary()
@@ -324,7 +324,9 @@ def abs_rel_pdfs(feature, makam, titles):
         chosen = choose_songs(base_broad_list, bars, num_samples)
     else:
         chosen = random.sample(song_idx, num_samples)
-    print('chosen:', chosen)
+    # print('chosen:', chosen)
+    chosen = [42, 67, 27, 59, 52, 18, 39, 48, 37, 30, 56, 55, 26, 61, 44, 57, 47, 12, 16, 5]  # nihavent
+    # chosen = [47, 43, 33, 12, 19, 13, 44, 48, 52, 14, 15, 41, 38, 9, 16, 37, 22, 34, 3, 29]  # hicaz
 
     note_nums_gen, dur_nums_gen, gen_broad_list, gen_min_len = get_songs_data(makam, note_dict, nt, dt, ST.generated)
     pch = None
@@ -446,13 +448,21 @@ def abs_rel_pdfs(feature, makam, titles):
     plot_set2_intra = np.transpose(set2_intra, (1, 0, 2)).reshape(1, -1)
     plot_sets_inter = np.transpose(sets_inter, (1, 0, 2)).reshape(1, -1)
 
+    sns.set_style('darkgrid')
+    plt.rcParams['font.family'] = 'Times New Roman'
+    plt.rcParams['font.size'] = 10
+    fig = plt.figure(figsize=(3, 3))
+
     sns.kdeplot(plot_set1_intra[0], label='intra base set')
     sns.kdeplot(plot_sets_inter[0], label='inter sets')
     sns.kdeplot(plot_set2_intra[0], label='intra gen set')
 
     plt.title(titles[feature] + ' (' + makam.capitalize() + ')')
     plt.xlabel('Euclidean distance')
+    plt.ylabel('Density')
     plt.show()
+
+    fig.savefig(str(cu_feat) + ' - ' + makam + '.svg', bbox_inches='tight')
 
     print('\n' + titles[feature] + ' (' + makam.capitalize() + ')' + ':')
     print('------------------------')
@@ -483,24 +493,39 @@ def main():
                 'note_length_transition_matrix']
 
     titles = {
-        features[0]: 'Total Used Pitches',
-        features[1]: 'Pitches Per Bar',
-        features[2]: 'Total Used Durations',
-        features[3]: 'Durations Per Bar',
-        features[4]: 'Total Pitch Class Histogram',
-        features[5]: 'Pitch Class Histogram Per Bar',
-        features[6]: 'Total Duration Class Histogram',
-        features[7]: 'Pitch Class Transition Matrix',
-        features[8]: 'Pitch Range',
-        features[9]: 'Average Pitch Shift',
-        features[10]: 'Average Inter-Onset-Interval',
-        features[11]: 'Note Length Transition Matrix'
+        features[0]: 'Total Used Pitches (PC)',
+        features[1]: 'Pitches Per Bar (PC/bar)',
+        features[2]: 'Total Used Durations (NC)',
+        features[3]: 'Durations Per Bar (NC/bar)',
+        features[4]: 'Total Pitch Class Histogram (PCH)',
+        features[5]: 'Pitch Class Histogram Per Bar (PCH/bar)',
+        features[6]: 'Total Duration Class Histogram (NLH)',
+        features[7]: 'Pitch Class Transition Matrix (PCTM)',
+        features[8]: 'Pitch Range (PR)',
+        features[9]: 'Average Pitch Shift (PI)',
+        features[10]: 'Average Inter-Onset-Interval (IOI)',
+        features[11]: 'Note Length Transition Matrix (NLTM)'
     }
 
-    curr_feature = 11
+    titles_short = {
+        features[0]: 'PC',
+        features[1]: 'PC/bar',
+        features[2]: 'NC',
+        features[3]: 'NC/bar',
+        features[4]: 'PCH',
+        features[5]: 'PCH/bar',
+        features[6]: 'NLH',
+        features[7]: 'PCTM',
+        features[8]: 'PR',
+        features[9]: 'PI',
+        features[10]: 'IOI',
+        features[11]: 'NLTM'
+    }
 
-    # abs_measurement(makams[curr_makam])
-    abs_rel_pdfs(features[curr_feature], makams[curr_makam], titles)
+    for curr_feature in range(12):
+        # abs_measurement(makams[curr_makam])
+        abs_rel_pdfs(features[curr_feature], makams[curr_makam], titles_short, curr_feature)
+        print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
 
 
 if __name__ == '__main__':

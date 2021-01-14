@@ -18,7 +18,12 @@ import math
 from candidate_picker import CandidatePicker
 from nakarat_ender import make_second_rep
 
+import seaborn as sns
+
 cnt_pa, cnt_pb = 0, 0
+
+cand_plots = [np.array([]), np.array([])]
+hi_added, lo_added = False, False
 
 
 def get_flattened_parts(makam, part_id, dir_path, note_dict, oh_manager):
@@ -370,6 +375,11 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
         p_a = get_prediction(model_a, part, lo, hi, cp)
         p_b = get_prediction(model_b, part, lo, hi, cp)
 
+        # add for plot
+        # if lo_added and hi_added:
+        #     plot_cand_comparisons()
+        # end add for plot# add for plot
+
         chosen = choose_prediction(part, p_a, p_b, decider, oh_manager)
 
         n_d = oh_manager.int_2_nd(chosen)
@@ -412,9 +422,18 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
 
 
 def get_prediction(model, part, lo, hi, cp):
+    # add for plot
+    # global hi_added, lo_added
+    # end add for plot
     prediction = model.predict(part)
     p_inner = np.copy(prediction[0])
     max_index = np.argmax(p_inner)
+
+    # add for plot
+    # if (p_inner[max_index] > hi) and (not hi_added):
+    #     cand_plots[0] = np.copy(prediction[0])
+    #     hi_added = True
+    # end add for plot
 
     if p_inner[max_index] < hi:
         index_candidates = [max_index]
@@ -428,8 +447,41 @@ def get_prediction(model, part, lo, hi, cp):
                 n_probs.append(p_inner[max_index])
             else:
                 has_candidates = False
+            # add for plot
+            # if (len(index_candidates) > 2) and (not lo_added):
+            #     cand_plots[1] = np.copy(prediction[0])
+            #     lo_added = True
+            # end add for plot
         max_index = cp.pick_candidate(part, index_candidates, n_probs)
     return max_index
+
+
+def plot_cand_comparisons():
+    sns.set_style('darkgrid')
+    plt.rcParams['font.family'] = 'Times New Roman'
+    plt.rcParams['font.size'] = 10
+    fig = plt.figure(figsize=(6, 3))
+
+    lhs = fig.add_subplot(121)
+    rhs = fig.add_subplot(122)
+
+    lhs.plot(cand_plots[0])
+    # lhs.set_title('Asd')
+    lhs.set_xlabel('Pitch-Duration Tuple IDs')
+    lhs.set_ylabel('Probability')
+    lhs.set_ylim([0, 1])
+    lhs.axhline(0.7, color='olive', linestyle='--')
+    lhs.axhline(0.15, color='orangered', linestyle='--')
+
+    rhs.plot(cand_plots[1])
+    rhs.set_xlabel('Pitch-Duration Tuple IDs')
+    rhs.set_ylabel('Probability')
+    rhs.set_ylim([0, 1])
+    rhs.axhline(0.7, color='olive', linestyle='--')
+    rhs.axhline(0.15, color='orangered', linestyle='--')
+
+    plt.show()
+    fig.savefig('Fig_2.svg', bbox_inches='tight')
 
 
 def choose_prediction(part, p_a, p_b, decider, oh_manager):
@@ -749,6 +801,7 @@ def main():
 
     # region nihavent test
     boundaries = [[0.15, 0.35], [0.1, 0.3], [0.05, 0.2]]
+    # boundaries = [[0.15, 0.7], [0.15, 0.7], [0.15, 0.7]]
 
     models_a = [load_model(makam, 'sec_IAW1_v101'), load_model(makam, 'sec_IAW2_v102'), load_model(makam, 'b_decider_v_ia2')]
     models_b = [load_model(makam, 'sec_BW1_v101'), load_model(makam, 'sec_BW2_v102'), load_model(makam, 'b_decider_v_b2')]

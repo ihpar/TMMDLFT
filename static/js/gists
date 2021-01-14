@@ -1,0 +1,40 @@
+this.draw = function (paper, porteLiHe, lThickness, left, top, color) {
+            let noteG = paper.g();
+            let noteBody = paper.path(symbols.n1);
+            let portePos = notePositions[this.getNote()];
+            let noteBodyTop = top + (lThickness / 2) + porteLiHe * portePos;
+            let translateStr = 't ' + left + ' ' + noteBodyTop;
+            let scaleFactor = porteLiHe / 5;
+            let scaleStr = 's' + scaleFactor + ' 0 0';
+            noteBody.transform(translateStr + ' ' + scaleStr);
+            noteBody.attr({
+                fill: color
+            });
+            noteG.add(noteBody);
+
+            let nbw = noteBody.getBBox().width;
+            let nbh = noteBody.getBBox().height;
+
+            let wingTop = top + lThickness + porteLiHe * portePos - (porteLiHe * 3);
+            let wingLeft = left + nbw - scaleFactor / 2;
+            if (this.durNum === 1 && this.durDen === 8) {
+                let wing = paper.path(symbols.wing);
+                translateStr = 't ' + wingLeft + ' ' + wingTop;
+                scaleStr = 's' + scaleFactor + ' 0 0';
+                wing.transform(translateStr + ' ' + scaleStr);
+                wing.attr({
+                    fill: color
+                });
+                noteG.add(wing);
+            }
+
+            let post = paper.line(wingLeft, wingTop, wingLeft, noteBodyTop + (nbh / 3));
+            post.attr({
+                stroke: color,
+                strokeWidth: scaleFactor,
+                strokeLinecap: 'round'
+            });
+            noteG.add(post);
+
+            return noteG;
+        }
