@@ -245,6 +245,10 @@
 
     let cNoteWidths = {};
 
+    function handleSocketErrors(err) {
+        console.log('Socket err', err);
+    }
+
     function setMakam(makam, accidentals) {
         document.getElementById('selectedMakamName').innerHTML = makam;
         mParams.makam.name = makam;
@@ -465,6 +469,10 @@
         }
     }
 
+    function handleCompositionStatus(msg) {
+        console.log('c stat msg:', msg);
+    }
+
     function besteleButtonClick(e, sender) {
         console.log(sender.innerHTML);
         e.stopPropagation();
@@ -473,7 +481,7 @@
         for (let note of song) {
             notes.push(note.toNoteStr(true, true));
         }
-        mParams.socket.emit('client_connected', {notes: notes});
+        mParams.socket.emit('start_composing', {makam: mParams.makam.name, notes: notes});
     }
 
     function soundButtonClick(e, sender) {
@@ -2071,11 +2079,15 @@
 
             mParams.socket = io('http://127.0.0.1:5000');
             mParams.socket.on('connect', function () {
-                console.log('socket on');
+                console.log('socket OK');
             });
             mParams.socket.on('update', function (data) {
                 console.log('update', data);
             });
+            mParams.socket.on('connect_error', err => handleSocketErrors(err));
+            mParams.socket.on('connect_failed', err => handleSocketErrors(err));
+            mParams.socket.on('disconnect', err => handleSocketErrors(err));
+            mParams.socket.on('composition_status', msg => handleCompositionStatus(msg));
         };
 
         this.begin = function () {
