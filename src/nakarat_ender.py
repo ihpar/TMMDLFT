@@ -12,7 +12,7 @@ from tensorflow.python.keras.callbacks import EarlyStopping
 from mu2_reader import *
 from model_ops import load_model, save_model
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import hicaz_parts
 import random
 
@@ -108,11 +108,13 @@ def train_nakarat_ending_model(makam, base_model, model_name, xs, ys, eps=0):
         history = model.fit(xs, ys, epochs=eps, batch_size=16, shuffle=False)
 
     save_model(makam, model_name, model)
+    '''
     plt.plot(history.history['loss'], label='train')
     if eps == 0:
         plt.plot(history.history['val_loss'], label='test')
     plt.legend()
     plt.show()
+    '''
 
 
 def pick_chosen(pred_a, pred_b, threshold):

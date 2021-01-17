@@ -10,7 +10,7 @@ import note_translator
 from mu2_reader import *
 from model_ops import load_model, save_model
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import os
 import io
 import random
@@ -18,7 +18,8 @@ import math
 from candidate_picker import CandidatePicker
 from nakarat_ender import make_second_rep
 
-import seaborn as sns
+# import seaborn as sns
+
 
 cnt_pa, cnt_pb = 0, 0
 
@@ -120,11 +121,13 @@ def train_whole(makam, src_model, xs, ys, target_model, eps=0):
         history = new_model.fit(xs, ys, epochs=eps, batch_size=16, shuffle=False)
 
     save_model(makam, target_model, new_model)
+    '''
     plt.plot(history.history['loss'], label='train')
     if eps == 0:
         plt.plot(history.history['val_loss'], label='test')
     plt.legend()
     plt.show()
+    '''
 
 
 def train_model(makam, src_model, xs, ys, target_model, eps):
@@ -154,8 +157,8 @@ def train_model(makam, src_model, xs, ys, target_model, eps):
             histories.extend(history.history['loss'])
 
     save_model(makam, target_model, new_model)
-    plt.plot(histories)
-    plt.show()
+    # plt.plot(histories)
+    # plt.show()
 
 
 def get_starters(init_file, set_size, note_dict, oh_manager, nt=None, dt=None):
@@ -327,7 +330,7 @@ def print_notes(notes, oh_manager, note_dict):
         print(f'{note_name}, {note_dur}')
 
 
-def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi, cp, note_dict, oh_manager, by_part=False):
+def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi, cp, note_dict, oh_manager, by_part=False, by_gui=False):
     global cnt_pa, cnt_pb
     model_a = models[0]
     model_b = models[1]
@@ -457,6 +460,7 @@ def get_prediction(model, part, lo, hi, cp):
 
 
 def plot_cand_comparisons():
+    '''
     sns.set_style('darkgrid')
     plt.rcParams['font.family'] = 'Times New Roman'
     plt.rcParams['font.size'] = 10
@@ -482,6 +486,8 @@ def plot_cand_comparisons():
 
     plt.show()
     fig.savefig('Fig_2.svg', bbox_inches='tight')
+    '''
+    pass
 
 
 def choose_prediction(part, p_a, p_b, decider, oh_manager):
@@ -675,6 +681,54 @@ def compose_ending(makam, enders, part, time_sig, measure_cnt, note_dict, oh_man
         second_rep = make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_manager, lo, hi)
 
     return second_rep
+
+
+def gui_composer(makam, starters):
+    if makam == 'Hicaz':
+        makam = 'hicaz'
+    else:
+        makam = 'nihavent'
+
+    dir_path = os.path.join(os.path.abspath(os.path.join(os.getcwd(), os.pardir)), 'songs', 'cp_songs', makam)
+    set_size = 8
+    measure_cnt = 4
+
+    if makam == 'hicaz':
+        note_dict = NCDictionary()
+        oh_manager = OhManager(makam)
+        time_sig = Fraction(9, 8)
+        boundaries = [[0.15, 0.35], [0.15, 0.35], [0.10, 0.30]]
+
+        models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'b_decider_v_ia7')]
+        models_b = [load_model(makam, 'sec_BW11_v61'), load_model(makam, 'sec_BW12_v62'), load_model(makam, 'b_decider_v_b8')]
+        models_c = [load_model(makam, 'sec_CW1_v61'), load_model(makam, 'sec_CW2_v62'), load_model(makam, 'b_decider_v_c9')]
+        enders = ['nakarat_end_v2', 'nakarat_end_v1']
+
+        song_name = 'Hicaz_Aksak_Sarki'
+        lo, hi = boundaries[0][0], boundaries[0][1]
+        cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
+        part_a = compose_v2(makam, time_sig, measure_cnt, starters, models_a, set_size, lo, hi, cp, note_dict, oh_manager, by_gui=True)
+        if len(part_a) == 0:
+            return 'Err 1'
+
+        lo, hi = boundaries[1][0], boundaries[1][1]
+        cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['B'], dir_path, note_dict, oh_manager, set_size)
+        part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+        second_rep = compose_ending(makam, enders, part_b, time_sig, measure_cnt, note_dict, oh_manager, lo, hi)
+        if len(part_b) == 0:
+            return 'Err 2'
+
+        lo, hi = boundaries[2][0], boundaries[2][1]
+        cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['C'], dir_path, note_dict, oh_manager, set_size)
+        part_c = compose_v2(makam, time_sig, measure_cnt, part_b, models_c, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+        if len(part_c) == 0:
+            return 'Err 3'
+
+        song = np.append(part_a, part_b, axis=1)
+        song = np.append(song, part_c, axis=1)
+        song_2_mus(song, makam, song_name, oh_manager, note_dict, time_sig, '4,8,12', second_rep)
+
+    return 'OK loaded models'
 
 
 def main():

@@ -1,8 +1,7 @@
-'''
-
 from flask import Flask, render_template, url_for
 from flask_socketio import SocketIO, send, emit
-import time
+
+from parts_composer import gui_composer
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'lorem_ip'
@@ -11,20 +10,13 @@ socketio = SocketIO(app)
 
 @socketio.on('start_composing')
 def start_composing(data):
-    makam = data['makam']
-    notes = data['notes']
-    print(makam)
-    for combo in notes:
-        parts = combo.split(':')
-        note = parts[0]
-        dur = parts[1]
-        print(note, dur)
+    try:
+        makam = data['makam']
+        notes = data['notes']
 
-    emit('composition_status', {'det': gui_composer(makam, notes)})
-    time.sleep(4)
-    emit('composition_status', {'ket': ['a', 2, 3.14]})
-    time.sleep(4)
-    emit('composition_status', {'suc': {'met': -3}})
+        emit('composition_status', {'type': 'status', 'msg': gui_composer(makam, notes)})
+    except Exception as e:
+        emit('composition_status', {'type': 'error', 'msg': str(e)})
 
 
 @socketio.on('disconnect')
@@ -49,5 +41,3 @@ def index():
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
-
-'''
