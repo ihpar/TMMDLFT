@@ -2077,7 +2077,7 @@
                 }
             });
 
-            mParams.socket = io('http://127.0.0.1:5000');
+            mParams.socket = io();
             mParams.socket.on('connect', function () {
                 console.log('socket OK');
             });

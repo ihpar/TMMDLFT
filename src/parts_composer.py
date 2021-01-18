@@ -161,49 +161,78 @@ def train_model(makam, src_model, xs, ys, target_model, eps):
     # plt.show()
 
 
-def get_starters(init_file, set_size, note_dict, oh_manager, nt=None, dt=None):
+def get_starters(init_file, set_size, note_dict, oh_manager, nt=None, dt=None, from_array=False):
     nom_index = 2
     den_index = 3
     beat, tot = None, Fraction(0)
     starters = []
-    with codecs.open(init_file, 'r', encoding='utf8') as sf:
-        lines = sf.read().splitlines()
-        i = 0
-        for line in lines:
-            if i == set_size:
-                break
-            parts = line.split('\t')
-            parts = [s.strip() for s in parts]
-            parts[0] = int(parts[0])
+    if from_array:
 
-            if (parts[0] in [1, 4, 7, 9, 10, 11, 12, 23, 24, 28]) and (
-                    parts[nom_index].isdigit() and parts[den_index].isdigit()):
-                # note name
-                note_name = parts[1].lower().strip()
-                if note_name == '':
-                    note_name = 'rest'
+        for nd in init_file:
+            parts = nd.split(':')
+            note_name = parts[0].lower()
+            if nt:
+                note_num = nt.get_note_num_by_name(note_name)
+            else:
+                note_num = note_dict.get_note_by_name(note_name)
 
-                if nt:
-                    note_num = nt.get_note_num_by_name(note_name)
-                else:
-                    note_num = note_dict.get_note_by_name(note_name)
+            # note dur
+            note_len = Fraction(parts[1])
+            tot += note_len
+            dur = str(note_len)
 
-                # note dur
-                note_len = Fraction(int(parts[nom_index]), int(parts[den_index]))
-                tot += note_len
-                dur = str(note_len)
-                dur_alt = parts[nom_index] + '/' + parts[den_index]
+            if dt:
+                dur = dt.get_dur_num_by_name(parts[1])
+            else:
+                dur = note_dict.get_num_by_dur(dur)
 
-                if dt:
-                    dur = dt.get_dur_num_by_name(dur_alt)
-                else:
-                    dur = note_dict.get_num_by_dur(dur)
+            if not dur:
+                dur = note_dict.get_num_by_dur(parts[1])
 
-                if not dur:
-                    dur = note_dict.get_num_by_dur(dur_alt)
-                combine = oh_manager.nd_2_oh(str(note_num) + ':' + str(dur))
-                starters.append(combine)
-                i += 1
+            combine = oh_manager.nd_2_oh(str(note_num) + ':' + str(dur))
+            starters.append(combine)
+
+    else:
+
+        with codecs.open(init_file, 'r', encoding='utf8') as sf:
+            lines = sf.read().splitlines()
+            i = 0
+            for line in lines:
+                if i == set_size:
+                    break
+                parts = line.split('\t')
+                parts = [s.strip() for s in parts]
+                parts[0] = int(parts[0])
+
+                if (parts[0] in [1, 4, 7, 9, 10, 11, 12, 23, 24, 28]) and (
+                        parts[nom_index].isdigit() and parts[den_index].isdigit()):
+                    # note name
+                    note_name = parts[1].lower().strip()
+                    if note_name == '':
+                        note_name = 'rest'
+
+                    if nt:
+                        note_num = nt.get_note_num_by_name(note_name)
+                    else:
+                        note_num = note_dict.get_note_by_name(note_name)
+
+                    # note dur
+                    note_len = Fraction(int(parts[nom_index]), int(parts[den_index]))
+                    tot += note_len
+                    dur = str(note_len)
+                    dur_alt = parts[nom_index] + '/' + parts[den_index]
+
+                    if dt:
+                        dur = dt.get_dur_num_by_name(dur_alt)
+                    else:
+                        dur = note_dict.get_num_by_dur(dur)
+
+                    if not dur:
+                        dur = note_dict.get_num_by_dur(dur_alt)
+                    combine = oh_manager.nd_2_oh(str(note_num) + ':' + str(dur))
+                    starters.append(combine)
+                    i += 1
+
     return np.array(starters), tot
 
 
@@ -330,7 +359,7 @@ def print_notes(notes, oh_manager, note_dict):
         print(f'{note_name}, {note_dur}')
 
 
-def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi, cp, note_dict, oh_manager, by_part=False, by_gui=False):
+def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi, cp, note_dict, oh_manager, by_part=False, from_array=False):
     global cnt_pa, cnt_pb
     model_a = models[0]
     model_b = models[1]
@@ -345,9 +374,9 @@ def compose_v2(makam, time_sig, measure_cnt, init_file, models, set_size, lo, hi
 
     if not by_part:
         if makam == 'hicaz':
-            starters, tot = get_starters(init_file, set_size, note_dict, oh_manager)
+            starters, tot = get_starters(init_file, set_size, note_dict, oh_manager, from_array=from_array)
         elif makam == 'nihavent':
-            starters, tot = get_starters(init_file, set_size, note_dict, oh_manager, nt, dt)
+            starters, tot = get_starters(init_file, set_size, note_dict, oh_manager, nt, dt, from_array=from_array)
     else:
         if makam == 'hicaz':
             starters, tot = get_starters_by_part(init_file, set_size, note_dict, oh_manager, models, lo, hi, cp, time_sig)
@@ -522,7 +551,7 @@ def get_mu2_str(note, nom, denom):
         return '9	{nn}	{num}	{denom}	95	96	64	 		0.0'.replace('{nn}', note).replace('{num}', nom).replace('{denom}', denom)
 
 
-def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_rep):
+def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_rep, to_browser=False):
     nt, dt = None, None
     if makam == 'nihavent':
         nt = note_translator.NoteTranslator(makam)
@@ -621,13 +650,16 @@ def song_2_mus(song, makam, title, oh_manager, note_dict, time_sig, mcs, second_
                 lines.append('9								:	0.0')
                 lines.append('9								)	0.0')
                 lines.append('9								$	0.0')
-    file_name = title + '.mu2'
-    song_path = os.path.join(os.path.abspath('..'), 'songs', makam, file_name)
-    with io.open(song_path, 'w', encoding='utf-8') as song_file:
-        for line in lines:
-            song_file.write(line + '\n')
 
-    print(f'{file_name} is saved to disk!')
+    if to_browser:
+        pass
+    else:
+        file_name = title + '.mu2'
+        song_path = os.path.join(os.path.abspath('..'), 'songs', makam, file_name)
+        with io.open(song_path, 'w', encoding='utf-8') as song_file:
+            for line in lines:
+                song_file.write(line + '\n')
+        print(f'{file_name} is saved to disk!')
 
 
 def make_ab_db(makam, part_ids, dir_path, note_dict, oh_manager, set_size):
@@ -681,6 +713,69 @@ def compose_ending(makam, enders, part, time_sig, measure_cnt, note_dict, oh_man
         second_rep = make_second_rep(makam, enders, part, time_sig, measure_cnt, note_dict, oh_manager, lo, hi)
 
     return second_rep
+
+
+def compose_zemin(makam, starters):
+    if makam == 'Hicaz':
+        makam = 'hicaz'
+    else:
+        makam = 'nihavent'
+
+    dir_path = os.path.join(os.path.abspath(os.path.join(os.getcwd(), os.pardir)), 'songs', 'cp_songs', makam)
+    set_size = 8
+    measure_cnt = 4
+    if makam == 'hicaz':
+        note_dict = NCDictionary()
+        oh_manager = OhManager(makam)
+        time_sig = Fraction(9, 8)
+        models_a = [load_model(makam, 'sec_AW9_v61'), load_model(makam, 'sec_AW10_v62'), load_model(makam, 'b_decider_v_ia7')]
+        lo, hi = 0.15, 0.35
+        cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['I', 'A'], dir_path, note_dict, oh_manager, set_size)
+        part_a = compose_v2(makam, time_sig, measure_cnt, starters, models_a, set_size, lo, hi, cp, note_dict, oh_manager, from_array=True)
+        if len(part_a) == 0:
+            return {'type': 'error',
+                    'msg': 'empty zemin'}
+
+        return {'type': 'success',
+                'makam': makam,
+                'dir_path': dir_path,
+                'set_size': set_size,
+                'measure_cnt': measure_cnt,
+                'note_dict': note_dict,
+                'oh_manager': oh_manager,
+                'time_sig': time_sig,
+                'part_a': part_a}
+
+
+def compose_nakarat(makam, dir_path, set_size, measure_cnt, note_dict, oh_manager, time_sig, part_a):
+    if makam == 'hicaz':
+        lo, hi = 0.15, 0.35
+        enders = ['nakarat_end_v2', 'nakarat_end_v1']
+        models_b = [load_model(makam, 'sec_BW11_v61'), load_model(makam, 'sec_BW12_v62'), load_model(makam, 'b_decider_v_b8')]
+        cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['B'], dir_path, note_dict, oh_manager, set_size)
+        part_b = compose_v2(makam, time_sig, measure_cnt, part_a, models_b, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+        second_rep = compose_ending(makam, enders, part_b, time_sig, measure_cnt, note_dict, oh_manager, lo, hi)
+        if len(part_b) == 0:
+            return {'type': 'error',
+                    'msg': 'empty nakarat'}
+
+        return {'type': 'success',
+                'part_b': part_b,
+                'second_rep': second_rep}
+
+
+def compose_meyan(makam, dir_path, set_size, measure_cnt, note_dict, oh_manager, time_sig, part_b):
+    if makam == 'hicaz':
+        lo, hi = 0.10, 0.30
+        models_c = [load_model(makam, 'sec_CW1_v61'), load_model(makam, 'sec_CW2_v62'), load_model(makam, 'b_decider_v_c9')]
+        cp = CandidatePicker(makam, hicaz_parts.hicaz_songs, ['C'], dir_path, note_dict, oh_manager, set_size)
+        part_c = compose_v2(makam, time_sig, measure_cnt, part_b, models_c, set_size, lo, hi, cp, note_dict, oh_manager, by_part=True)
+        if len(part_c) == 0:
+            return {'type': 'error',
+                    'msg': 'empty meyan'}
+
+        return {'type': 'success',
+                'part_c': part_c}
 
 
 def gui_composer(makam, starters):
