@@ -1,11 +1,11 @@
 import numpy as np
-from flask import Flask, render_template, url_for
-from flask_socketio import SocketIO, send, emit
+from flask import Flask, render_template
+from flask_socketio import SocketIO, emit
 from parts_composer import compose_zemin, compose_nakarat, compose_meyan, song_2_mus
 import eventlet
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'lorem_ipman'
+app.config['SECRET_KEY'] = 'lorem_ip_man'
 socketio = SocketIO(app, async_mode='eventlet')
 eventlet.monkey_patch()
 
