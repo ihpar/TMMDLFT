@@ -95,8 +95,8 @@ def plot_weights(file_list_a, file_list_b, note_dict, chart_title, legend_a, leg
             comp_ys.append(0)
 
         note_name = note_dict.get_note_by_num(el)
-        if note_name == 'rest':
-            note_name = 'sus'
+        # if note_name == 'rest':
+        #     note_name = 'sus'
         note_names.append(note_name)
 
     print(note_names)
@@ -108,6 +108,7 @@ def plot_weights(file_list_a, file_list_b, note_dict, chart_title, legend_a, leg
     ax.set_title(chart_title)
     ax.plot(note_names, cor_ys, label=legend_a)
     ax.plot(note_names, comp_ys, label=legend_b)
+    ax.set_ylabel('Density')
 
     plt.grid()
     plt.xticks(rotation=90)
@@ -283,17 +284,20 @@ def main():
     note_dict = NCDictionary()
     # oh_manager = OhManager(makam)
 
-    '''
-    dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
-    corpus_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
-                    if os.path.isfile(os.path.join(dir_path, f)) and (f.startswith('hicaz--') or f.startswith('bes-hicaz-'))]
+    dir_path = '../mu2'
+    # corpus_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
+    #                 if os.path.isfile(os.path.join(dir_path, f)) and (f.startswith('hicaz--') or f.startswith('bes-hicaz-'))]
 
-    dir_path = os.path.join(os.path.abspath('..'), 'songs', 'hicaz-sarkilar')
+    corpus_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
+                    if os.path.isfile(os.path.join(dir_path, f)) and (f.startswith('nihavent--'))]
+
+    dir_path = os.path.join(os.path.abspath('..'), 'songs', 'nihavent')
     composer_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
                       if os.path.isfile(os.path.join(dir_path, f))]
 
-    # plot_weights(corpus_files, composer_files, note_dict, 'Nota Ağırlıkları', 'SymbTr', 'Oto Besteci', out_file='agirlik_genel.png')
+    plot_weights(corpus_files, composer_files, note_dict, 'Nihâvent Makam Pitches', 'SymbTr', 'ATMMC', 'nihavent_pd.png')
 
+    '''
     corpus_files = []
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
     for song in hicaz_parts.hicaz_songs:
@@ -320,11 +324,12 @@ def main():
     # plot_freqs(5, 10, corpus_files, composer_files, note_dict, 'Beşli Dizi Frekansları', 'SymbTr', 'Oto Besteci', out_file='freq_genel_5.png')
     # plot_freqs(5, 10, corpus_files, composer_files, note_dict, 'Aksak Şarkı Beşli Dizi Frekansları', 'SymbTr', 'Oto Besteci', out_file='freq_aksak_5.png')
     plot_freqs_aligned(6, 15, corpus_files, composer_files, note_dict, 'Altılı Dizi Frekansları Aksak Şarkı', 'SymbTr', 'Oto Besteci', out_file='freq_aksak_6.png')
-    '''
+    
     dir_path = 'C:\\Users\\istir\\Desktop\\SymbTr-master\\mu2'
     corpus_files = [f for f in os.listdir(dir_path)
                     if os.path.isfile(os.path.join(dir_path, f)) and (f.startswith(makam + '--'))]
     dissect_genres_rtm(corpus_files)
+    '''
 
 
 if __name__ == '__main__':

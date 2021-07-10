@@ -305,6 +305,79 @@ def get_nltm(song_obj, pch):
     return pch.get_dur_transition_matrix()
 
 
+def toy_kld_oa_sample():
+    base_set = np.array([[18], [19], [18], [17], [19]])
+    gen_set_1 = np.array([[19], [18], [19], [18], [17]])
+    gen_set_2 = np.array([[1], [2], [1], [0], [2]])
+
+    print('base set  mean: ', np.mean(base_set), ' std: ', np.std(base_set), ' var: ', np.var(base_set))
+    print('gen set 1  mean: ', np.mean(gen_set_1), ' std: ', np.std(gen_set_1), ' var: ', np.var(gen_set_1))
+    print('gen set 2  mean: ', np.mean(gen_set_2), ' std: ', np.std(gen_set_2), ' var: ', np.var(gen_set_2))
+    print('--------------------------')
+
+    base_set_intra = np.zeros((5, 1, 4))
+    set_1_intra = np.zeros((5, 1, 4))
+    set_2_intra = np.zeros((5, 1, 4))
+
+    loo = LeaveOneOut()
+    loo.get_n_splits(np.arange(5))
+
+    for train_index, test_index in loo.split(np.arange(5)):
+        base_set_intra[test_index[0]][0] = utils_c_dist(base_set[test_index], base_set[train_index])
+        set_1_intra[test_index[0]][0] = utils_c_dist(gen_set_1[test_index], gen_set_1[train_index])
+        set_2_intra[test_index[0]][0] = utils_c_dist(gen_set_2[test_index], gen_set_2[train_index])
+
+    loo = LeaveOneOut()
+    loo.get_n_splits(np.arange(5))
+    sets_inter_1 = np.zeros((5, 1, 5))
+    sets_inter_2 = np.zeros((5, 1, 5))
+
+    for train_index, test_index in loo.split(np.arange(5)):
+        sets_inter_1[test_index[0]][0] = utils_c_dist(base_set[test_index], gen_set_1)
+        sets_inter_2[test_index[0]][0] = utils_c_dist(base_set[test_index], gen_set_2)
+
+    plot_base_set_intra = np.transpose(base_set_intra, (1, 0, 2)).reshape(1, -1)
+    plot_set_1_intra = np.transpose(set_1_intra, (1, 0, 2)).reshape(1, -1)
+    plot_sets_inter_1 = np.transpose(sets_inter_1, (1, 0, 2)).reshape(1, -1)
+    plot_set_2_intra = np.transpose(set_2_intra, (1, 0, 2)).reshape(1, -1)
+    plot_sets_inter_2 = np.transpose(sets_inter_2, (1, 0, 2)).reshape(1, -1)
+
+    print('Base & Set 1')
+    print('  Kullback–Leibler Divergence:', utils_kl_dist(plot_base_set_intra[0], plot_sets_inter_1[0]))
+    print('  Overlap Area:', utils_overlap_area(plot_base_set_intra[0], plot_sets_inter_1[0]))
+
+    print('Set 1 & Base')
+    print('  Kullback–Leibler Divergence:', utils_kl_dist(plot_set_1_intra[0], plot_sets_inter_1[0]))
+    print('  Overlap Area:', utils_overlap_area(plot_set_1_intra[0], plot_sets_inter_1[0]))
+
+    print('------------------------')
+    print('Base & Set 2')
+    print('  Kullback–Leibler Divergence:', utils_kl_dist(plot_base_set_intra[0], plot_sets_inter_2[0]))
+    print('  Overlap Area:', utils_overlap_area(plot_base_set_intra[0], plot_sets_inter_2[0]))
+
+    print('Set 2 & Base')
+    print('  Kullback–Leibler Divergence:', utils_kl_dist(plot_set_2_intra[0], plot_sets_inter_2[0]))
+    print('  Overlap Area:', utils_overlap_area(plot_set_2_intra[0], plot_sets_inter_2[0]))
+
+    # sns.set_style('darkgrid')
+    plt.rcParams['font.family'] = 'Times New Roman'
+    plt.rcParams['font.size'] = 12
+    fig = plt.figure(figsize=(9, 6))
+
+    sns.kdeplot(plot_base_set_intra[0], label='Intra Base Set')
+    sns.kdeplot(plot_sets_inter_1[0], label='Base & Set 1 Inter Sets')
+    sns.kdeplot(plot_set_1_intra[0], label='Intra Set 1')
+    sns.kdeplot(plot_sets_inter_2[0], label='Base & Set 2 Inter Sets')
+    sns.kdeplot(plot_set_2_intra[0], label='Intra Set 2')
+
+    plt.title('Toy Example')
+    plt.xlabel('Euclidean distance')
+    plt.ylabel('Density')
+    plt.show()
+
+    fig.savefig('toy_2.svg', bbox_inches='tight')
+
+
 def abs_rel_pdfs(feature, makam, titles, cu_feat):
     oh_manager, nt, dt, note_dict = None, None, None, None
     if makam == 'hicaz':
@@ -477,6 +550,7 @@ def abs_rel_pdfs(feature, makam, titles, cu_feat):
 
 
 def main():
+    '''
     makams = ['hicaz', 'nihavent']
     curr_makam = 1
     features = ['total_used_pitch',
@@ -526,6 +600,8 @@ def main():
         # abs_measurement(makams[curr_makam])
         abs_rel_pdfs(features[curr_feature], makams[curr_makam], titles_short, curr_feature)
         print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+    '''
+    toy_kld_oa_sample()
 
 
 if __name__ == '__main__':
