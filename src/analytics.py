@@ -6,6 +6,8 @@ from nc_dictionary import NCDictionary
 from collections import defaultdict
 import matplotlib.pyplot as plt
 import hicaz_parts
+import numpy as np
+import random
 
 
 def get_notes(files, note_dict):
@@ -59,7 +61,7 @@ def plot_weights(file_list_a, file_list_b, note_dict, chart_title, legend_a, leg
     corpus_ys, composer_ys = [], []
     cor_dict, com_dict = {}, {}
 
-    th = 0.005
+    th = 0.05
 
     for k, v in sorted(corpus_od.items()):
         normalized = float(v) / corpus_max
@@ -101,6 +103,12 @@ def plot_weights(file_list_a, file_list_b, note_dict, chart_title, legend_a, leg
 
     print(note_names)
 
+    sim = 0
+    for p, q in zip(cor_ys, comp_ys):
+        sim += min(p, q) / (p + q)
+    sim = (2 * sim) / len(cor_ys)
+    print('Sim', sim)
+
     plt.rc('font', family='Times New Roman')
     plt.rcParams.update({'font.size': 12})
     fig, ax = plt.subplots()
@@ -115,7 +123,8 @@ def plot_weights(file_list_a, file_list_b, note_dict, chart_title, legend_a, leg
     plt.legend(loc="upper right")
     plt.tight_layout()
     if out_file:
-        plt.savefig(out_file)
+        pass
+        # plt.savefig(out_file)
     plt.show()
 
 
@@ -281,6 +290,7 @@ def dissect_genres_rtm(corpus_files):
 
 def main():
     makam = 'nihavent'
+    makam_title = 'Nihâvent'
     note_dict = NCDictionary()
     # oh_manager = OhManager(makam)
 
@@ -289,13 +299,15 @@ def main():
     #                 if os.path.isfile(os.path.join(dir_path, f)) and (f.startswith('hicaz--') or f.startswith('bes-hicaz-'))]
 
     corpus_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
-                    if os.path.isfile(os.path.join(dir_path, f)) and (f.startswith('nihavent--'))]
+                    if os.path.isfile(os.path.join(dir_path, f)) and (f.startswith(makam + '--'))]
 
-    dir_path = os.path.join(os.path.abspath('..'), 'songs', 'nihavent')
+    corpus_files = random.sample(corpus_files, 40)
+
+    dir_path = os.path.join(os.path.abspath('..'), 'songs', makam)
     composer_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)
                       if os.path.isfile(os.path.join(dir_path, f))]
 
-    plot_weights(corpus_files, composer_files, note_dict, 'Nihâvent Makam Pitches', 'SymbTr', 'ATMMC', 'nihavent_pd.png')
+    plot_weights(corpus_files, composer_files, note_dict, makam_title + ' Makam Pitches', 'SymbTr', 'ATMMC', makam + '_pd.png')
 
     '''
     corpus_files = []
